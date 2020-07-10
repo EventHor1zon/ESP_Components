@@ -394,7 +394,6 @@ esp_err_t WS2812_deinit()
 /**
  * Driver control task 
  *  Duties - Check for strand frame refresh 
- *          - Check for new orders from the peripheral queue
  *           - Check for update requests & update as needed
  *            - check for led effects r/w requests
  **/
