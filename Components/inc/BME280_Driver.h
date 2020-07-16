@@ -75,6 +75,7 @@
 #define BMP_CALIBR_DATA_BANK2_LEN 8
 #define BMP_CALIBR_DATA_LEN 32
 
+#define BMP_DEVICE_ID 0x60
 #define BMP_STATUS_IM_UPDATE_BIT 0
 #define BMP_STATUS_MEASURE_BIT (4)
 #define BMP_STATUS_UPDATE_MASK 0x01
@@ -122,7 +123,7 @@ typedef enum bme_modes
     BME_MODE_TEMP_HUMIDITY,
     BME_MODE_PRESSURE,
     BME_MODE_ALL
-} BME_mode_t;
+} BME_sampleTypes_t;
 
 typedef struct BME_CalibrationData
 {
@@ -168,7 +169,8 @@ typedef struct BME280_controlData
 {
     BME_calibrationData_t calibrationData;
     BME_sensorData_t sensorData;
-    BME_mode_t mode;
+    BME_sampleTypes_t sampleType;
+    BME_sampleMode_t sampleMode;
 
     uint8_t peripheralID;
     uint8_t deviceAddress;
@@ -178,7 +180,7 @@ typedef struct BME280_controlData
 
 typedef struct bme_initData
 {
-    BME_mode_t mode;
+    BME_sampleTypes_t sampleType;
     bool addressPinState;
     uint8_t i2cChannel; /** < 0 - no i2c initialised, driver will init. 1 | 2, valid i2c channels */
 

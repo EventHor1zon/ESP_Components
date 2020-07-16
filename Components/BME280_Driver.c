@@ -28,6 +28,8 @@ static uint32_t bme280_compensate_H_int32(int32_t adc_H);
 
 /****** Global Data *******************/
 
+const char *BME_DRIVER_TAG = "BME280 DRIVER::";
+
 BME280_controlData_t bme280Control = {0};
 
 /****** Private Data ******************/
@@ -83,6 +85,28 @@ static uint32_t bme280_compensate_H_int32(int32_t adc_H)
     v_x1_u32r = (v_x1_u32r < 0 ? 0 : v_x1_u32r);
     v_x1_u32r = (v_x1_u32r > 419430400 ? 419430400 : v_x1_u32r);
     return (uint32_t)(v_x1_u32r >> 12);
+}
+
+static esp_err_t bme280_i2cWriteToAddress(BME280_controlData_t *bme280Control, uint8_t regAddress, uint16_t writeLength, uint8_t *txBuffer)
+{
+
+    esp_err_t trxStatus;
+    uint8_t commands[2];
+
+    /** TODO: Find out if write bit needed or automatic **/
+    commands[0] = bme280Control->deviceAddress << 1 | I2C_MASTER_WRITE;
+    commands[1] = regAddress;
+
+    i2c_cmd_handle_t cmdHandle = i2c_cmd_link_create();
+    ESP_ERROR_CHECK(i2c_master_start(cmdHandle));
+    ESP_ERROR_CHECK(i2c_master_write(cmdHandle, commands, 2, TRUE));
+    ESP_ERROR_CHECK(i2c_master_read(cmdHandle, rxBuffer, (readLength - 1), TRUE));
+    ESP_ERROR_CHECK(i2c_master_read(cmdHandle, rxBuffer, 1, FALSE));
+    ESP_ERROR_CHECK(i2c_master_stop(cmdHandle));
+    trxStatus = i2c_master_cmd_begin(bme280Control->i2cChannel, cmdHandle, pdMS_TO_TICKS(BME_DRIVER_I2C_TRX_TIMEOUT));
+    i2c_cmd_link_delete(cmdHandle);
+
+    return trxStatus;
 }
 
 static esp_err_t bme280_i2cReadFromAddress(BME280_controlData_t *bme280Control, uint8_t regAddress, uint16_t readLength, uint8_t *rxBuffer)
@@ -157,11 +181,26 @@ static esp_err_t bme280_getCalibrationData(BME280_controlData_t *bme280Control)
     return trxStatus;
 }
 
-static bme280_InitDevice(BME_mode_t mode)
+static esp_err_t bme280_getDeviceID(BME280_controlData_t *bme280control, uint8_t deviceID)
+{
+
+    esp_err_t trxStatus = ESP_OK;
+
+    uint8_t devID = 0;
+
+    trxStatus = bme280_i2cReadFromAddress(bme280control, (uint8_t)BMP_REG_ADDR_DEVICEID, 1, &devID);
+
+    if (trxStatus == ESP_OK)
+    {
+        deviceID = devID;
+    }
+
+    return trxStatus;
+}
+
+static bme280_InitDeviceSettings(BME280_controlData_t bme280control)
 {
     uint8_t rwAddress;
-
-    i2c_cmd_handle_t cmds = i2c_cmd_link_create();
 }
 
 /****** Global Functions *************/
@@ -211,8 +250,29 @@ esp_err_t bme280_init(bme_initData_t *initData)
         }
     }
 
+    ESP_LOGI(BME_DRIVER_TAG, "Contacting device at address %02x", bme280Control.deviceAddress);
+
     if (initStatus == ESP_OK)
     {
-        initStatus = bme280_getCalibrationData(mode);
+        uint8_t deviceID = 0;
+        initStatus = bme280_getDeviceID(&bme280Control, deviceID);
+        if (deviceID == (uint8_t)BMP_DEVICE_ID)
+        {
+            ESP_LOGI(BME_DRIVER_TAG, "Device ID checks out!");
+        }
+    }
+
+    if (initStatus == ESP_OK)
+    {
+        initStatus = bme280_getCalibrationData(&bme280control);
+        if (initStatus == ESP_OK)
+        {
+            ESP_LOGI(BME_DRIVER_TAG, "Succesfully got the calibration data!");
+        }
+    }
+
+    if (initStatus == ESP_OK)
+    {
+        initStatus = bme280_initDeviceSettings(&bme280Control);
     }
 }
