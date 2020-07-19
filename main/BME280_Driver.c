@@ -23,9 +23,9 @@
 #include "../inc/BME280_Driver.h"
 
 /****** Function Prototypes ***********/
-static int32_t BME280_compensate_T_int32(BME280_controlData_t *bmCtrl, int32_t adc_T);
-static uint32_t BME280_compensate_P_int64(BME280_controlData_t *bmCtrl, int32_t adc_P);
-static uint32_t bme280_compensate_H_int32(BME280_controlData_t *bmCtrl, int32_t adc_H);
+static int32_t bm280_compensate_T_int32(bm_controlData_t *bmCtrl, int32_t adc_T);
+static uint32_t bm280_compensate_P_int64(bm_controlData_t *bmCtrl, int32_t adc_P);
+static uint32_t bm280_compensate_H_int32(bm_controlData_t *bmCtrl, int32_t adc_H);
 /************ ISR *********************/
 
 /****** Global Data *******************/
@@ -39,7 +39,7 @@ const char *BME_DRIVER_TAG = "BME280 DRIVER::";
 
 /* Returns temperature in DegC, resolution is 0.01 DegC. Output value of “5123” equals 51.23 DegC. */
 /* bmCtrl->sensorData.t_fine carries fine temperature as global value int32_t bmCtrl->sensorData.t_fine; */
-static int32_t BME280_compensate_T_int32(BME280_controlData_t *bmCtrl, int32_t adc_T)
+static int32_t bm280_compensate_T_int32(bm_controlData_t *bmCtrl, int32_t adc_T)
 {
     if (bmCtrl->calibrationAquired)
     {
@@ -60,7 +60,7 @@ static int32_t BME280_compensate_T_int32(BME280_controlData_t *bmCtrl, int32_t a
 
 /* Returns pressure in Pa as unsigned 32 bit integer in Q24.8 format (24 integer bits and 8 fractional bits).*/
 /* Output value of “24674867” represents 24674867 / 256 = 96386.2 Pa = 963.862 hPa */
-static uint32_t BME280_compensate_P_int64(BME280_controlData_t *bmCtrl, int32_t adc_P)
+static uint32_t bm280_compensate_P_int64(bm_controlData_t *bmCtrl, int32_t adc_P)
 {
     if (bmCtrl->calibrationAquired)
     {
@@ -92,8 +92,9 @@ static uint32_t BME280_compensate_P_int64(BME280_controlData_t *bmCtrl, int32_t 
 // Returns humidity in %RH as unsigned 32 bit integer in Q22.10 format (22 integer and 10 fractional bits).
 // Output value of “47445” represents 47445/1024 = 46.333 %RH
 
-/** bme280_compensate_H_int32: Compensate Humidity Data **/
-static uint32_t bme280_compensate_H_int32(BME280_controlData_t *bmCtrl, int32_t adc_H)
+/** bm280_compensate_H_int32: Compensate Humidity Data **/
+#ifdef BME_280
+static uint32_t bm280_compensate_H_int32(bm_controlData_t *bmCtrl, int32_t adc_H)
 {
     if (bmCtrl->calibrationAquired)
     {
@@ -111,9 +112,10 @@ static uint32_t bme280_compensate_H_int32(BME280_controlData_t *bmCtrl, int32_t 
         return 0;
     }
 }
+#endif
 
 /** Generic I2C write to address function **/
-static esp_err_t bme280_i2cWriteToAddress(BME280_controlData_t *bmCtrl, uint8_t regAddress, uint16_t writeLength, uint8_t *txBuffer)
+static esp_err_t bm280_i2cWriteToAddress(bm_controlData_t *bmCtrl, uint8_t regAddress, uint16_t writeLength, uint8_t *txBuffer)
 {
 
     esp_err_t trxStatus;
@@ -128,13 +130,13 @@ static esp_err_t bme280_i2cWriteToAddress(BME280_controlData_t *bmCtrl, uint8_t 
     ESP_ERROR_CHECK(i2c_master_write(cmdHandle, commands, 2, true));
     ESP_ERROR_CHECK(i2c_master_write(cmdHandle, txBuffer, writeLength, true));
     ESP_ERROR_CHECK(i2c_master_stop(cmdHandle));
-    trxStatus = i2c_master_cmd_begin(bmCtrl->i2cChannel, cmdHandle, pdMS_TO_TICKS(BME_DRIVER_I2C_TRX_TIMEOUT));
+    trxStatus = i2c_master_cmd_begin(bmCtrl->i2cChannel, cmdHandle, pdMS_TO_TICKS(BM_DRIVER_I2C_TRX_TIMEOUT));
     i2c_cmd_link_delete(cmdHandle);
 
     return trxStatus;
 }
 
-static esp_err_t bme280_i2cReadFromAddress(BME280_controlData_t *bmCtrl, uint8_t regAddress, uint16_t readLength, uint8_t *rxBuffer)
+static esp_err_t bm280_i2cReadFromAddress(bm_controlData_t *bmCtrl, uint8_t regAddress, uint16_t readLength, uint8_t *rxBuffer)
 {
     /** TODO: replace this with a generic i2c readfromregister function **/
     esp_err_t trxStatus;
@@ -167,31 +169,34 @@ static esp_err_t bme280_i2cReadFromAddress(BME280_controlData_t *bmCtrl, uint8_t
     return trxStatus;
 }
 
-static esp_err_t bme280_getDeviceStatus(BME280_controlData_t *bmCtrl)
+static esp_err_t bm280_getDeviceStatus(bm_controlData_t *bmCtrl)
 {
     esp_err_t trxStatus = ESP_OK;
 
     uint8_t statusBuffer = 0;
-    trxStatus = bme280_i2cReadFromAddress(bmCtrl, BMP_REG_ADDR_DEV_STATUS, 1, &statusBuffer);
+    trxStatus = bm280_i2cReadFromAddress(bmCtrl, BM_REG_ADDR_DEV_STATUS, 1, &statusBuffer);
     if (trxStatus == ESP_OK)
     {
-        bmCtrl->sensorData.statusMeasure = (statusBuffer & BMP_STATUS_MEASURE_MASK) ? 1 : 0;
-        bmCtrl->sensorData.statusUpdate = (statusBuffer & BMP_STATUS_UPDATE_MASK) ? 1 : 0;
+        bmCtrl->sensorData.statusMeasure = (statusBuffer & BM_STATUS_MEASURE_MASK) ? 1 : 0;
+        bmCtrl->sensorData.statusUpdate = (statusBuffer & BM_STATUS_UPDATE_MASK) ? 1 : 0;
     }
 
     return trxStatus;
 }
 
-static esp_err_t bme280_getCalibrationData(BME280_controlData_t *bmCtrl)
+static esp_err_t bm280_getCalibrationData(bm_controlData_t *bmCtrl)
 {
     esp_err_t trxStatus = ESP_OK;
 
-    uint8_t buffer[BMP_CALIBR_DATA_LEN + 1] = {0}; /** buffer len 33 **/
+    uint8_t buffer[BM_CALIBR_DATA_LEN + 1] = {0};
 
+#ifdef BME_280
     /** retrieve the calibration data - add +1 to length of bank1 as there's an unused byte (A0, index[24]) in there **/
-    trxStatus = bme280_i2cReadFromAddress(bmCtrl, (uint8_t)BMP_REG_ADDR_DIGT1_LSB, BMP_CALIBR_DATA_BANK1_LEN + 1, buffer);
-    trxStatus = bme280_i2cReadFromAddress(bmCtrl, (uint8_t)BMP_REG_ADDR_DIGH2_LSB, BMP_CALIBR_DATA_BANK2_LEN, &buffer[BMP_CALIBR_DATA_BANK1_LEN + 1]);
-
+    trxStatus = bm280_i2cReadFromAddress(bmCtrl, (uint8_t)BM_REG_ADDR_DIGT1_LSB, BM_CALIBR_DATA_BANK1_LEN + 1, buffer);
+    trxStatus = bm280_i2cReadFromAddress(bmCtrl, (uint8_t)BM_REG_ADDR_DIGH2_LSB, BM_CALIBR_DATA_BANK2_LEN, &buffer[BM_CALIBR_DATA_BANK1_LEN + 1]);
+#else
+    trxStatus = bm280_i2cReadFromAddress(bmCtrl, (uint8_t)BM_REG_ADDR_DIGT1_LSB, BM_CALIBR_DATA_LEN, buffer);
+#endif
     /** now for some rejigging... **/
 
     if (trxStatus == ESP_OK)
@@ -208,25 +213,27 @@ static esp_err_t bme280_getCalibrationData(BME280_controlData_t *bmCtrl)
         bmCtrl->calibrationData.dig_P7 = (int16_t)buffer[18] << 8 | (int16_t)buffer[19];
         bmCtrl->calibrationData.dig_P8 = (int16_t)buffer[20] << 8 | (int16_t)buffer[21];
         bmCtrl->calibrationData.dig_P9 = (int16_t)buffer[22] << 8 | (int16_t)buffer[23];
+#ifdef BME_280
         bmCtrl->calibrationData.dig_H1 = buffer[25];
         bmCtrl->calibrationData.dig_H2 = (int16_t)buffer[26] << 8 | (int16_t)buffer[27];
         bmCtrl->calibrationData.dig_H3 = buffer[28];
         bmCtrl->calibrationData.dig_H4 = (int16_t)buffer[28] << 8 | (int16_t)buffer[29];
         bmCtrl->calibrationData.dig_H5 = (int16_t)buffer[30] << 8 | (int16_t)buffer[31];
         bmCtrl->calibrationData.dig_H6 = (int8_t)buffer[32];
+#endif
     }
 
     return trxStatus;
 }
 
-static esp_err_t bme280_getDeviceID(BME280_controlData_t *bmCtrl, uint8_t *deviceID)
+static esp_err_t bm280_getDeviceID(bm_controlData_t *bmCtrl, uint8_t *deviceID)
 {
 
     esp_err_t trxStatus = ESP_OK;
 
     uint8_t devID = 0;
 
-    trxStatus = bme280_i2cReadFromAddress(bmCtrl, (uint8_t)BMP_REG_ADDR_DEVICEID, 1, &devID);
+    trxStatus = bm280_i2cReadFromAddress(bmCtrl, (uint8_t)BM_REG_ADDR_DEVICEID, 1, &devID);
 
     ESP_LOGI(BME_DRIVER_TAG, "Got device ID: %02x", devID);
     if (trxStatus == ESP_OK)
@@ -237,7 +244,7 @@ static esp_err_t bme280_getDeviceID(BME280_controlData_t *bmCtrl, uint8_t *devic
     return trxStatus;
 }
 
-static esp_err_t bme280_InitDeviceSettings(BME280_controlData_t *bmCtrl, bme_initData_t *initData)
+static esp_err_t bm280_InitDeviceSettings(bm_controlData_t *bmCtrl, bm_initData_t *initData)
 {
 
     /** TODO: set - set sample types
@@ -272,32 +279,32 @@ static esp_err_t bme280_InitDeviceSettings(BME280_controlData_t *bmCtrl, bme_ini
     switch (sampleType)
     {
     case BME_MODE_TEMP:
-        commands[1] |= BMP_CTRL_TEMP_BIT;
+        commands[1] |= BM_CTRL_TEMP_BIT;
         break;
     case BME_MODE_TEMP_PRESSURE:
-        commands[1] |= (BMP_CTRL_TEMP_BIT | BMP_CTRL_PRESSURE_BIT);
+        commands[1] |= (BM_CTRL_TEMP_BIT | BM_CTRL_PRESSURE_BIT);
         break;
     case BME_MODE_PRESSURE:
-        commands[1] |= BMP_CTRL_PRESSURE_BIT;
+        commands[1] |= BM_CTRL_PRESSURE_BIT;
         break;
     case BME_MODE_HUMIDITY:
         commands[0] = 1;
         break;
     case BME_MODE_HUMIDITY_PRESSURE:
         commands[0] = 1;
-        commands[1] |= BMP_CTRL_PRESSURE_BIT;
+        commands[1] |= BM_CTRL_PRESSURE_BIT;
         break;
     case BME_MODE_ALL:
         commands[0] = 1;
-        commands[1] |= (BMP_CTRL_TEMP_BIT | BMP_CTRL_PRESSURE_BIT);
+        commands[1] |= (BM_CTRL_TEMP_BIT | BM_CTRL_PRESSURE_BIT);
         break;
     default:
         break;
     }
 
     /** have to do 2 writes to 0xF2 and 0xF4-5, because 0xF3 is read only :/ **/
-    trxStatus = bme280_i2cWriteToAddress(bmCtrl, BMP_REG_ADDR_CTRL_HUMID, 1, commands);
-    trxStatus = bme280_i2cWriteToAddress(bmCtrl, BMP_REG_ADDR_CTRL_MEASURE, 2, &commands[1]);
+    trxStatus = bm280_i2cWriteToAddress(bmCtrl, BM_REG_ADDR_CTRL_HUMID, 1, commands);
+    trxStatus = bm280_i2cWriteToAddress(bmCtrl, BM_REG_ADDR_CTRL_MEASURE, 2, &commands[1]);
     if (trxStatus != ESP_OK)
     {
         ESP_LOGE(BME_DRIVER_TAG, "Error in setting control registers");
@@ -308,13 +315,13 @@ static esp_err_t bme280_InitDeviceSettings(BME280_controlData_t *bmCtrl, bme_ini
 
 /****** Global Functions *************/
 
-esp_err_t bme280_init(bme_initData_t *initData)
+esp_err_t bm280_init(bm_initData_t *initData)
 {
     esp_err_t initStatus = ESP_OK;
 
     /** assign some heap memory for the control structure **/
 
-    BME280_controlData_t *bmCtrl = (BME280_controlData_t *)calloc(1, sizeof(BME280_controlData_t));
+    bm_controlData_t *bmCtrl = (bm_controlData_t *)calloc(1, sizeof(bm_controlData_t));
     if (bmCtrl == NULL)
     {
         ESP_LOGE(BME_DRIVER_TAG, "Error in assigning control structure memory!");
@@ -358,11 +365,11 @@ esp_err_t bme280_init(bme_initData_t *initData)
         bmCtrl->mode = initData->sampleMode;
         if (initData->addressPinState)
         {
-            bmCtrl->deviceAddress = (uint8_t)BMP_I2C_ADDRESS_SDHIGH;
+            bmCtrl->deviceAddress = (uint8_t)BM_I2C_ADDRESS_SDHIGH;
         }
         else
         {
-            bmCtrl->deviceAddress = (uint8_t)BMP_I2C_ADDRESS_SDLOW;
+            bmCtrl->deviceAddress = (uint8_t)BM_I2C_ADDRESS_SDLOW;
         }
 
         ESP_LOGI(BME_DRIVER_TAG, "Device address - %u", bmCtrl->deviceAddress);
@@ -372,8 +379,8 @@ esp_err_t bme280_init(bme_initData_t *initData)
     if (initStatus == ESP_OK)
     {
         uint8_t deviceID = 0;
-        initStatus = bme280_getDeviceID(bmCtrl, &deviceID);
-        if (deviceID == (uint8_t)BMP_DEVICE_ID)
+        initStatus = bm280_getDeviceID(bmCtrl, &deviceID);
+        if (deviceID == (uint8_t)DEVICE_ID)
         {
             ESP_LOGI(BME_DRIVER_TAG, "Device ID checks out!: 0x%02x", deviceID);
         }
@@ -385,7 +392,7 @@ esp_err_t bme280_init(bme_initData_t *initData)
     /*
     if (initStatus == ESP_OK)
     {
-        initStatus = bme280_getCalibrationData(bmCtrl);
+        initStatus = bm280_getCalibrationData(bmCtrl);
         if (initStatus == ESP_OK)
         {
             ESP_LOGI(BME_DRIVER_TAG, "Succesfully got the calibration data!");
@@ -398,7 +405,7 @@ esp_err_t bme280_init(bme_initData_t *initData)
 
     if (initStatus == ESP_OK)
     {
-        initStatus = bme280_InitDeviceSettings(bmCtrl);
+        initStatus = bm280_InitDeviceSettings(bmCtrl);
     }
 */
     return initStatus;

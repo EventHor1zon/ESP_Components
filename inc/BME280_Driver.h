@@ -1,13 +1,13 @@
 /****************************************
-* \file     BME280_Driver.h
-* \brief    Header file for the BME280 bosch temperature sensor
+* \file     BM280_Driver.h
+* \brief    Header file for the BMP280/BME280 bosch temperature sensors
 *           Driver.
 * \date     July 2020 
 * \author   RJAM
 ****************************************/
 
-#ifndef BME280_DRIVER_H
-#define BME280_DRIVER_H
+#ifndef BM280_DRIVER_H
+#define BM280_DRIVER_H
 
 /********* Includes ********************/
 
@@ -15,76 +15,90 @@
 
 /********* Definitions *****************/
 
-#define BMP_I2C_ADDRESS_SDLOW 0x76
-#define BMP_I2C_ADDRESS_SDHIGH 0x77
+#define DEVICE_TYPE BMP_280
 
-#define BMP_TRANSACTION_READ_BIT 0x01
+#define BM_I2C_ADDRESS_SDLOW 0x76
+#define BM_I2C_ADDRESS_SDHIGH 0x77
 
-#define BMP_REG_ADDR_DIGT1_LSB 0x88
-#define BMP_REG_ADDR_DIGT1_MSB 0x89
-#define BMP_REG_ADDR_DIGT2_LSB 0x8A
-#define BMP_REG_ADDR_DIGT2_MSB 0x8B
-#define BMP_REG_ADDR_DIGT3_LSB 0x8C
-#define BMP_REG_ADDR_DIGT3_MSB 0x8D
-#define BMP_REG_ADDR_DIGP1_LSB 0x8E
-#define BMP_REG_ADDR_DIGP1_MSB 0x8F
-#define BMP_REG_ADDR_DIGP2_LSB 0x90
-#define BMP_REG_ADDR_DIGP2_MSB 0x91
-#define BMP_REG_ADDR_DIGP3_LSB 0x92
-#define BMP_REG_ADDR_DIGP3_MSB 0x93
-#define BMP_REG_ADDR_DIGP4_LSB 0x94
-#define BMP_REG_ADDR_DIGP4_MSB 0x95
-#define BMP_REG_ADDR_DIGP5_LSB 0x96
-#define BMP_REG_ADDR_DIGP5_MSB 0x97
-#define BMP_REG_ADDR_DIGP6_LSB 0x98
-#define BMP_REG_ADDR_DIGP6_MSB 0x99
-#define BMP_REG_ADDR_DIGP7_LSB 0x9A
-#define BMP_REG_ADDR_DIGP7_MSB 0x9B
-#define BMP_REG_ADDR_DIGP8_LSB 0x9C
-#define BMP_REG_ADDR_DIGP8_MSB 0x9D
-#define BMP_REG_ADDR_DIGP9_LSB 0x9E
-#define BMP_REG_ADDR_DIGP9_MSB 0x9F
-#define BMP_REG_ADDR_DIGH1 0xA1
+#define BM_TRANSACTION_READ_BIT 0x01
 
-#define BMP_REG_ADDR_DEVICEID 0xD0
-#define BMP_REG_ADDR_SOFTRESET 0xE0
+#define BM_REG_ADDR_DIGT1_LSB 0x88
+#define BM_REG_ADDR_DIGT1_MSB 0x89
+#define BM_REG_ADDR_DIGT2_LSB 0x8A
+#define BM_REG_ADDR_DIGT2_MSB 0x8B
+#define BM_REG_ADDR_DIGT3_LSB 0x8C
+#define BM_REG_ADDR_DIGT3_MSB 0x8D
+#define BM_REG_ADDR_DIGP1_LSB 0x8E
+#define BM_REG_ADDR_DIGP1_MSB 0x8F
+#define BM_REG_ADDR_DIGP2_LSB 0x90
+#define BM_REG_ADDR_DIGP2_MSB 0x91
+#define BM_REG_ADDR_DIGP3_LSB 0x92
+#define BM_REG_ADDR_DIGP3_MSB 0x93
+#define BM_REG_ADDR_DIGP4_LSB 0x94
+#define BM_REG_ADDR_DIGP4_MSB 0x95
+#define BM_REG_ADDR_DIGP5_LSB 0x96
+#define BM_REG_ADDR_DIGP5_MSB 0x97
+#define BM_REG_ADDR_DIGP6_LSB 0x98
+#define BM_REG_ADDR_DIGP6_MSB 0x99
+#define BM_REG_ADDR_DIGP7_LSB 0x9A
+#define BM_REG_ADDR_DIGP7_MSB 0x9B
+#define BM_REG_ADDR_DIGP8_LSB 0x9C
+#define BM_REG_ADDR_DIGP8_MSB 0x9D
+#define BM_REG_ADDR_DIGP9_LSB 0x9E
+#define BM_REG_ADDR_DIGP9_MSB 0x9F
+#define BM_REG_ADDR_DIGH1 0xA1
 
-#define BMP_REG_ADDR_DIGH2_LSB 0xE1
-#define BMP_REG_ADDR_DIGH2_MSB 0xE2
-#define BMP_REG_ADDR_DIGH3 0xE3
-#define BMP_REG_ADDR_DIGH4_LSB 0xE4
-#define BMP_REG_ADDR_DIGH4_MSB 0xE5
-#define BMP_REG_ADDR_DIGH5_LSB 0xE5
-#define BMP_REG_ADDR_DIGH5_MSB 0xE6
-#define BMP_REG_ADDR_DIGH6 0xE7
+#define BM_REG_ADDR_DEVICEID 0xD0
+#define BM_REG_ADDR_SOFTRESET 0xE0
 
-#define BMP_REG_ADDR_CTRL_HUMID 0xF2
-#define BMP_REG_ADDR_DEV_STATUS 0xF3
-#define BMP_REG_ADDR_CTRL_MEASURE 0xF4
-#define BMP_REG_ADDR_CONFIG 0xF5
-#define BMP_REG_ADDR_PRESSURE_MSB 0xF7
-#define BMP_REG_ADDR_PRESSURE_LSB 0xF8
-#define BMP_REG_ADDR_PRESSURE_XLSB 0xF9
-#define BMP_REG_ADDR_TEMP_MSB 0xFA
-#define BMP_REG_ADDR_TEMP_LSB 0xFB
-#define BMP_REG_ADDR_TEMP_XLSB 0xFC
-#define BMP_REG_ADDR_HUMIDITY_MSB 0xFD
-#define BMP_REG_ADDR_HUMIDITY_LSB 0xFE
+#define BM_REG_ADDR_DIGH2_LSB 0xE1
+#define BM_REG_ADDR_DIGH2_MSB 0xE2
+#define BM_REG_ADDR_DIGH3 0xE3
+#define BM_REG_ADDR_DIGH4_LSB 0xE4
+#define BM_REG_ADDR_DIGH4_MSB 0xE5
+#define BM_REG_ADDR_DIGH5_LSB 0xE5
+#define BM_REG_ADDR_DIGH5_MSB 0xE6
+#define BM_REG_ADDR_DIGH6 0xE7
 
-#define BMP_CALIBR_DATA_BANK1_LEN 26
-#define BMP_CALIBR_DATA_BANK2_LEN 8
-#define BMP_CALIBR_DATA_LEN 32
+#define BM_REG_ADDR_CTRL_HUMID 0xF2
+#define BM_REG_ADDR_DEV_STATUS 0xF3
+#define BM_REG_ADDR_CTRL_MEASURE 0xF4
+#define BM_REG_ADDR_CONFIG 0xF5
+#define BM_REG_ADDR_PRESSURE_MSB 0xF7
+#define BM_REG_ADDR_PRESSURE_LSB 0xF8
+#define BM_REG_ADDR_PRESSURE_XLSB 0xF9
+#define BM_REG_ADDR_TEMP_MSB 0xFA
+#define BM_REG_ADDR_TEMP_LSB 0xFB
+#define BM_REG_ADDR_TEMP_XLSB 0xFC
+#define BM_REG_ADDR_HUMIDITY_MSB 0xFD
+#define BM_REG_ADDR_HUMIDITY_LSB 0xFE
+
+#ifdef BME_280
+#define BM_CALIBR_DATA_BANK1_LEN 26
+#define BM_CALIBR_DATA_BANK2_LEN 8
+#define BM_CALIBR_DATA_LEN 32
+#else
+#define BM_CALIBR_DATA_LEN 24
+#endif
+
+#ifdef BME_280
+#define DEVICE_ID 0x60
+#else
+#define DEVICE_ID 0x58
+#endif
 
 #define BMP_DEVICE_ID 0x58
-#define BMP_STATUS_IM_UPDATE_BIT 0
-#define BMP_STATUS_MEASURE_BIT (4)
-#define BMP_CTRL_TEMP_BIT (1 << 5)
-#define BMP_CTRL_PRESSURE_BIT (1 << 2)
+#define BME_DEVICE_ID 0x60
 
-#define BMP_STATUS_UPDATE_MASK 0x01
-#define BMP_STATUS_MEASURE_MASK 0b00010000
+#define BM_STATUS_IM_UPDATE_BIT 0
+#define BM_STATUS_MEASURE_BIT (4)
+#define BM_CTRL_TEMP_BIT (1 << 5)
+#define BM_CTRL_PRESSURE_BIT (1 << 2)
 
-#define BME_DRIVER_I2C_TRX_TIMEOUT 100
+#define BM_STATUS_UPDATE_MASK 0x01
+#define BM_STATUS_MEASURE_MASK 0b00010000
+
+#define BM_DRIVER_I2C_TRX_TIMEOUT 100
 
 #define DEBUG_MODE
 
@@ -95,9 +109,9 @@
 #endif
 
 /** defaults **/
-#define BME_DEFAULT_HUM_CTRL 0x01
-#define BME_DEFAULT_TEMP_CTRL 0x01
-#define BME_DEFAULT_T_STDBY (1 << 5)
+#define BM_DEFAULT_HUM_CTRL 0x01
+#define BM_DEFAULT_TEMP_CTRL 0x01
+#define BM_DEFAULT_T_STDBY (1 << 5)
 
 /**
  *  E4:   -  digH4[11:4]
@@ -106,47 +120,62 @@
 
 /********** Types **********************/
 
-typedef enum bme_oversampling
+typedef enum bm_devTypes
 {
-    BME_OS_0 = 0x00,
-    BME_OS_1 = 0x01,
-    BME_OS_2 = 0x02,
-    BME_OS_4 = 0x03,
-    BME_OS_8 = 0x04,
-    BME_OS_16 = 0x05
-} BME_overSample_t;
+    BMP_280_DEVICE,
+    BME_280_DEVICE
+
+} BM_deviceType_t;
+
+typedef enum bm_oversampling
+{
+    BM_OS_0 = 0x00,
+    BM_OS_1 = 0x01,
+    BM_OS_2 = 0x02,
+    BM_OS_4 = 0x03,
+    BM_OS_8 = 0x04,
+    BM_OS_16 = 0x05
+} BM_overSample_t;
 
 typedef enum bme_sampleMode
 {
-    BME_SAMPLE_OFF = 0x00, /**< sampling off **/
-    BME_FORCE_MODE = 0x01, /**< sample on demand **/
-    BME_NORMAL_MODE = 0x03 /**< sample at interval **/
-} BME_sampleMode_t;
+    BM_SAMPLE_OFF = 0x00, /**< sampling off **/
+    BM_FORCE_MODE = 0x01, /**< sample on demand **/
+    BM_NORMAL_MODE = 0x03 /**< sample at interval **/
+} BM_sampleMode_t;
 
 typedef enum bme_standbyT
 {
-    BME_T_STDBY_0_5MS = 0x00,
-    BME_T_STDBY_62_5MS = 0x01,
-    BME_T_STDBY_125MS = 0x02,
-    BME_T_STDBY_250MS = 0x03,
-    BME_T_STDBY_500MS = 0x04,
-    BME_T_STDBY_1000MS = 0x05,
-    BME_T_STDBY_2000MS = 0x06,
-    BME_T_STDBY_4000MS = 0x07
-} BME_standbyT_t;
+    BM_T_STDBY_0_5MS = 0x00,
+    BM_T_STDBY_62_5MS = 0x01,
+    BM_T_STDBY_125MS = 0x02,
+    BM_T_STDBY_250MS = 0x03,
+    BM_T_STDBY_500MS = 0x04,
+    BM_T_STDBY_1000MS = 0x05,
+#ifdef BM_280
+    BM_T_STDBY_10MS = 0x06,
+    BM_T_STDBY_20MS = 0x07
+#else
+    BM_T_STDBY_2000MS = 0x06,
+    BM_T_STDBY_4000MS = 0x07
+#endif
 
-typedef enum bme_modes
+} BM_standbyT_t;
+
+typedef enum bm_sampleModes
 {
-    BME_MODE_TEMP,
-    BME_MODE_TEMP_HUMIDITY,
-    BME_MODE_TEMP_PRESSURE,
-    BME_MODE_HUMIDITY_PRESSURE,
-    BME_MODE_PRESSURE,
-    BME_MODE_HUMIDITY,
-    BME_MODE_ALL
-} BME_sampleTypes_t;
+    BM_MODE_TEMP,
+    BM_MODE_PRESSURE,
+    BM_MODE_TEMP_PRESSURE,
+#ifdef BM_280
+    BM_MODE_TEMP_HUMIDITY,
+    BM_MODE_HUMIDITY_PRESSURE,
+    BM_MODE_HUMIDITY,
+    BM_MODE_TEMP_PRESSURE_HUMIDITY
+#endif
+} BM_sampleTypes_t;
 
-typedef struct BME_CalibrationData
+typedef struct BM_CalibrationData
 {
     uint16_t dig_T1;
     int16_t dig_T2;
@@ -160,38 +189,46 @@ typedef struct BME_CalibrationData
     int16_t dig_P7;
     int16_t dig_P8;
     int16_t dig_P9;
+#ifdef BM_280
     uint8_t dig_H1;
     int16_t dig_H2;
     uint8_t dig_H3;
     int16_t dig_H4;
     int16_t dig_H5;
     int8_t dig_H6;
-} BME_calibrationData_t;
+#endif
+} bm_calibrationData_t;
 
-typedef struct BME_sensorData
+typedef struct BM_sensorData
 {
 
+    float realTemperature;          /** < real temperature in degrees C */
     uint32_t calibratedTemperature; /** < output of the temp calibration */
-    uint32_t calibratedPressure;    /** < output of the pressure calibration */
-    uint32_t calibratedHumidity;    /** < "    "  "    " humidity calibration */
+    uint32_t rawTemperature;        /** < output of the device register */
 
-    float realTemperature; /** < real temperature in degrees C */
-    float realPressure;    /** < real pressure in hPa */
-    float realHumidity;    /** < real humidity in %RH */
+    float realPressure;          /** < real pressure in hPa */
+    uint32_t calibratedPressure; /** < output of the pressure calibration */
+    uint32_t rawPressure;        /** < output of the device register */
+
+#ifdef BME_280
+    float realHumidity;          /** < real humidity in %RH */
+    uint32_t calibratedHumidity; /** < "    "  "    " humidity calibration */
+    uint32_t rawHumidity;        /** < output of the device register */
+#endif
 
     uint32_t t_fine; /** < fine temperature used in calibration */
 
     uint8_t statusMeasure;
     uint8_t statusUpdate;
 
-} BME_sensorData_t;
+} bm_sensorData_t;
 
-typedef struct BME280_controlData
+typedef struct bm_controlData
 {
-    BME_calibrationData_t calibrationData;
-    BME_sensorData_t sensorData;
-    BME_sampleTypes_t sampleType;
-    BME_sampleMode_t sampleMode;
+    bm_calibrationData_t calibrationData;
+    bm_sensorData_t sensorData;
+    BM_sampleTypes_t sampleType;
+    BM_sampleMode_t sampleMode;
 
     uint8_t peripheralID;
     uint8_t deviceAddress;
@@ -200,20 +237,21 @@ typedef struct BME280_controlData
 
     bool calibrationAquired;
 
-} BME280_controlData_t;
+} bm_controlData_t;
 
-typedef struct bme_initData
+typedef struct bm_initData
 {
-    BME_sampleTypes_t sampleType;
-    BME_sampleMode_t sampleMode;
+    BM_deviceType_t devType;
+    BM_sampleTypes_t sampleType;
+    BM_sampleMode_t sampleMode;
 
     bool addressPinState;
     uint8_t i2cChannel; /** < 0 - no i2c initialised, driver will init. 1 | 2, valid i2c channels */
 
-} bme_initData_t;
+} bm_initData_t;
 
 /******** Function Definitions *********/
 
-esp_err_t bme280_init(bme_initData_t *initData);
+esp_err_t bme280_init(bm_initData_t *initData);
 
-#endif /* BME280_DRIVER_H */
+#endif /* BM280_DRIVER_H */
