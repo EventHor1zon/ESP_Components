@@ -326,13 +326,22 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
 {
 
     esp_err_t trxStatus = ESP_OK;
-
+    uint8_t forcedMeasure = BM_CTRL_MODE_FORCED;
     uint8_t rxBuffer[BM_MEASURE_READ_LEN];
+
+    if (bmCtrl->sampleMode == BM_FORCE_MODE)
+    {
+        trxStatus = bm280_i2cWriteToAddress(bmCtrl, BM_REG_ADDR_CTRL_MEASURE, 1, &forcedMeasure);
+        if (trxStatus != ESP_OK)
+        {
+            ESP_LOGE(BM_DRIVER_TAG, "Error in writing to mode");
+        }
+        vTaskDelay(pdMS_TO_TICKS(50));
+    }
 
     trxStatus = bm280_i2cReadFromAddress(bmCtrl, BM_REG_ADDR_PRESSURE_MSB, (uint16_t)BM_MEASURE_READ_LEN, rxBuffer);
     if (trxStatus == ESP_OK)
     {
-
         bmCtrl->sensorData.rawPressure = (uint32_t)rxBuffer[0] << 12 | (uint32_t)rxBuffer[1] << 4 | (uint32_t)rxBuffer[2] >> 4;
         bmCtrl->sensorData.rawTemperature = (uint32_t)rxBuffer[3] << 12 | (uint32_t)rxBuffer[4] << 4 | (uint32_t)rxBuffer[5] >> 4;
         bmCtrl->sensorData.calibratedPressure = bm280_compensate_P_int64(bmCtrl);

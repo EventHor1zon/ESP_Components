@@ -44,6 +44,7 @@ void app_main(void)
     initData.addressPinState = 0;
     initData.i2cChannel = 0;
 
+    
     printf("[BME_DRIVER:] starting driver...\n");
     esp_err_t initStatus = bm280_init(&initData);
 
