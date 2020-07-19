@@ -77,8 +77,10 @@
 #define BM_CALIBR_DATA_BANK1_LEN 26
 #define BM_CALIBR_DATA_BANK2_LEN 8
 #define BM_CALIBR_DATA_LEN 32
+#define BM_CONFIG_WRITE_LEN 3
 #else
 #define BM_CALIBR_DATA_LEN 24
+#define BM_CONFIG_WRITE_LEN 2
 #endif
 
 #ifdef BME_280

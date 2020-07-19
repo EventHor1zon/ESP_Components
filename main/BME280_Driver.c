@@ -32,7 +32,7 @@ static uint32_t bm280_compensate_H_int32(bm_controlData_t *bmCtrl, int32_t adc_H
 
 #define DEBUG
 
-const char *BME_DRIVER_TAG = "BME280 DRIVER::";
+const char *BM_DRIVER_TAG = "BME280 DRIVER::";
 /****** Private Functions *************/
 
 /** Calibration Functions :  The following calibration fucntions are adapted from the Bosch BME280 Data sheet **/
@@ -53,7 +53,7 @@ static int32_t bm280_compensate_T_int32(bm_controlData_t *bmCtrl, int32_t adc_T)
     }
     else
     {
-        ESP_LOGE(BME_DRIVER_TAG, "Error Calibration data not aquired yet!");
+        ESP_LOGE(BM_DRIVER_TAG, "Error Calibration data not aquired yet!");
         return 0;
     }
 }
@@ -84,7 +84,7 @@ static uint32_t bm280_compensate_P_int64(bm_controlData_t *bmCtrl, int32_t adc_P
     }
     else
     {
-        ESP_LOGE(BME_DRIVER_TAG, "Error Calibration data not aquired yet!");
+        ESP_LOGE(BM_DRIVER_TAG, "Error Calibration data not aquired yet!");
         return 0;
     }
 }
@@ -108,7 +108,7 @@ static uint32_t bm280_compensate_H_int32(bm_controlData_t *bmCtrl, int32_t adc_H
     }
     else
     {
-        ESP_LOGE(BME_DRIVER_TAG, "Error Calibration data not aquired yet!");
+        ESP_LOGE(BM_DRIVER_TAG, "Error Calibration data not aquired yet!");
         return 0;
     }
 }
@@ -143,7 +143,7 @@ static esp_err_t bm280_i2cReadFromAddress(bm_controlData_t *bmCtrl, uint8_t regA
     uint8_t chip_addr = bmCtrl->deviceAddress;
 
 #ifdef DEBUG
-    ESP_LOGI(BME_DRIVER_TAG, "in i2creadFromAddress: device Address is: 0x%02x regAddr is: 0x%02x", chip_addr, regAddress);
+    ESP_LOGI(BM_DRIVER_TAG, "in i2creadFromAddress: device Address is: 0x%02x regAddr is: 0x%02x", chip_addr, regAddress);
 #endif
     /** write address **/
     i2c_cmd_handle_t cmdHandle = i2c_cmd_link_create();
@@ -163,7 +163,7 @@ static esp_err_t bm280_i2cReadFromAddress(bm_controlData_t *bmCtrl, uint8_t regA
 
     if (trxStatus != ESP_OK)
     {
-        ESP_LOGE(BME_DRIVER_TAG, "Error transmitting: %u", trxStatus);
+        ESP_LOGE(BM_DRIVER_TAG, "Error transmitting: %u", trxStatus);
     }
 
     return trxStatus;
@@ -235,7 +235,7 @@ static esp_err_t bm280_getDeviceID(bm_controlData_t *bmCtrl, uint8_t *deviceID)
 
     trxStatus = bm280_i2cReadFromAddress(bmCtrl, (uint8_t)BM_REG_ADDR_DEVICEID, 1, &devID);
 
-    ESP_LOGI(BME_DRIVER_TAG, "Got device ID: %02x", devID);
+    ESP_LOGI(BM_DRIVER_TAG, "Got device ID: %02x", devID);
     if (trxStatus == ESP_OK)
     {
         *deviceID = devID;
@@ -258,56 +258,60 @@ static esp_err_t bm280_InitDeviceSettings(bm_controlData_t *bmCtrl, bm_initData_
     uint8_t sampleMode = initData->sampleMode;
     uint8_t sampleType = initData->sampleType;
 
-    uint8_t commands[1] = {0};
+    uint8_t commands[BM_CONFIG_WRITE_LEN] = {0};
 
     switch (sampleMode)
     {
-    case BME_SAMPLE_OFF:
+    case BM_SAMPLE_OFF:
         break;
-    case BME_FORCE_MODE:
-        commands[1] |= (uint8_t)BME_FORCE_MODE;
+    case BM_FORCE_MODE:
+        commands[0] |= (uint8_t)BM_FORCE_MODE;
         break;
-    case BME_NORMAL_MODE:
-        commands[1] |= (uint8_t)BME_NORMAL_MODE;
-        commands[2] |= BME_DEFAULT_T_STDBY; /** t_standby = 0.5ms **/
+    case BM_NORMAL_MODE:
+        commands[0] |= (uint8_t)BM_NORMAL_MODE;
+        commands[1] |= BM_DEFAULT_T_STDBY; /** t_standby = 0.5ms **/
         break;
     default:
-        ESP_LOGE(BME_DRIVER_TAG, "Error - incorrect sample mode type selected");
+        ESP_LOGE(BM_DRIVER_TAG, "Error - incorrect sample mode type selected");
         break;
     }
 
     switch (sampleType)
     {
-    case BME_MODE_TEMP:
-        commands[1] |= BM_CTRL_TEMP_BIT;
+    case BM_MODE_TEMP:
+        commands[0] |= BM_CTRL_TEMP_BIT;
         break;
-    case BME_MODE_TEMP_PRESSURE:
-        commands[1] |= (BM_CTRL_TEMP_BIT | BM_CTRL_PRESSURE_BIT);
+    case BM_MODE_TEMP_PRESSURE:
+        commands[0] |= (BM_CTRL_TEMP_BIT | BM_CTRL_PRESSURE_BIT);
         break;
-    case BME_MODE_PRESSURE:
+    case BM_MODE_PRESSURE:
+        commands[0] |= BM_CTRL_PRESSURE_BIT;
+        break;
+#ifdef BME_280
+    case BM_MODE_HUMIDITY:
+        commands[2] = 1;
+        break;
+    case BM_MODE_HUMIDITY_PRESSURE:
+        commands[2] = 1;
         commands[1] |= BM_CTRL_PRESSURE_BIT;
         break;
-    case BME_MODE_HUMIDITY:
-        commands[0] = 1;
-        break;
-    case BME_MODE_HUMIDITY_PRESSURE:
-        commands[0] = 1;
-        commands[1] |= BM_CTRL_PRESSURE_BIT;
-        break;
-    case BME_MODE_ALL:
-        commands[0] = 1;
+    case BM_MODE_TEMP_PRESSURE_HUMIDITY:
+        commands[2] = 1;
         commands[1] |= (BM_CTRL_TEMP_BIT | BM_CTRL_PRESSURE_BIT);
         break;
+#endif
     default:
         break;
     }
 
+#ifdef BME_280
     /** have to do 2 writes to 0xF2 and 0xF4-5, because 0xF3 is read only :/ **/
-    trxStatus = bm280_i2cWriteToAddress(bmCtrl, BM_REG_ADDR_CTRL_HUMID, 1, commands);
-    trxStatus = bm280_i2cWriteToAddress(bmCtrl, BM_REG_ADDR_CTRL_MEASURE, 2, &commands[1]);
+    trxStatus = bm280_i2cWriteToAddress(bmCtrl, BM_REG_ADDR_CTRL_HUMID, 1, &commands[2]);
+#endif
+    trxStatus = bm280_i2cWriteToAddress(bmCtrl, BM_REG_ADDR_CTRL_MEASURE, 2, &commands[0]);
     if (trxStatus != ESP_OK)
     {
-        ESP_LOGE(BME_DRIVER_TAG, "Error in setting control registers");
+        ESP_LOGE(BM_DRIVER_TAG, "Error in setting control registers");
     }
 
     return trxStatus;
@@ -324,7 +328,7 @@ esp_err_t bm280_init(bm_initData_t *initData)
     bm_controlData_t *bmCtrl = (bm_controlData_t *)calloc(1, sizeof(bm_controlData_t));
     if (bmCtrl == NULL)
     {
-        ESP_LOGE(BME_DRIVER_TAG, "Error in assigning control structure memory!");
+        ESP_LOGE(BM_DRIVER_TAG, "Error in assigning control structure memory!");
         initStatus = ESP_ERR_NO_MEM;
     }
 
@@ -345,7 +349,7 @@ esp_err_t bm280_init(bm_initData_t *initData)
             initStatus = i2c_param_config(DEBUG_I2C_CHANNEL, &i2cConf);
             if (initStatus != ESP_OK)
             {
-                ESP_LOGE(BME_DRIVER_TAG, "Error in configuring the I2C driver - %u", initStatus);
+                ESP_LOGE(BM_DRIVER_TAG, "Error in configuring the I2C driver - %u", initStatus);
             }
 
             if (initStatus == ESP_OK)
@@ -353,7 +357,7 @@ esp_err_t bm280_init(bm_initData_t *initData)
                 initStatus = i2c_driver_install(DEBUG_I2C_CHANNEL, I2C_MODE_MASTER, 0, 0, 0);
                 if (initStatus != ESP_OK)
                 {
-                    ESP_LOGE(BME_DRIVER_TAG, "Error in installing the driver");
+                    ESP_LOGE(BM_DRIVER_TAG, "Error in installing the driver");
                 }
             }
         }
@@ -372,9 +376,9 @@ esp_err_t bm280_init(bm_initData_t *initData)
             bmCtrl->deviceAddress = (uint8_t)BM_I2C_ADDRESS_SDLOW;
         }
 
-        ESP_LOGI(BME_DRIVER_TAG, "Device address - %u", bmCtrl->deviceAddress);
+        ESP_LOGI(BM_DRIVER_TAG, "Device address - %u", bmCtrl->deviceAddress);
     }
-    ESP_LOGI(BME_DRIVER_TAG, "Contacting device at address %02x", bmCtrl->deviceAddress);
+    ESP_LOGI(BM_DRIVER_TAG, "Contacting device at address %02x", bmCtrl->deviceAddress);
 
     if (initStatus == ESP_OK)
     {
@@ -382,11 +386,11 @@ esp_err_t bm280_init(bm_initData_t *initData)
         initStatus = bm280_getDeviceID(bmCtrl, &deviceID);
         if (deviceID == (uint8_t)DEVICE_ID)
         {
-            ESP_LOGI(BME_DRIVER_TAG, "Device ID checks out!: 0x%02x", deviceID);
+            ESP_LOGI(BM_DRIVER_TAG, "Device ID checks out!: 0x%02x", deviceID);
         }
         else
         {
-            ESP_LOGI(BME_DRIVER_TAG, "Weird - device ID is different: 0x%02x", deviceID);
+            ESP_LOGI(BM_DRIVER_TAG, "Weird - device ID is different: 0x%02x", deviceID);
         }
     }
     /*
@@ -395,11 +399,11 @@ esp_err_t bm280_init(bm_initData_t *initData)
         initStatus = bm280_getCalibrationData(bmCtrl);
         if (initStatus == ESP_OK)
         {
-            ESP_LOGI(BME_DRIVER_TAG, "Succesfully got the calibration data!");
+            ESP_LOGI(BM_DRIVER_TAG, "Succesfully got the calibration data!");
         }
         else
         {
-            ESP_LOGI(BME_DRIVER_TAG, "Error getting Calibration data!");
+            ESP_LOGI(BM_DRIVER_TAG, "Error getting Calibration data!");
         }
     }
 
