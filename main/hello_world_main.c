@@ -38,14 +38,14 @@ void app_main(void)
 
     printf("\n\n[BME_DRIVER:] Initialising BME or BMP - we'll soon see...\n");
 
-    bme_initData_t initData = {0};
-    initData.sampleMode = BME_FORCE_MODE;
-    initData.sampleType = BME_MODE_TEMP;
+    bm_initData_t initData = {0};
+    initData.sampleMode = BM_FORCE_MODE;
+    initData.sampleType = BM_MODE_TEMP;
     initData.addressPinState = 0;
     initData.i2cChannel = 0;
 
     printf("[BME_DRIVER:] starting driver...\n");
-    esp_err_t initStatus = bme280_init(&initData);
+    esp_err_t initStatus = bm280_init(&initData);
 
     for (int i = 10; i >= 0; i--)
     {

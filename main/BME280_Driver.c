@@ -23,9 +23,9 @@
 #include "../inc/BME280_Driver.h"
 
 /****** Function Prototypes ***********/
-static int32_t bm280_compensate_T_int32(bm_controlData_t *bmCtrl, int32_t adc_T);
-static uint32_t bm280_compensate_P_int64(bm_controlData_t *bmCtrl, int32_t adc_P);
-static uint32_t bm280_compensate_H_int32(bm_controlData_t *bmCtrl, int32_t adc_H);
+static int32_t bm280_compensate_T_int32(bm_controlData_t *bmCtrl);
+static uint32_t bm280_compensate_P_int64(bm_controlData_t *bmCtrl);
+static uint32_t bm280_compensate_H_int32(bm_controlData_t *bmCtrl);
 /************ ISR *********************/
 
 /****** Global Data *******************/
@@ -39,10 +39,11 @@ const char *BM_DRIVER_TAG = "BME280 DRIVER::";
 
 /* Returns temperature in DegC, resolution is 0.01 DegC. Output value of “5123” equals 51.23 DegC. */
 /* bmCtrl->sensorData.t_fine carries fine temperature as global value int32_t bmCtrl->sensorData.t_fine; */
-static int32_t bm280_compensate_T_int32(bm_controlData_t *bmCtrl, int32_t adc_T)
+static int32_t bm280_compensate_T_int32(bm_controlData_t *bmCtrl)
 {
     if (bmCtrl->calibrationAquired)
     {
+        int32_t adc_T = bmCtrl->sensorData.rawTemperature;
         int32_t var1, var2, T;
 
         var1 = ((((adc_T >> 3) - ((int32_t)bmCtrl->calibrationData.dig_T1 << 1))) * ((int32_t)bmCtrl->calibrationData.dig_T2)) >> 11;
@@ -60,10 +61,11 @@ static int32_t bm280_compensate_T_int32(bm_controlData_t *bmCtrl, int32_t adc_T)
 
 /* Returns pressure in Pa as unsigned 32 bit integer in Q24.8 format (24 integer bits and 8 fractional bits).*/
 /* Output value of “24674867” represents 24674867 / 256 = 96386.2 Pa = 963.862 hPa */
-static uint32_t bm280_compensate_P_int64(bm_controlData_t *bmCtrl, int32_t adc_P)
+static uint32_t bm280_compensate_P_int64(bm_controlData_t *bmCtrl)
 {
     if (bmCtrl->calibrationAquired)
     {
+        int32_t adc_P = bmCtrl->sensorData.rawPressure;
         int64_t var1, var2, p;
         var1 = ((int64_t)bmCtrl->sensorData.t_fine) - 128000;
         var2 = var1 * var1 * (int64_t)bmCtrl->calibrationData.dig_P6;
@@ -94,10 +96,11 @@ static uint32_t bm280_compensate_P_int64(bm_controlData_t *bmCtrl, int32_t adc_P
 
 /** bm280_compensate_H_int32: Compensate Humidity Data **/
 #ifdef BME_280
-static uint32_t bm280_compensate_H_int32(bm_controlData_t *bmCtrl, int32_t adc_H)
+static uint32_t bm280_compensate_H_int32(bm_controlData_t *bmCtrl)
 {
     if (bmCtrl->calibrationAquired)
     {
+        int32_t adc_H = bmCtrl->sensorData.rawHumidity;
         int32_t v_x1_u32r;
         v_x1_u32r = (bmCtrl->sensorData.t_fine - ((int32_t)76800));
         v_x1_u32r = (((((adc_H << 14) - (((int32_t)bmCtrl->calibrationData.dig_H4) << 20) - (((int32_t)bmCtrl->calibrationData.dig_H5) * v_x1_u32r)) + ((int32_t)16384)) >> 15) * (((((((v_x1_u32r * ((int32_t)bmCtrl->calibrationData.dig_H6)) >> 10) * (((v_x1_u32r * ((int32_t)bmCtrl->calibrationData.dig_H3)) >> 11) + ((int32_t)32768))) >> 10) + ((int32_t)2097152)) * ((int32_t)bmCtrl->calibrationData.dig_H2) + 8192) >> 14));
@@ -318,6 +321,76 @@ static esp_err_t bm280_InitDeviceSettings(bm_controlData_t *bmCtrl, bm_initData_
 }
 
 /****** Global Functions *************/
+
+esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
+{
+
+    esp_err_t trxStatus = ESP_OK;
+
+    uint8_t rxBuffer[BM_MEASURE_READ_LEN];
+
+    trxStatus = bm280_i2cReadFromAddress(bmCtrl, BM_REG_ADDR_PRESSURE_MSB, (uint16_t)BM_MEASURE_READ_LEN, rxBuffer);
+    if (trxStatus == ESP_OK)
+    {
+
+        bmCtrl->sensorData.rawPressure = (uint32_t)rxBuffer[0] << 12 | (uint32_t)rxBuffer[1] << 4 | (uint32_t)rxBuffer[2] >> 4;
+        bmCtrl->sensorData.rawTemperature = (uint32_t)rxBuffer[3] << 12 | (uint32_t)rxBuffer[4] << 4 | (uint32_t)rxBuffer[5] >> 4;
+        bmCtrl->sensorData.calibratedPressure = bm280_compensate_P_int64(bmCtrl);
+
+#ifdef BME_280
+        bmCtrl->sensorData.rawHumidity = (uint32_t)rxBuffer[6] << 8 | (uint32_t)rxBuffer[7];
+#endif
+        switch (bmCtrl->sampleType)
+        {
+        case BM_MODE_TEMP:
+            bmCtrl->sensorData.calibratedTemperature = bm280_compensate_T_int32(bmCtrl);
+            bmCtrl->sensorData.realTemperature = (float)bmCtrl->sensorData.calibratedTemperature / 100.0;
+            break;
+        case BM_MODE_PRESSURE:
+            bmCtrl->sensorData.calibratedPressure = bm280_compensate_P_int64(bmCtrl);
+            bmCtrl->sensorData.realPressure = (float)bmCtrl->sensorData.calibratedPressure / 256;
+            break;
+        case BM_MODE_TEMP_PRESSURE:
+            bmCtrl->sensorData.calibratedTemperature = bm280_compensate_T_int32(bmCtrl);
+            bmCtrl->sensorData.calibratedPressure = bm280_compensate_P_int64(bmCtrl);
+            bmCtrl->sensorData.realTemperature = (float)bmCtrl->sensorData.calibratedTemperature / 100.0;
+            bmCtrl->sensorData.realPressure = (float)bmCtrl->sensorData.calibratedPressure / 256;
+            break;
+#ifdef BME_280
+        case BM_MODE_TEMP_HUMIDITY:
+            bmCtrl->sensorData.calibratedTemperature = bm280_compensate_T_int32(bmCtrl);
+            bmCtrl->sensorData.realTemperature = (float)bmCtrl->sensorData.calibratedTemperature / 100.0;
+            bmCtrl->sensorData.calibratedHumidity = bm280_compensate_H_int32(bmCtrl);
+            bmCtrl->sensorData.realHumidity = (float)bmCtrl->sensorData.calibratedHumidity / 1024;
+            break;
+        case BM_MODE_HUMIDITY_PRESSURE:
+            bmCtrl->sensorData.calibratedPressure = bm280_compensate_P_int64(bmCtrl);
+            bmCtrl->sensorData.realPressure = (float)bmCtrl->sensorData.calibratedPressure / 256;
+            bmCtrl->sensorData.calibratedHumidity = bm280_compensate_H_int32(bmCtrl);
+            bmCtrl->sensorData.realHumidity = (float)bmCtrl->sensorData.calibratedHumidity / 1024;
+            break;
+        case BM_MODE_HUMIDITY:
+            bmCtrl->sensorData.calibratedHumidity = bm280_compensate_H_int32(bmCtrl);
+            bmCtrl->sensorData.realHumidity = (float)bmCtrl->sensorData.calibratedHumidity / 1024;
+            break;
+        case BM_MODE_TEMP_PRESSURE_HUMIDITY:
+            bmCtrl->sensorData.calibratedTemperature = bm280_compensate_T_int32(bmCtrl);
+            bmCtrl->sensorData.realTemperature = (float)bmCtrl->sensorData.calibratedTemperature / 100.0;
+            bmCtrl->sensorData.calibratedPressure = bm280_compensate_P_int64(bmCtrl);
+            bmCtrl->sensorData.realPressure = (float)bmCtrl->sensorData.calibratedPressure / 256;
+            bmCtrl->sensorData.calibratedHumidity = bm280_compensate_H_int32(bmCtrl);
+            bmCtrl->sensorData.realHumidity = (float)bmCtrl->sensorData.calibratedHumidity / 1024;
+            break;
+#endif
+        default:
+            break;
+        }
+    }
+}
+
+esp_err_t bm280_getTemperature(bm_controlData_t bmCtrl)
+{
+}
 
 esp_err_t bm280_init(bm_initData_t *initData)
 {

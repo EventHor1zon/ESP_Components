@@ -78,9 +78,11 @@
 #define BM_CALIBR_DATA_BANK2_LEN 8
 #define BM_CALIBR_DATA_LEN 32
 #define BM_CONFIG_WRITE_LEN 3
+#define BM_MEASURE_READ_LEN 8
 #else
 #define BM_CALIBR_DATA_LEN 24
 #define BM_CONFIG_WRITE_LEN 2
+#define BM_MEASURE_READ_LEN 6
 #endif
 
 #ifdef BME_280
@@ -164,7 +166,7 @@ typedef enum bme_standbyT
 
 } BM_standbyT_t;
 
-typedef enum bm_sampleModes
+typedef enum bm_sampleTypes
 {
     BM_MODE_TEMP,
     BM_MODE_PRESSURE,
@@ -254,6 +256,6 @@ typedef struct bm_initData
 
 /******** Function Definitions *********/
 
-esp_err_t bme280_init(bm_initData_t *initData);
+esp_err_t bm280_init(bm_initData_t *initData);
 
 #endif /* BM280_DRIVER_H */
