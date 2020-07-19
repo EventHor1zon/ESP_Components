@@ -224,6 +224,7 @@ static esp_err_t bm280_getCalibrationData(bm_controlData_t *bmCtrl)
         bmCtrl->calibrationData.dig_H5 = (int16_t)buffer[30] << 8 | (int16_t)buffer[31];
         bmCtrl->calibrationData.dig_H6 = (int8_t)buffer[32];
 #endif
+        bmCtrl->calibrationAquired = true;
     }
 
     return trxStatus;
@@ -331,6 +332,9 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
 
     if (bmCtrl->sampleMode == BM_FORCE_MODE)
     {
+#ifdef DEBUG
+        ESP_LOGI(BM_DRIVER_TAG, "Telling device to sample...");
+#endif
         trxStatus = bm280_i2cWriteToAddress(bmCtrl, BM_REG_ADDR_CTRL_MEASURE, 1, &forcedMeasure);
         if (trxStatus != ESP_OK)
         {
@@ -338,7 +342,9 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
         }
         vTaskDelay(pdMS_TO_TICKS(50));
     }
-
+#ifdef DEBUG
+    ESP_LOGI(BM_DRIVER_TAG, "Reading new data...");
+#endif
     trxStatus = bm280_i2cReadFromAddress(bmCtrl, BM_REG_ADDR_PRESSURE_MSB, (uint16_t)BM_MEASURE_READ_LEN, rxBuffer);
     if (trxStatus == ESP_OK)
     {
@@ -365,6 +371,10 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
             bmCtrl->sensorData.realTemperature = (float)bmCtrl->sensorData.calibratedTemperature / 100.0;
             bmCtrl->sensorData.realPressure = (float)bmCtrl->sensorData.calibratedPressure / 256;
             break;
+#ifdef DEBUG
+            ESP_LOGI(BM_DRIVER_TAG, "Deets: %ul %ul", bmCtrl->sensorData.rawTemperature, bmCtrl->sensorData.calibratedTemperature);
+#endif
+
 #ifdef BME_280
         case BM_MODE_TEMP_HUMIDITY:
             bmCtrl->sensorData.calibratedTemperature = bm280_compensate_T_int32(bmCtrl);
@@ -395,13 +405,20 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
             break;
         }
     }
+
+    return trxStatus;
 }
 
-esp_err_t bm280_getTemperature(bm_controlData_t bmCtrl)
+esp_err_t bm280_getTemperature(bm_controlData_t *bmCtrl, float *realTemp)
 {
+    esp_err_t status = ESP_OK;
+
+    *realTemp = bmCtrl->sensorData.realTemperature;
+
+    return status;
 }
 
-esp_err_t bm280_init(bm_initData_t *initData)
+bm_controlData_t *bm280_init(bm_initData_t *initData)
 {
     esp_err_t initStatus = ESP_OK;
 
@@ -448,7 +465,7 @@ esp_err_t bm280_init(bm_initData_t *initData)
             bmCtrl->i2cChannel = DEBUG_I2C_CHANNEL;
         }
 
-        bmCtrl->mode = initData->sampleMode;
+        bmCtrl->sampleMode = initData->sampleMode;
         if (initData->addressPinState)
         {
             bmCtrl->deviceAddress = (uint8_t)BM_I2C_ADDRESS_SDHIGH;
@@ -475,7 +492,7 @@ esp_err_t bm280_init(bm_initData_t *initData)
             ESP_LOGI(BM_DRIVER_TAG, "Weird - device ID is different: 0x%02x", deviceID);
         }
     }
-    /*
+
     if (initStatus == ESP_OK)
     {
         initStatus = bm280_getCalibrationData(bmCtrl);
@@ -491,8 +508,16 @@ esp_err_t bm280_init(bm_initData_t *initData)
 
     if (initStatus == ESP_OK)
     {
-        initStatus = bm280_InitDeviceSettings(bmCtrl);
+        initStatus = bm280_InitDeviceSettings(bmCtrl, initData);
+        if (initStatus == ESP_OK)
+        {
+            ESP_LOGI(BM_DRIVER_TAG, "Succesfully wrote device settings data!");
+        }
+        else
+        {
+            ESP_LOGI(BM_DRIVER_TAG, "Error writing device settings!");
+        }
     }
-*/
-    return initStatus;
+
+    return bmCtrl;
 }

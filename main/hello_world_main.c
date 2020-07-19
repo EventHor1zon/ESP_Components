@@ -44,9 +44,27 @@ void app_main(void)
     initData.addressPinState = 0;
     initData.i2cChannel = 0;
 
-    
-    printf("[BME_DRIVER:] starting driver...\n");
-    esp_err_t initStatus = bm280_init(&initData);
+    bm_controlData_t *handle = bm280_init(&initData);
+
+    float temp = 0;
+    esp_err_t status = ESP_OK;
+    status = bm280_updateMeasurements(handle);
+    if (status)
+    {
+        printf("Err: status %u", status);
+    }
+    status = bm280_getTemperature(handle, &temp);
+
+    printf("Getting the temperature...\n");
+
+    if (status == ESP_OK)
+    {
+        printf("Got temp! %f\n", temp);
+    }
+    else
+    {
+        printf("Aww... an error... %u", status);
+    }
 
     for (int i = 10; i >= 0; i--)
     {

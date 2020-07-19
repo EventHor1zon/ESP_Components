@@ -238,7 +238,6 @@ typedef struct bm_controlData
     uint8_t peripheralID;
     uint8_t deviceAddress;
     uint8_t i2cChannel;
-    uint8_t mode;
 
     bool calibrationAquired;
 
@@ -257,6 +256,8 @@ typedef struct bm_initData
 
 /******** Function Definitions *********/
 
-esp_err_t bm280_init(bm_initData_t *initData);
+bm_controlData_t *bm280_init(bm_initData_t *initData);
+esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl);
+esp_err_t bm280_getTemperature(bm_controlData_t *bmCtrl, float *realTemp);
 
 #endif /* BM280_DRIVER_H */
