@@ -12,7 +12,8 @@
 #include "esp_system.h"
 #include "esp_spi_flash.h"
 #include "../inc/main.h"
-
+#include "../inc/WS2812_Driver.h"
+#include "../inc/BME280_Driver.h"
 
 void app_main(void)
 {
@@ -22,19 +23,32 @@ void app_main(void)
     esp_chip_info_t chip_info;
     esp_chip_info(&chip_info);
     printf("This is %s chip with %d CPU cores, WiFi%s%s, ",
-            CONFIG_IDF_TARGET,
-            chip_info.cores,
-            (chip_info.features & CHIP_FEATURE_BT) ? "/BT" : "",
-            (chip_info.features & CHIP_FEATURE_BLE) ? "/BLE" : "");
+           CONFIG_IDF_TARGET,
+           chip_info.cores,
+           (chip_info.features & CHIP_FEATURE_BT) ? "/BT" : "",
+           (chip_info.features & CHIP_FEATURE_BLE) ? "/BLE" : "");
 
     printf("silicon revision %d, ", chip_info.revision);
 
     printf("%dMB %s flash\n", spi_flash_get_chip_size() / (1024 * 1024),
-            (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
+           (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
 
     printf("Free heap: %d\n", esp_get_free_heap_size());
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
 
-    for (int i = 10; i >= 0; i--) {
+    printf("\n\n[BME_DRIVER:] Initialising BME or BMP - we'll soon see...\n");
+
+    bme_initData_t initData = {0};
+    initData.sampleMode = BME_FORCE_MODE;
+    initData.sampleType = BME_MODE_TEMP;
+    initData.addressPinState = 0;
+    initData.i2cChannel = 0;
+
+    printf("[BME_DRIVER:] starting driver...\n");
+    esp_err_t initStatus = bme280_init(&initData);
+
+    for (int i = 10; i >= 0; i--)
+    {
         printf("Restarting in %d seconds...\n", i);
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }

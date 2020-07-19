@@ -19,7 +19,6 @@
 #include "freertos/queue.h"
 #include "freertos/task.h"
 
-#define ESP_HOME_API_ENABLE 1
 #define WS2812_DRIVER_USE_MANAGER
 
 #ifdef ESP_HOME_API_ENABLE
@@ -28,7 +27,7 @@
 
 /********* Definitions *****************/
 #define WS2812_DRIVER_USE_MANAGER /** < Define for using the manager task */
-#define ESP_HOME_API_ENABLE 1     /** < enable interaction with ESPhome API */
+//#define ESP_HOME_API_ENABLE 1     /** < enable interaction with ESPhome API */
 
 #define WS2812_RMT_CLK_DIVIDER 4    /** < divisor for the APB clock */
 #define WS2812_RMT_DURATION_NS 12.5 /** < clock duration of rmt clk */

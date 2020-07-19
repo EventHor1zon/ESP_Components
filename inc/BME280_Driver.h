@@ -75,11 +75,29 @@
 #define BMP_CALIBR_DATA_BANK2_LEN 8
 #define BMP_CALIBR_DATA_LEN 32
 
-#define BMP_DEVICE_ID 0x60
+#define BMP_DEVICE_ID 0x58
 #define BMP_STATUS_IM_UPDATE_BIT 0
 #define BMP_STATUS_MEASURE_BIT (4)
+#define BMP_CTRL_TEMP_BIT (1 << 5)
+#define BMP_CTRL_PRESSURE_BIT (1 << 2)
+
 #define BMP_STATUS_UPDATE_MASK 0x01
 #define BMP_STATUS_MEASURE_MASK 0b00010000
+
+#define BME_DRIVER_I2C_TRX_TIMEOUT 100
+
+#define DEBUG_MODE
+
+#ifdef DEBUG_MODE
+#define DEBUG_I2C_CLOCK_PIN 17
+#define DEBUG_I2C_DATA_PIN 16
+#define DEBUG_I2C_CHANNEL 0
+#endif
+
+/** defaults **/
+#define BME_DEFAULT_HUM_CTRL 0x01
+#define BME_DEFAULT_TEMP_CTRL 0x01
+#define BME_DEFAULT_T_STDBY (1 << 5)
 
 /**
  *  E4:   -  digH4[11:4]
@@ -90,7 +108,7 @@
 
 typedef enum bme_oversampling
 {
-    BME_OS_0 = 0,
+    BME_OS_0 = 0x00,
     BME_OS_1 = 0x01,
     BME_OS_2 = 0x02,
     BME_OS_4 = 0x03,
@@ -100,9 +118,9 @@ typedef enum bme_oversampling
 
 typedef enum bme_sampleMode
 {
-    BME_SLEEP_MODE = 0x00,
-    BME_FORCE_MODE = 0x01,
-    BME_NORMAL_MODE = 0x03
+    BME_SAMPLE_OFF = 0x00, /**< sampling off **/
+    BME_FORCE_MODE = 0x01, /**< sample on demand **/
+    BME_NORMAL_MODE = 0x03 /**< sample at interval **/
 } BME_sampleMode_t;
 
 typedef enum bme_standbyT
@@ -113,15 +131,18 @@ typedef enum bme_standbyT
     BME_T_STDBY_250MS = 0x03,
     BME_T_STDBY_500MS = 0x04,
     BME_T_STDBY_1000MS = 0x05,
-    BME_T_STDBY_10MS = 0x06,
-    BME_T_STDBY_20MS = 0x07
+    BME_T_STDBY_2000MS = 0x06,
+    BME_T_STDBY_4000MS = 0x07
 } BME_standbyT_t;
 
 typedef enum bme_modes
 {
     BME_MODE_TEMP,
     BME_MODE_TEMP_HUMIDITY,
+    BME_MODE_TEMP_PRESSURE,
+    BME_MODE_HUMIDITY_PRESSURE,
     BME_MODE_PRESSURE,
+    BME_MODE_HUMIDITY,
     BME_MODE_ALL
 } BME_sampleTypes_t;
 
@@ -175,17 +196,24 @@ typedef struct BME280_controlData
     uint8_t peripheralID;
     uint8_t deviceAddress;
     uint8_t i2cChannel;
+    uint8_t mode;
+
+    bool calibrationAquired;
 
 } BME280_controlData_t;
 
 typedef struct bme_initData
 {
     BME_sampleTypes_t sampleType;
+    BME_sampleMode_t sampleMode;
+
     bool addressPinState;
     uint8_t i2cChannel; /** < 0 - no i2c initialised, driver will init. 1 | 2, valid i2c channels */
 
 } bme_initData_t;
 
 /******** Function Definitions *********/
+
+esp_err_t bme280_init(bme_initData_t *initData);
 
 #endif /* BME280_DRIVER_H */
