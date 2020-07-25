@@ -14,7 +14,7 @@
 /********* Includes *******************/
 
 /* header */
-#include "../inc/WS2812_Driver.h"
+#include "WS2812_Driver.h"
 
 #include <stdio.h>
 #include <string.h>

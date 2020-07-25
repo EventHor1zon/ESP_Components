@@ -12,8 +12,8 @@
 #include "esp_system.h"
 #include "esp_spi_flash.h"
 #include "../inc/main.h"
-#include "../inc/WS2812_Driver.h"
-#include "../inc/BME280_Driver.h"
+#include "WS2812_Driver.h"
+#include "BME280_Driver.h"
 
 void app_main(void)
 {
@@ -38,38 +38,17 @@ void app_main(void)
 
     printf("\n\n[BME_DRIVER:] Initialising BME or BMP - we'll soon see...\n");
 
-    bm_initData_t initData = {0};
-    initData.sampleMode = BM_FORCE_MODE;
-    initData.sampleType = BM_MODE_TEMP;
-    initData.addressPinState = 0;
-    initData.i2cChannel = 0;
+    // bm_initData_t initData = {0};
+    // initData.sampleMode = BM_NORMAL_MODE;
+    // initData.sampleType = BM_MODE_TEMP_PRESSURE;
+    // initData.addressPinState = 0;
+    // initData.i2cChannel = 0;
 
-    bm_controlData_t *handle = bm280_init(&initData);
+    // bm_controlData_t *handle = bm280_init(&initData);
 
-    float temp = 0;
-    esp_err_t status = ESP_OK;
-    status = bm280_updateMeasurements(handle);
-    if (status)
+    while (1)
     {
-        printf("Err: status %u", status);
-    }
-    status = bm280_getTemperature(handle, &temp);
-
-    printf("Getting the temperature...\n");
-
-    if (status == ESP_OK)
-    {
-        printf("Got temp! %f\n", temp);
-    }
-    else
-    {
-        printf("Aww... an error... %u", status);
-    }
-
-    for (int i = 10; i >= 0; i--)
-    {
-        printf("Restarting in %d seconds...\n", i);
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        vTaskDelay(2000);
     }
     printf("Restarting now.\n");
     fflush(stdout);

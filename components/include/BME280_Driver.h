@@ -241,6 +241,9 @@ typedef struct bm_controlData
 
     bool calibrationAquired;
 
+    uint8_t sampleMask;
+    uint8_t configMask;
+
 } bm_controlData_t;
 
 typedef struct bm_initData
@@ -259,5 +262,7 @@ typedef struct bm_initData
 bm_controlData_t *bm280_init(bm_initData_t *initData);
 esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl);
 esp_err_t bm280_getTemperature(bm_controlData_t *bmCtrl, float *realTemp);
+esp_err_t bm280_getPressure(bm_controlData_t *bmCtrl, float *realPressure);
+esp_err_t bm280_setOverSampling(bm_controlData_t *bmCtrl);
 
 #endif /* BM280_DRIVER_H */

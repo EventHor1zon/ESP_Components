@@ -20,12 +20,16 @@
 #include "esp_err.h"
 #include "esp_log.h"
 
-#include "../inc/BME280_Driver.h"
+#include "BME280_Driver.h"
 
 /****** Function Prototypes ***********/
 static int32_t bm280_compensate_T_int32(bm_controlData_t *bmCtrl);
 static uint32_t bm280_compensate_P_int64(bm_controlData_t *bmCtrl);
+#ifdef BME290
 static uint32_t bm280_compensate_H_int32(bm_controlData_t *bmCtrl);
+#endif
+static esp_err_t bm280_debugPrintRegs(bm_controlData_t *bmCtrl);
+
 /************ ISR *********************/
 
 /****** Global Data *******************/
@@ -128,6 +132,16 @@ static esp_err_t bm280_i2cWriteToAddress(bm_controlData_t *bmCtrl, uint8_t regAd
     commands[0] = bmCtrl->deviceAddress << 1 | I2C_MASTER_WRITE;
     commands[1] = regAddress;
 
+#ifdef DEBUG
+    ESP_LOGI(BM_DRIVER_TAG, "in i2c write to address: device Address is: 0x%02x regAddr is: 0x%02x", bmCtrl->deviceAddress, regAddress);
+    printf("Writing %d byes: ", writeLength);
+    for (uint8_t i = 0; i < writeLength; i++)
+    {
+        printf("%u ", txBuffer[i]);
+    }
+    printf("\n");
+#endif
+
     i2c_cmd_handle_t cmdHandle = i2c_cmd_link_create();
     ESP_ERROR_CHECK(i2c_master_start(cmdHandle));
     ESP_ERROR_CHECK(i2c_master_write(cmdHandle, commands, 2, true));
@@ -146,7 +160,7 @@ static esp_err_t bm280_i2cReadFromAddress(bm_controlData_t *bmCtrl, uint8_t regA
     uint8_t chip_addr = bmCtrl->deviceAddress;
 
 #ifdef DEBUG
-    ESP_LOGI(BM_DRIVER_TAG, "in i2creadFromAddress: device Address is: 0x%02x regAddr is: 0x%02x", chip_addr, regAddress);
+    ESP_LOGI(BM_DRIVER_TAG, "in readFromAddress device Address is: 0x%02x regAddr is: 0x%02x", chip_addr, regAddress);
 #endif
     /** write address **/
     i2c_cmd_handle_t cmdHandle = i2c_cmd_link_create();
@@ -172,6 +186,26 @@ static esp_err_t bm280_i2cReadFromAddress(bm_controlData_t *bmCtrl, uint8_t regA
     return trxStatus;
 }
 
+static esp_err_t bm280_debugPrintRegs(bm_controlData_t *bmCtrl)
+{
+
+    uint8_t id = 0, ctrl_meas = 0, config = 0;
+    uint8_t measure[6] = {0};
+
+    bm280_i2cReadFromAddress(bmCtrl, BM_REG_ADDR_DEVICEID, 1, &id);
+    bm280_i2cReadFromAddress(bmCtrl, BM_REG_ADDR_CTRL_MEASURE, 1, &ctrl_meas);
+    bm280_i2cReadFromAddress(bmCtrl, BM_REG_ADDR_CONFIG, 1, &config);
+    bm280_i2cReadFromAddress(bmCtrl, BM_REG_ADDR_PRESSURE_MSB, 6, measure);
+
+    ESP_LOGI(BM_DRIVER_TAG, "DEVICE-ID: Reg: 0x%02x\t -  0x%02x - %u\n", BM_REG_ADDR_DEVICEID, id, id);
+    ESP_LOGI(BM_DRIVER_TAG, "CTRLMESRE: Reg: 0x%02x\t - 0x%02x - %u\n", BM_REG_ADDR_CTRL_MEASURE, ctrl_meas, ctrl_meas);
+    ESP_LOGI(BM_DRIVER_TAG, "CONFIG   :Reg: 0x%02x\t - 0x%02x - %u\n", BM_REG_ADDR_CONFIG, config, config);
+    for (uint8_t i = 0; i < 6; i++)
+    {
+        ESP_LOGI(BM_DRIVER_TAG, "MEASURE: Reg 0x%02x\t - 0x%02x - %u\n", BM_REG_ADDR_PRESSURE_MSB + i, measure[i], measure[i]);
+    }
+    return ESP_OK;
+}
 static esp_err_t bm280_getDeviceStatus(bm_controlData_t *bmCtrl)
 {
     esp_err_t trxStatus = ESP_OK;
@@ -226,6 +260,10 @@ static esp_err_t bm280_getCalibrationData(bm_controlData_t *bmCtrl)
 #endif
         bmCtrl->calibrationAquired = true;
     }
+    else
+    {
+        ESP_LOGI(BM_DRIVER_TAG, "Error reading calibration data");
+    }
 
     return trxStatus;
 }
@@ -251,13 +289,6 @@ static esp_err_t bm280_getDeviceID(bm_controlData_t *bmCtrl, uint8_t *deviceID)
 static esp_err_t bm280_InitDeviceSettings(bm_controlData_t *bmCtrl, bm_initData_t *initData)
 {
 
-    /** TODO: set - set sample types
-     *            - sample mode          
-     *              Need to finish init struct first - dont get every possible param, basics only.
-     *        ctrl_meas = 0 on reset
-     *              meas_mode ctrl_meas[1:0] 
-     **/
-
     esp_err_t trxStatus = ESP_OK;
     uint8_t sampleMode = initData->sampleMode;
     uint8_t sampleType = initData->sampleType;
@@ -269,7 +300,7 @@ static esp_err_t bm280_InitDeviceSettings(bm_controlData_t *bmCtrl, bm_initData_
     case BM_SAMPLE_OFF:
         break;
     case BM_FORCE_MODE:
-        commands[0] |= (uint8_t)BM_FORCE_MODE;
+        //commands[0] |= (uint8_t)BM_FORCE_MODE;
         break;
     case BM_NORMAL_MODE:
         commands[0] |= (uint8_t)BM_NORMAL_MODE;
@@ -317,18 +348,33 @@ static esp_err_t bm280_InitDeviceSettings(bm_controlData_t *bmCtrl, bm_initData_
     {
         ESP_LOGE(BM_DRIVER_TAG, "Error in setting control registers");
     }
+    else
+    {
+        bmCtrl->sampleMask = commands[0];
+        bmCtrl->configMask = commands[1];
+    }
+
+    bm280_debugPrintRegs(bmCtrl);
 
     return trxStatus;
 }
 
 /****** Global Functions *************/
 
+esp_err_t bm280_setOverSampling(bm_controlData_t *bmCtrl)
+{
+
+    uint8_t data = 0xFF;
+    esp_err_t status = bm280_i2cWriteToAddress(bmCtrl, BM_REG_ADDR_CTRL_MEASURE, 1, &data);
+    return status;
+}
+
 esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
 {
 
     esp_err_t trxStatus = ESP_OK;
-    uint8_t forcedMeasure = BM_CTRL_MODE_FORCED;
-    uint8_t rxBuffer[BM_MEASURE_READ_LEN];
+    uint8_t forcedMeasure = bmCtrl->sampleMask | BM_CTRL_MODE_FORCED;
+    uint8_t rxBuffer[BM_MEASURE_READ_LEN] = {0};
 
     if (bmCtrl->sampleMode == BM_FORCE_MODE)
     {
@@ -340,12 +386,17 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
         {
             ESP_LOGE(BM_DRIVER_TAG, "Error in writing to mode");
         }
-        vTaskDelay(pdMS_TO_TICKS(50));
+        vTaskDelay(pdMS_TO_TICKS(200));
     }
 #ifdef DEBUG
-    ESP_LOGI(BM_DRIVER_TAG, "Reading new data...");
+    bm280_debugPrintRegs(bmCtrl);
+    ESP_LOGI(BM_DRIVER_TAG, "Writing data %u", forcedMeasure);
 #endif
     trxStatus = bm280_i2cReadFromAddress(bmCtrl, BM_REG_ADDR_PRESSURE_MSB, (uint16_t)BM_MEASURE_READ_LEN, rxBuffer);
+#ifdef DEBUG
+    bm280_debugPrintRegs(bmCtrl);
+    ESP_LOGI(BM_DRIVER_TAG, "Reading new data...");
+#endif
     if (trxStatus == ESP_OK)
     {
         bmCtrl->sensorData.rawPressure = (uint32_t)rxBuffer[0] << 12 | (uint32_t)rxBuffer[1] << 4 | (uint32_t)rxBuffer[2] >> 4;
@@ -371,10 +422,6 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
             bmCtrl->sensorData.realTemperature = (float)bmCtrl->sensorData.calibratedTemperature / 100.0;
             bmCtrl->sensorData.realPressure = (float)bmCtrl->sensorData.calibratedPressure / 256;
             break;
-#ifdef DEBUG
-            ESP_LOGI(BM_DRIVER_TAG, "Deets: %ul %ul", bmCtrl->sensorData.rawTemperature, bmCtrl->sensorData.calibratedTemperature);
-#endif
-
 #ifdef BME_280
         case BM_MODE_TEMP_HUMIDITY:
             bmCtrl->sensorData.calibratedTemperature = bm280_compensate_T_int32(bmCtrl);
@@ -404,6 +451,13 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
         default:
             break;
         }
+#ifdef DEBUG
+        ESP_LOGI(BM_DRIVER_TAG, "Deets: %ul %ul", bmCtrl->sensorData.rawTemperature, bmCtrl->sensorData.calibratedTemperature);
+#endif
+    }
+    else
+    {
+        ESP_LOGE(BM_DRIVER_TAG, "Error in reading data %u", trxStatus);
     }
 
     return trxStatus;
@@ -414,6 +468,15 @@ esp_err_t bm280_getTemperature(bm_controlData_t *bmCtrl, float *realTemp)
     esp_err_t status = ESP_OK;
 
     *realTemp = bmCtrl->sensorData.realTemperature;
+
+    return status;
+}
+
+esp_err_t bm280_getPressure(bm_controlData_t *bmCtrl, float *realPressure)
+{
+    esp_err_t status = ESP_OK;
+
+    *realPressure = bmCtrl->sensorData.realPressure;
 
     return status;
 }
@@ -492,6 +555,8 @@ bm_controlData_t *bm280_init(bm_initData_t *initData)
             ESP_LOGI(BM_DRIVER_TAG, "Weird - device ID is different: 0x%02x", deviceID);
         }
     }
+
+    bm280_debugPrintRegs(bmCtrl);
 
     if (initStatus == ESP_OK)
     {
