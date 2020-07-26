@@ -19,6 +19,13 @@ typedef union {
     int16_t Value;   /** < rotary encoder value (signed version ) **/
 } rotaryCount;
 
+typedef buttonDebouce
+{
+    uint32_t tDebounce;
+    uint32_t tLastPress;
+    bool debounceActive;
+}
+
 typedef struct rotaryEncoder
 {
 
@@ -29,6 +36,9 @@ typedef struct rotaryEncoder
     bool btnDebounceState; /** < button debounce state **/
     bool dirLast;          /** < last turn direction 0 - c-clkwise, 1 - clkwise **/
     bool btnState;         /** < current state of button **/
+    bool alertBtn;         /** < send task notification if button pressed **/
+    bool alertStep;        /** < send task notification if step changes **/
+    bool halfBtnInterrupt; /** < send the notify on btn press, rather than release */
 
     gpio_num_t dataPinNum;  /** < data pin gpio  **/
     gpio_num_t clockPinNum; /** < clock pin gpio **/
@@ -36,6 +46,13 @@ typedef struct rotaryEncoder
     uint16_t stepSize;  /** < increment/decrement size **/
     uint32_t tLastStep; /** < time since the last rotary step **/
     uint32_t tLastBtn;  /** < time since last button push **/
+    uint32_t tBtnPress; /** < time the button is held down for **/
+
+    uint16_t counterMax;
+    uint16_t counterMin;
+
+    TaskHandle_t parentTask; /** < Task to notify **/
+
 } rotaryEncoder_t;
 
 /********** Types **********************/
