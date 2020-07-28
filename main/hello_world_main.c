@@ -14,6 +14,7 @@
 #include "../inc/main.h"
 #include "WS2812_Driver.h"
 #include "BME280_Driver.h"
+#include "RotaryEncoder_Driver.h"
 
 void app_main(void)
 {
