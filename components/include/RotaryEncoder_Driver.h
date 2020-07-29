@@ -11,6 +11,8 @@
 /********* Includes ********************/
 
 #include "driver/gpio.h"
+#include "freertos/timers.h"
+#include "freertos/task.h"
 
 /********* Definitions *****************/
 
@@ -70,5 +72,7 @@ typedef struct rotaryEncoder
 /********** Types **********************/
 
 /******** Function Definitions *********/
+
+esp_err_t rotaryEncoderInit(gpio_num_t dataPin, gpio_num_t clockPin, gpio_num_t btnPin, bool installISR, TaskHandle_t parentTask);
 
 #endif /* ROTARYENCODER_DRIVER_H */

@@ -10,11 +10,44 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_system.h"
+#include "esp_log.h"
 #include "esp_spi_flash.h"
 #include "../inc/main.h"
 #include "WS2812_Driver.h"
 #include "BME280_Driver.h"
 #include "RotaryEncoder_Driver.h"
+
+const char *MAIN_TAG = "main";
+
+void reTask(void *args)
+{
+
+    uint32_t notify = 0;
+
+    while (1)
+    {
+        ESP_LOGI(MAIN_TAG, "pong");
+
+        xTaskNotifyWait(0, 0, &notify, portMAX_DELAY);
+        if (notify & RE_NOTIFY_CW_STEP)
+        {
+            ESP_LOGI(MAIN_TAG, "Got clockwise step!");
+        }
+        else if (notify & RE_NOTIFY_CC_STEP)
+        {
+            ESP_LOGI(MAIN_TAG, "Got counter-clockwise step!");
+        }
+        else if (notify & RE_NOTIFY_BTN_UP)
+        {
+            ESP_LOGI(MAIN_TAG, "Got button press!");
+        }
+        else
+        {
+            ESP_LOGI(MAIN_TAG, "The value didn't match :( %ul", notify);
+        }
+        vTaskDelay(10);
+    }
+}
 
 void app_main(void)
 {
@@ -37,21 +70,15 @@ void app_main(void)
     printf("Free heap: %d\n", esp_get_free_heap_size());
     vTaskDelay(1000 / portTICK_PERIOD_MS);
 
-    printf("\n\n[BME_DRIVER:] Initialising BME or BMP - we'll soon see...\n");
+    printf("\n\nSetting up a rotary encoder!\n");
 
-    // bm_initData_t initData = {0};
-    // initData.sampleMode = BM_NORMAL_MODE;
-    // initData.sampleType = BM_MODE_TEMP_PRESSURE;
-    // initData.addressPinState = 0;
-    // initData.i2cChannel = 0;
+    TaskHandle_t reTaskHandle;
 
-    // bm_controlData_t *handle = bm280_init(&initData);
-
+    rotaryEncoderInit(GPIO_NUM_17, GPIO_NUM_16, GPIO_NUM_19, true, reTaskHandle);
+    xTaskCreate(reTask, "reTask", 5012, NULL, 4, &reTaskHandle);
     while (1)
     {
+        ESP_LOGI(MAIN_TAG, "ping");
         vTaskDelay(2000);
     }
-    printf("Restarting now.\n");
-    fflush(stdout);
-    esp_restart();
 }

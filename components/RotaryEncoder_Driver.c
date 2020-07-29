@@ -20,6 +20,12 @@
 
 /****** Function Prototypes ***********/
 
+/****** Private Data ******************/
+
+static rotaryEncoder_t reControl;
+
+const char *RE_TAG = "RotaryEncoder:";
+
 /************ ISR *********************/
 
 static void IRAM_ATTR RE_DataInterrupt(void *args)
@@ -75,7 +81,7 @@ static void IRAM_ATTR RE_DataInterrupt(void *args)
         break;
     }
 
-    portYIELD_FROM_ISR(pdHigherPrioWoken);
+    portYIELD_FROM_ISR();
 };
 
 static void IRAM_ATTR RE_BtnInterrupt(void *args)
@@ -103,7 +109,7 @@ static void IRAM_ATTR RE_BtnInterrupt(void *args)
         {
             if (reControl.alertBtn && reControl.halfBtnInterrupt)
             {
-                notification |= (RE_NOTIFY_BTN_DOWN);
+                notification |= (RE_NOTIFY_BTN_DWN);
                 xTaskNotifyFromISR(reControl.parentTask, notification, eSetValueWithOverwrite, &pdHigherPrioWoken);
             }
         }
@@ -111,22 +117,24 @@ static void IRAM_ATTR RE_BtnInterrupt(void *args)
         /* enable the debounce */
         if (reControl.btnDebounceEnable)
         {
-            /** TODO: start timer, add debounce state **/
-            reControl.btnDebounceState
+            /** start timer, set debounce state **/
+            if (reControl.debounceTimer != NULL)
+            {
+                xTimerStartFromISR(reControl.debounceTimer, &pdHigherPrioWoken);
+            }
+            reControl.btnDebounceState = 1;
         }
+
         reControl.btnCount = INCREMENT_TO_MAX(reControl.btnCount, UINT16_MAX);
     }
+
+    portYIELD_FROM_ISR();
 };
 
-TimerCallbackFunction_t debounceExpire(TimerHandle_t xTimer)
+void debounceExpireCallback(TimerHandle_t xTimer)
 {
     reControl.btnDebounceState = 0;
 }
-/****** Private Data ******************/
-
-static rotaryEncoder_t reControl;
-
-const char *RE_TAG = "RotaryEncoder:";
 
 /****** Private Functions *************/
 
@@ -145,19 +153,20 @@ esp_err_t rotaryEncoderInit(gpio_num_t dataPin, gpio_num_t clockPin, gpio_num_t 
 
     /** configure the pins **/
     gpio_config_t pinConfig;
-    pinConfig.mode = GPIO_MODE_INPUT;
-    pinConfig.pin_bit_mask = (dataPin | btnPin); /** set unused pins to 0 **/
 
+    pinConfig.mode = GPIO_MODE_INPUT;
+    pinConfig.pin_bit_mask = ((1UL << dataPin) | (1UL << btnPin)); /** set unused pins to 0 **/
     pinConfig.intr_type = GPIO_INTR_ANYEDGE;
     pinConfig.pull_down_en = 0;
-    pinConfig.pull_up_en = 0;
+    pinConfig.pull_up_en = 1;
 
-    initStatus = gpio_config(&pinConfig);
+    ESP_ERROR_CHECK(gpio_config(&pinConfig));
     if (initStatus == ESP_OK)
     {
         pinConfig.intr_type = GPIO_INTR_DISABLE;
         pinConfig.pin_bit_mask = clockPin;
         initStatus = gpio_config(&pinConfig);
+        ESP_LOGE(RE_TAG, "1: %u", initStatus);
     }
     else
     {
@@ -178,23 +187,24 @@ esp_err_t rotaryEncoderInit(gpio_num_t dataPin, gpio_num_t clockPin, gpio_num_t 
         }
         if (initStatus == ESP_OK)
         {
-            initStatus = gpio_isr_handler_add(dataPin, &RE_DataInterrupt, NULL);
+            initStatus = gpio_isr_handler_add(dataPin, RE_DataInterrupt, &reControl);
         }
         if (initStatus != ESP_OK)
         {
             ESP_LOGE(RE_TAG, "Error adding data gpio isr handler: 0x%x", initStatus);
         }
-        if (initStatus == ESP_OK && enableButton)
+        if (initStatus == ESP_OK && btnPin)
         {
-            initStatus = gpio_isr_handler_add(btnPin, &RE_BtnInterrupt, NULL);
+            initStatus = gpio_isr_handler_add(btnPin, RE_BtnInterrupt, &reControl);
         }
         if (initStatus != ESP_OK)
         {
             ESP_LOGE(RE_TAG, "Error adding button gpio isr handler: 0x%x", initStatus);
         }
     }
+    ESP_LOGE(RE_TAG, "2: %u", initStatus);
 
-    TimerHandle_t timerHandle = xTimerCreate("btnDebounceTmr", pdMS_TO_TICKS(50), pdFALSE, NULL, debounceExpire);
+    TimerHandle_t timerHandle = xTimerCreate("btnDebounceTmr", pdMS_TO_TICKS(50), pdFALSE, NULL, &debounceExpireCallback);
 
     /* build the control struct */
     if (initStatus == ESP_OK)
@@ -205,11 +215,12 @@ esp_err_t rotaryEncoderInit(gpio_num_t dataPin, gpio_num_t clockPin, gpio_num_t 
         reControl.buttonPin = btnPin;
         reControl.buttonEnabled = (btnPin) ? 1 : 0; /** enable btn if pin supplied */
         reControl.btnDebounceEnable = 1;
-        reControl.buttonEnabled = enableButton;
         reControl.stepSize = 1;
         reControl.count.uValue = (UINT16_MAX / 2); /** start the counter in middle of value range **/
         reControl.counterMax = UINT16_MAX;
         reControl.counterMin = 0;
+
+        reControl.debounceTimer = timerHandle;
 
         if (parentTask)
         {
@@ -217,6 +228,15 @@ esp_err_t rotaryEncoderInit(gpio_num_t dataPin, gpio_num_t clockPin, gpio_num_t 
             reControl.alertBtn = (btnPin) ? 1 : 0;
             reControl.parentTask = parentTask;
         }
+    }
+
+    if (initStatus)
+    {
+        ESP_LOGE(RE_TAG, "Error in initialising Rotary Encoder Driver");
+    }
+    else
+    {
+        ESP_LOGI(RE_TAG, "Succesfully intialised Rotary Encoder Driver!");
     }
     return initStatus;
 }
@@ -305,5 +325,5 @@ esp_err_t rotaryEncoder_setCounterMax(uint16_t countMax)
         reControl.counterMax = countMax;
     }
 
-    return ESP_OK;
+    return setStatus;
 }
