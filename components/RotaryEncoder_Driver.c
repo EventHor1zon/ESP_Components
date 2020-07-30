@@ -7,6 +7,13 @@
 * \author   RJAM
 ****************************************/
 
+/**
+ *  TODO: Maybe add a short debounce to the rotary encoder?
+ *        Do function Prototypes
+ *        Maybe do button as separate component?
+ *          
+ **/
+
 /********* Includes *******************/
 #include <stdio.h>
 #include <string.h>
@@ -181,8 +188,6 @@ esp_err_t rotaryEncoderInit(gpio_num_t dataPin, gpio_num_t clockPin, gpio_num_t 
         pinConfig.intr_type = GPIO_INTR_ANYEDGE;
         pinConfig.pull_down_en = 0;
         pinConfig.pull_up_en = 1;
-
-        ESP_ERROR_CHECK(gpio_config(&pinConfig));
     }
     /** configure the interrupts **/
     if (initStatus == ESP_OK)
