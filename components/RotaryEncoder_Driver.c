@@ -158,7 +158,7 @@ esp_err_t rotaryEncoderInit(gpio_num_t dataPin, gpio_num_t clockPin, gpio_num_t 
     pinConfig.pin_bit_mask = ((1UL << dataPin) | (1UL << btnPin)); /** set unused pins to 0 **/
     pinConfig.intr_type = GPIO_INTR_ANYEDGE;
     pinConfig.pull_down_en = 0;
-    pinConfig.pull_up_en = 1;
+    pinConfig.pull_up_en = 0;
 
     ESP_ERROR_CHECK(gpio_config(&pinConfig));
     if (initStatus == ESP_OK)
@@ -219,7 +219,6 @@ esp_err_t rotaryEncoderInit(gpio_num_t dataPin, gpio_num_t clockPin, gpio_num_t 
         reControl.count.uValue = (UINT16_MAX / 2); /** start the counter in middle of value range **/
         reControl.counterMax = UINT16_MAX;
         reControl.counterMin = 0;
-
         reControl.debounceTimer = timerHandle;
 
         if (parentTask)

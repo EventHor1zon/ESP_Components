@@ -23,6 +23,8 @@ void reTask(void *args)
 {
 
     uint32_t notify = 0;
+    TaskHandle_t reTaskHandle = xTaskGetCurrentTaskHandle();
+    rotaryEncoderInit(GPIO_NUM_17, GPIO_NUM_16, GPIO_NUM_19, true, reTaskHandle);
 
     while (1)
     {
@@ -72,10 +74,8 @@ void app_main(void)
 
     printf("\n\nSetting up a rotary encoder!\n");
 
-    TaskHandle_t reTaskHandle;
+    xTaskCreate(reTask, "reTask", 5012, NULL, 4, NULL);
 
-    rotaryEncoderInit(GPIO_NUM_17, GPIO_NUM_16, GPIO_NUM_19, true, reTaskHandle);
-    xTaskCreate(reTask, "reTask", 5012, NULL, 4, &reTaskHandle);
     while (1)
     {
         ESP_LOGI(MAIN_TAG, "ping");
