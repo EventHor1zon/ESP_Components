@@ -177,18 +177,9 @@ esp_err_t rotaryEncoderInit(gpio_num_t dataPin, gpio_num_t clockPin, gpio_num_t 
     }
     else
     {
-        ESP_LOGE(RE_TAG, "Error configuring data/button pin(s): 0x%x", initStatus);
+        ESP_LOGE(RE_TAG, "Error configuring data pin: 0x%x", initStatus);
     }
 
-    if (btnPin && initStatus == ESP_OK)
-    {
-
-        pinConfig.mode = GPIO_MODE_INPUT;
-        pinConfig.pin_bit_mask = (1UL << btnPin); /** set unused pins to 0 **/
-        pinConfig.intr_type = GPIO_INTR_ANYEDGE;
-        pinConfig.pull_down_en = 0;
-        pinConfig.pull_up_en = 1;
-    }
     /** configure the interrupts **/
     if (initStatus == ESP_OK)
     {
