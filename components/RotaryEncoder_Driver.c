@@ -24,6 +24,7 @@
 #include "esp_err.h"
 #include "esp_log.h"
 #include "RotaryEncoder_Driver.h"
+#include "Utilities.h"
 
 /****** Function Prototypes ***********/
 
@@ -40,99 +41,58 @@ static void IRAM_ATTR RE_DataInterrupt(void *args)
 
     BaseType_t pdHigherPrioWoken = pdFALSE;
 
-    uint8_t direction = gpio_get_level(reControl.clockPinNum);
-    uint8_t rising = gpio_get_level(reControl.dataPinNum);
-
-    uint8_t rotation = direction + rising;
-    uint32_t notification = 0;
-
-    switch (rotation)
-    {
-    case 0:
-    case 2:
-        /** this was a counter-clockwise rotation */
-        if (reControl.signedCounter)
-        {
-            reControl.count.Value = INCREMENT_TO_MAX(reControl.count.Value, reControl.counterMax);
-        }
-        else
-        {
-            reControl.count.uValue = INCREMENT_TO_MAX(reControl.count.uValue, reControl.counterMax);
-        }
-
-        if (reControl.alertStep && reControl.parentTask != NULL)
-        {
-            notification |= RE_NOTIFY_CC_STEP;
-            xTaskNotifyFromISR(reControl.parentTask, notification, eSetValueWithOverwrite, &pdHigherPrioWoken);
-        }
-        break;
-
-    case 1:
-        if (reControl.signedCounter)
-        {
-            reControl.count.Value = DECREMENT_TO_MIN(reControl.count.Value, reControl.counterMin);
-        }
-        else
-        {
-            reControl.count.uValue = DECREMENT_TO_MIN(reControl.count.uValue, reControl.counterMin);
-        }
-
-        if (reControl.alertStep && reControl.parentTask != NULL)
-        {
-            notification |= RE_NOTIFY_CW_STEP;
-            xTaskNotifyFromISR(reControl.parentTask, notification, eSetValueWithOverwrite, &pdHigherPrioWoken);
-        }
-        break;
-
-    default:
-        break;
-    }
-
-    portYIELD_FROM_ISR();
-};
-
-static void IRAM_ATTR RE_BtnInterrupt(void *args)
-{
-
-    BaseType_t pdHigherPrioWoken;
-    uint32_t notification = 0;
-    uint8_t pinLevel = 0;
-
-    pinLevel = gpio_get_level(reControl.buttonPin);
-    reControl.btnState = pinLevel;
-
     /** check debounce **/
-    if (reControl.btnDebounceEnable && !(reControl.btnDebounceState))
+    if (!(reControl.btnDebounceState))
     {
-        if (pinLevel)
-        { /** found a rising edge **/
-            if (reControl.alertBtn)
+        uint8_t direction = gpio_get_level(reControl.clockPinNum);
+        uint8_t rising = gpio_get_level(reControl.dataPinNum);
+
+        uint8_t rotation = direction + rising;
+        uint32_t notification = 0;
+
+        switch (rotation)
+        {
+        case 0:
+        case 2:
+            /** this was a counter-clockwise rotation */
+            if (reControl.signedCounter)
             {
-                notification |= (RE_NOTIFY_BTN_UP);
+                reControl.count.Value = INCREMENT_TO_MAX(reControl.count.Value, reControl.counterMax);
+            }
+            else
+            {
+                reControl.count.uValue = INCREMENT_TO_MAX(reControl.count.uValue, reControl.counterMax);
+            }
+
+            if (reControl.alertStep && reControl.parentTask != NULL)
+            {
+                notification |= RE_NOTIFY_CC_STEP;
                 xTaskNotifyFromISR(reControl.parentTask, notification, eSetValueWithOverwrite, &pdHigherPrioWoken);
             }
-        }
-        else
-        {
-            if (reControl.alertBtn && reControl.halfBtnInterrupt)
+            break;
+
+        case 1:
+            if (reControl.signedCounter)
             {
-                notification |= (RE_NOTIFY_BTN_DWN);
+                reControl.count.Value = DECREMENT_TO_MIN(reControl.count.Value, reControl.counterMin);
+            }
+            else
+            {
+                reControl.count.uValue = DECREMENT_TO_MIN(reControl.count.uValue, reControl.counterMin);
+            }
+
+            if (reControl.alertStep && reControl.parentTask != NULL)
+            {
+                notification |= RE_NOTIFY_CW_STEP;
                 xTaskNotifyFromISR(reControl.parentTask, notification, eSetValueWithOverwrite, &pdHigherPrioWoken);
             }
+            break;
+
+        default:
+            break;
         }
 
-        /* enable the debounce */
-        if (reControl.btnDebounceEnable)
-        {
-            /** start timer, set debounce state **/
-            if (reControl.debounceTimer != NULL)
-            {
-                xTimerStartFromISR(reControl.debounceTimer, &pdHigherPrioWoken);
-            }
-            reControl.btnDebounceState = 1;
-        }
-
-        reControl.btnCount = INCREMENT_TO_MAX(reControl.btnCount, UINT16_MAX);
+        reControl.btnDebounceState = 1;
     }
 
     portYIELD_FROM_ISR();
@@ -153,7 +113,7 @@ void debounceExpireCallback(TimerHandle_t xTimer)
  *                  populate the device struct
  **/
 
-esp_err_t rotaryEncoderInit(gpio_num_t dataPin, gpio_num_t clockPin, gpio_num_t btnPin, bool installISR, TaskHandle_t parentTask)
+esp_err_t rotaryEncoderInit(gpio_num_t dataPin, gpio_num_t clockPin, bool installISR, TaskHandle_t parentTask)
 {
 
     esp_err_t initStatus = ESP_OK;
@@ -200,18 +160,9 @@ esp_err_t rotaryEncoderInit(gpio_num_t dataPin, gpio_num_t clockPin, gpio_num_t 
         {
             ESP_LOGE(RE_TAG, "Error adding data gpio isr handler: 0x%x", initStatus);
         }
-        if (initStatus == ESP_OK && btnPin)
-        {
-            initStatus = gpio_isr_handler_add(btnPin, RE_BtnInterrupt, &reControl);
-        }
-        if (initStatus != ESP_OK)
-        {
-            ESP_LOGE(RE_TAG, "Error adding button gpio isr handler: 0x%x", initStatus);
-        }
     }
-    ESP_LOGE(RE_TAG, "2: %u", initStatus);
 
-    TimerHandle_t timerHandle = xTimerCreate("btnDebounceTmr", pdMS_TO_TICKS(50), pdFALSE, NULL, &debounceExpireCallback);
+    TimerHandle_t timerHandle = xTimerCreate("reDebounceTmr", pdMS_TO_TICKS(20), pdFALSE, NULL, &debounceExpireCallback);
 
     /* build the control struct */
     if (initStatus == ESP_OK)
@@ -219,9 +170,6 @@ esp_err_t rotaryEncoderInit(gpio_num_t dataPin, gpio_num_t clockPin, gpio_num_t 
         memset(&reControl, 0, sizeof(rotaryEncoder_t));
         reControl.clockPinNum = clockPin;
         reControl.dataPinNum = dataPin;
-        reControl.buttonPin = btnPin;
-        reControl.buttonEnabled = (btnPin) ? 1 : 0; /** enable btn if pin supplied */
-        reControl.btnDebounceEnable = 1;
         reControl.stepSize = 1;
         reControl.count.uValue = (UINT16_MAX / 2); /** start the counter in middle of value range **/
         reControl.counterMax = UINT16_MAX;
@@ -231,7 +179,6 @@ esp_err_t rotaryEncoderInit(gpio_num_t dataPin, gpio_num_t clockPin, gpio_num_t 
         if (parentTask)
         {
             reControl.alertStep = 1;
-            reControl.alertBtn = (btnPin) ? 1 : 0;
             reControl.parentTask = parentTask;
         }
     }
@@ -247,7 +194,7 @@ esp_err_t rotaryEncoderInit(gpio_num_t dataPin, gpio_num_t clockPin, gpio_num_t 
     return initStatus;
 }
 
-esp_err_t rotaryEncoder_attachToTask(TaskHandle_t parentTask, bool alertStep, bool alertButton)
+esp_err_t rotaryEncoder_attachToTask(TaskHandle_t parentTask, bool alertStep)
 {
 
     esp_err_t status = ESP_OK;
@@ -261,10 +208,6 @@ esp_err_t rotaryEncoder_attachToTask(TaskHandle_t parentTask, bool alertStep, bo
     if (alertStep)
     {
         reControl.alertStep = true;
-    }
-    if (reControl.buttonEnabled && alertButton)
-    {
-        reControl.alertBtn = true;
     }
 
     return status;
@@ -301,18 +244,6 @@ esp_err_t rotaryEncoder_getValue(uint16_t *value)
 esp_err_t rotaryEncoder_getLastDir(uint8_t *lastDir)
 {
     *lastDir = reControl.dirLast;
-    return ESP_OK;
-}
-
-esp_err_t rotaryEncoder_getButtonState(uint8_t *state)
-{
-    *state = (uint8_t)reControl.btnState;
-    return ESP_OK;
-}
-
-esp_err_t rotaryEncoder_getButtonPressT(uint32_t *btnPressT)
-{
-    *btnPressT = reControl.tBtnPress;
     return ESP_OK;
 }
 

@@ -24,7 +24,7 @@ void reTask(void *args)
 
     uint32_t notify = 0;
     TaskHandle_t reTaskHandle = xTaskGetCurrentTaskHandle();
-    rotaryEncoderInit(GPIO_NUM_17, GPIO_NUM_16, GPIO_NUM_19, true, reTaskHandle);
+    rotaryEncoderInit(GPIO_NUM_17, GPIO_NUM_16, true, reTaskHandle);
 
     while (1)
     {
