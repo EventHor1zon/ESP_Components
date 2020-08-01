@@ -174,3 +174,15 @@ esp_err_t pushBtn_getButtonPressT(uint32_t *btnPressT)
     *btnPressT = btnData.tBtnPress;
     return ESP_OK;
 }
+
+esp_err_t pushBtn_setDebounceTime(uint16_t dbTime)
+{
+    btnData.tDebounce = dbTime;
+    return ESP_OK;
+}
+
+esp_err_t pushBtn_setHalfPressNotify(bool state)
+{
+    btnData.halfBtnInterrupt = state;
+    return ESP_OK;
+}

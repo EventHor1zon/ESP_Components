@@ -42,7 +42,7 @@ static void IRAM_ATTR RE_DataInterrupt(void *args)
     BaseType_t pdHigherPrioWoken = pdFALSE;
 
     /** check debounce **/
-    if (!(reControl.btnDebounceState))
+    if (!(reControl.debounceState))
     {
         uint8_t direction = gpio_get_level(reControl.clockPinNum);
         uint8_t rising = gpio_get_level(reControl.dataPinNum);
@@ -92,7 +92,9 @@ static void IRAM_ATTR RE_DataInterrupt(void *args)
             break;
         }
 
-        reControl.btnDebounceState = 1;
+        /** start the debounce timer **/
+        xTimerStartFromISR(reControl.debounceTimer, pdHigherPrioWoken);
+        reControl.debounceState = 1;
     }
 
     portYIELD_FROM_ISR();
@@ -100,7 +102,7 @@ static void IRAM_ATTR RE_DataInterrupt(void *args)
 
 void debounceExpireCallback(TimerHandle_t xTimer)
 {
-    reControl.btnDebounceState = 0;
+    reControl.debounceState = 0;
 }
 
 /****** Private Functions *************/
@@ -171,8 +173,8 @@ esp_err_t rotaryEncoderInit(gpio_num_t dataPin, gpio_num_t clockPin, bool instal
         reControl.clockPinNum = clockPin;
         reControl.dataPinNum = dataPin;
         reControl.stepSize = 1;
-        reControl.count.uValue = (UINT16_MAX / 2); /** start the counter in middle of value range **/
         reControl.counterMax = UINT16_MAX;
+        reControl.count.uValue = (reControl.counterMax / 2); /** start the counter in middle of value range **/
         reControl.counterMin = 0;
         reControl.debounceTimer = timerHandle;
 
@@ -191,6 +193,7 @@ esp_err_t rotaryEncoderInit(gpio_num_t dataPin, gpio_num_t clockPin, bool instal
     {
         ESP_LOGI(RE_TAG, "Succesfully intialised Rotary Encoder Driver!");
     }
+
     return initStatus;
 }
 
@@ -263,4 +266,18 @@ esp_err_t rotaryEncoder_setCounterMax(uint16_t countMax)
     }
 
     return setStatus;
+}
+
+esp_err_t rotaryEncoder_resetCounter()
+{
+    if (reControl.signedCounter)
+    {
+        reControl.count.Value = 0;
+    }
+    else
+    {
+        reControl.count.uValue = (reControl.counterMax / 2);
+    }
+
+    return ESP_OK;
 }

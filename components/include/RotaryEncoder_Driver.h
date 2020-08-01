@@ -33,15 +33,14 @@ typedef struct rotaryEncoder
 
     rotaryCount count;
 
-    bool signedCounter;     /** < using signed or unsigned value **/
-    bool btnDebounceEnable; /** < enable to button debounce **/
-    bool btnDebounceState;  /** < button debounce state **/
-    bool dirLast;           /** < last turn direction 0 - c-clkwise, 1 - clkwise **/
-    bool alertStep;         /** < send task notification if step changes **/
+    bool signedCounter;  /** < using signed or unsigned value **/
+    bool debounceEnable; /** < enable to button debounce **/
+    bool debounceState;  /** < button debounce state **/
+    bool dirLast;        /** < last turn direction 0 - c-clkwise, 1 - clkwise **/
+    bool alertStep;      /** < send task notification if step changes **/
 
     gpio_num_t dataPinNum;  /** < data pin gpio  **/
     gpio_num_t clockPinNum; /** < clock pin gpio **/
-    gpio_num_t buttonPin;   /** < button pin gpio **/
 
     uint16_t counterMax; /** < max counter value **/
     uint16_t counterMin; /** < min counter value **/
