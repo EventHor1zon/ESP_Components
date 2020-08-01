@@ -19,6 +19,45 @@
 
 const char *MAIN_TAG = "main";
 
+void envSensor(void *args)
+{
+
+    float temp;
+    float humidity;
+    float pressure;
+
+    bm_initData_t initData = {0};
+
+    initData.addressPinState = 0;
+    initData.i2cChannel = 0;
+    initData.devType = BME_280_DEVICE;
+    initData.sampleMode = BM_FORCE_MODE;
+    initData.sampleType = BM_MODE_TEMP_PRESSURE_HUMIDITY;
+
+    bm_controlData_t *bmeHandle = NULL;
+    bmeHandle = bm280_init(&initData);
+    if (bmeHandle == NULL)
+    {
+        ESP_LOGE(MAIN_TAG, "Error initialising bme");
+        while (1)
+        {
+            vTaskDelay(2000);
+        }
+    }
+
+    while (1)
+    {
+
+        bm280_updateMeasurements(bmeHandle);
+
+        printf("Humidity: %f", bmeHandle->sensorData.realHumidity);
+        printf("Temp: %f", bmeHandle->sensorData.realTemperature);
+        printf("Pressure: %f", bmeHandle->sensorData.realPressure);
+
+        vTaskDelay(1000);
+    }
+}
+
 void reTask(void *args)
 {
 
@@ -75,6 +114,10 @@ void app_main(void)
     printf("\n\nSetting up a rotary encoder!\n");
 
     xTaskCreate(reTask, "reTask", 5012, NULL, 4, NULL);
+
+    printf("\n\nSetting up a BME 280");
+
+    xTaskCreate(envSensor, "envSensor", 5012, NULL, 3, NULL);
 
     while (1)
     {
