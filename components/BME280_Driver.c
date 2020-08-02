@@ -234,6 +234,14 @@ static esp_err_t bm280_getCalibrationData(bm_controlData_t *bmCtrl)
 #else
     trxStatus = bm280_i2cReadFromAddress(bmCtrl, (uint8_t)BM_REG_ADDR_DIGT1_LSB, BM_CALIBR_DATA_LEN, buffer);
 #endif
+
+#ifdef DEBUG
+    for (uint8_t i = 0; i < BM_CALIBR_DATA_LEN + 1; i++)
+    {
+        printf("%u ", buffer[i]);
+    }
+    printf("\n");
+#endif
     /** now for some rejigging... **/
 
     if (trxStatus == ESP_OK)
@@ -388,13 +396,14 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
         }
         vTaskDelay(pdMS_TO_TICKS(200));
     }
-#ifdef DEBUG
-    //bm280_debugPrintRegs(bmCtrl);
-    ESP_LOGI(BM_DRIVER_TAG, "Writing data %u", forcedMeasure);
-#endif
+
     trxStatus = bm280_i2cReadFromAddress(bmCtrl, BM_REG_ADDR_PRESSURE_MSB, (uint16_t)BM_MEASURE_READ_LEN, rxBuffer);
 #ifdef DEBUG
-    //bm280_debugPrintRegs(bmCtrl);
+    for (int i = 0; i < BM_MEASURE_READ_LEN; i++)
+    {
+        printf("- %u ", rxBuffer[i]);
+    }
+    printf("\n");
     ESP_LOGI(BM_DRIVER_TAG, "Reading new data...");
 #endif
     if (trxStatus == ESP_OK)
@@ -556,7 +565,7 @@ bm_controlData_t *bm280_init(bm_initData_t *initData)
         }
     }
 
-    bm280_debugPrintRegs(bmCtrl);
+    //bm280_debugPrintRegs(bmCtrl);
 
     if (initStatus == ESP_OK)
     {

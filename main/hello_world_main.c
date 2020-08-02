@@ -22,10 +22,6 @@ const char *MAIN_TAG = "main";
 void envSensor(void *args)
 {
 
-    float temp;
-    float humidity;
-    float pressure;
-
     bm_initData_t initData = {0};
 
     initData.addressPinState = 0;
@@ -50,9 +46,9 @@ void envSensor(void *args)
 
         bm280_updateMeasurements(bmeHandle);
 
-        printf("Humidity: %f", bmeHandle->sensorData.realHumidity);
-        printf("Temp: %f", bmeHandle->sensorData.realTemperature);
-        printf("Pressure: %f", bmeHandle->sensorData.realPressure);
+        printf("Humidity: %f (calib: %ul) (raw %ul) \n", bmeHandle->sensorData.realHumidity, bmeHandle->sensorData.calibratedHumidity, bmeHandle->sensorData.rawHumidity);
+        printf("Temp: %f (calib: %ul) (raw %ul) \n", bmeHandle->sensorData.realTemperature, bmeHandle->sensorData.calibratedTemperature, bmeHandle->sensorData.rawTemperature);
+        printf("Pressure: %f (calib: %ul) (raw %ul) \n", bmeHandle->sensorData.realPressure, bmeHandle->sensorData.calibratedPressure, bmeHandle->sensorData.rawPressure);
 
         vTaskDelay(1000);
     }
