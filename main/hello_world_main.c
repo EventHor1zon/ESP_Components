@@ -13,7 +13,6 @@
 #include "esp_spi_flash.h"
 #include "../inc/main.h"
 #include "WS2812_Driver.h"
-#include "BME280_Driver.h"
 
 void app_main(void)
 {
@@ -36,21 +35,12 @@ void app_main(void)
     printf("Free heap: %d\n", esp_get_free_heap_size());
     vTaskDelay(1000 / portTICK_PERIOD_MS);
 
-    printf("\n\n[BME_DRIVER:] Initialising BME or BMP - we'll soon see...\n");
-
-    // bm_initData_t initData = {0};
-    // initData.sampleMode = BM_NORMAL_MODE;
-    // initData.sampleType = BM_MODE_TEMP_PRESSURE;
-    // initData.addressPinState = 0;
-    // initData.i2cChannel = 0;
-
-    // bm_controlData_t *handle = bm280_init(&initData);
+    uint16_t numStrands = 9;
+    gpio_num_t pin = GPIO_NUM_5;
+    WS2812_init(1, &numStrands, &pin);
 
     while (1)
     {
         vTaskDelay(2000);
     }
-    printf("Restarting now.\n");
-    fflush(stdout);
-    esp_restart();
 }

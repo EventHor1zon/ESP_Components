@@ -179,5 +179,8 @@ esp_err_t WS2812_deinit(void);
  * \brief - control task for the driver 
 */
 
+/**/
+esp_err_t WS2812_setLedColour(StrandData_t *strand);
+
 void showmem(uint8_t *memptr, int len);
 #endif /* FREESP_WS2812_H */

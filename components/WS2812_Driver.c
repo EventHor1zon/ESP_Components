@@ -169,7 +169,7 @@ static esp_err_t WS2812_loadTestImage(StrandData_t *strand)
         pixelAddr = strand->strandMem + (i * WS2812_BYTES_PER_PIXEL);
         pixelIndex = i % testPixelsLen;
         pixelData = &testFrame[pixelIndex][0];
-        ESP_LOGD(WS2812_TAG, "Writing %u to %p", *pixelData, pixelAddr);
+        ESP_LOGI(WS2812_TAG, "Writing %u to %p", *pixelData, pixelAddr);
         memcpy(pixelAddr, pixelData, WS2812_BYTES_PER_PIXEL);
     }
 
@@ -239,7 +239,7 @@ esp_err_t WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dataPin
         for (counter = 0; counter < numStrands; counter++)
         {
             /* assign memory and add the pointer to allStrands */
-            StrandData_t *strand = (StrandData_t *)calloc(1, sizeof(StrandData_t));
+            StrandData_t *strand = heap_caps_calloc(1, sizeof(StrandData_t), MALLOC_CAP_8BIT);
             if (strand != NULL)
             {
                 strand->strandIndex = counter;
@@ -267,7 +267,7 @@ esp_err_t WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dataPin
 
             /* assign LED memory */
             uint16_t spaceRequired = (WS2812_BYTES_PER_PIXEL * numLeds[counter]);
-            uint8_t *ledMem = (uint8_t *)calloc(1, spaceRequired);
+            uint8_t *ledMem = heap_caps_calloc(1, spaceRequired, MALLOC_CAP_8BIT);
 
             if (ledMem != NULL)
             {
@@ -282,8 +282,8 @@ esp_err_t WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dataPin
             }
 
             spaceRequired = sizeof(ledEffectData_t);
-            ledEffectData_t *effectData = (ledEffectData_t *)calloc(1, spaceRequired);
-            if (effectData == NULL)
+            ledEffectData_t *effectData = heap_caps_calloc(1, spaceRequired, MALLOC_CAP_8BIT);
+            if (effectData != NULL)
             {
                 strand->fxData = effectData;
             }
@@ -319,7 +319,8 @@ esp_err_t WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dataPin
 
                 strand->dataChannel = (rmt_channel_t)counter;
             }
-
+            WS2812_loadTestImage(strand);
+            WS2812_transmitLedData(strand);
             ESP_LOGI(WS2812_TAG, "Success! Strand %u initialised at %p (allStrands[counter] = %p )", counter, strand, allStrands[counter]);
             ESP_LOGI(WS2812_TAG, "Strand info:\n[index]\t%u\n[numLeds]\t%u\n[memLen]\t%u\n[ledMem]\t%p", strand->strandIndex, strand->numLeds, strand->strandMemLength, strand->strandMem);
         }
@@ -344,10 +345,10 @@ esp_err_t WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dataPin
     //     ESP_LOGE(WS2812_TAG, "Error! Unable to assign memory for commandQueue");
     //     initStatus = ESP_ERR_NO_MEM;
     // }
-    if (initStatus == ESP_OK)
-    {
-        xTaskCreatePinnedToCore(WS2812_driverTask, "WS2812_driverTask", 5012, NULL, 3, &ledControl.driverTaskHandle, CORE_ID_APP);
-    }
+    // if (initStatus == ESP_OK)
+    // {
+    //     xTaskCreatePinnedToCore(WS2812_driverTask, "WS2812_driverTask", 5012, NULL, 3, &ledControl.driverTaskHandle, CORE_ID_APP);
+    // }
 
     return initStatus;
 }
@@ -401,12 +402,19 @@ esp_err_t WS2812_deinit()
 static void WS2812_driverTask(void *args)
 {
 
+    StrandData_t *strand = allStrands[0];
+
+    strand->fxData->colour = 0x00FF00;
+
+    WS2812_setLedColour(strand);
+
     while (1)
     {
         /* for each strand, check the leds to see if they require updated */
         /* if they do, call the effect function                           */
         for (uint8_t counter = 0; counter < ledControl.numStrands; counter++)
         {
+            ;
         }
 
         vTaskDelay(1000);
