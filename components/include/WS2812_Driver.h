@@ -111,7 +111,7 @@ typedef struct strandData
     uint8_t *strandMem;           /** <pointer to LED data          */
     ledEffectData_t *fxData;      /** < pointer to led effect data */
     SemaphoreHandle_t *memSemphr; /** <sempahore for led data access*/
-    rmt_channel_t dataChannel;    /** <rmt channel driving leds     */
+    rmt_channel_t dataChannel;    /** <rmt channel driving leds (uint8_t)    */
 } StrandData_t;
 
 /** ws2812 Driver Control structure 
@@ -179,8 +179,17 @@ esp_err_t WS2812_deinit(void);
  * \brief - control task for the driver 
 */
 
-/**/
-esp_err_t WS2812_setLedColour(StrandData_t *strand);
+/** \brief  WS2812_setAllLedColour(uint8_t strandNum)
+ * 
+ *          want externally callable functions to be simple to use, not require
+ *          a strand pointer, like static functions. Using allStrands, essentially the
+ *          same
+ *  \param  strandNum   - strand number (indexed 0-6) to operate on 
+ * 
+ *  \param  colour       - strand colour, 32-bit int XBGR order
+ * 
+ *  \return esp_ok or error 
+ **/
+esp_err_t WS2812_setAllLedColour(StrandData_t *strand, uint32_t colour);
 
-void showmem(uint8_t *memptr, int len);
 #endif /* FREESP_WS2812_H */

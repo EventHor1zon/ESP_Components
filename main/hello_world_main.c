@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "driver/spi_common.h"
+#include "driver/spi_master.h"
 #include "esp_system.h"
 #include "esp_spi_flash.h"
 #include "../inc/main.h"
@@ -33,11 +35,11 @@ void app_main(void)
            (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
 
     printf("Free heap: %d\n", esp_get_free_heap_size());
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
 
-    uint16_t numStrands = 9;
+    printf("Starting LEDSs\n");
+    uint16_t numLeds = 6;
     gpio_num_t pin = GPIO_NUM_5;
-    WS2812_init(1, &numStrands, &pin);
+    WS2812_init(1, &numLeds, &pin);
 
     while (1)
     {
