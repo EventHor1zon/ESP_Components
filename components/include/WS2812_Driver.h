@@ -120,8 +120,6 @@ typedef struct strandData
 typedef struct ws2812Control
 {
     uint8_t numStrands;            /** <number of led strands (max 8) */
-    uint16_t frameRate;            /** <refresh_rate of LED strands - common to all strands as managed by a single task */
-    StrandData_t *allStrands;      /** <an array containing all connected strands */
     TaskHandle_t driverTaskHandle; /** <handle for the driver main task */
 } ws2812Ctrl_t;
 

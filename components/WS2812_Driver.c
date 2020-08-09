@@ -327,8 +327,6 @@ esp_err_t WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dataPin
         /* finish setup of Driver structure */
 
         ledControl.numStrands = numStrands;
-        ledControl.frameRate = WS2812_CFG_REFRESH_RATE;
-        ledControl.allStrands = allStrands[0];
 
         if (initStatus == ESP_OK)
         {
@@ -402,17 +400,44 @@ esp_err_t WS2812_deinit()
 static void WS2812_driverTask(void *args)
 {
 
-    StrandData_t *strand = allStrands[0];
-
-    uint32_t colour = 0x0000FF00;
+    uint32_t colours[6] = {0x00000011, 0x00001100, 0x00110000, 0x00111100, 0x00001111, 0x00110011};
 
     while (1)
     {
-        WS2812_setAllLedColour(strand, colour);
-        WS2812_transmitLedData(strand);
-        showmem(strand->strandMem, strand->strandMemLength);
-        colour = (uint32_t)(rand() << 16) | (uint32_t)(rand());
-        vTaskDelay(1000);
+
+        for (uint8_t i = 0; ledControl.numStrands; i++)
+        {
+            if (allStrands[i] != NULL)
+            {
+                StrandData_t *strand = allStrands[i];
+                if (xSemaphoreTake(strand->memSemphr, pdMS_TO_TICKS(WS2812_SEMAPHORE_TIMEOUT)) == pdFALSE)
+                {
+                    ESP_LOGE(WS2812_TAG, "Semaphore request timed out");
+                }
+                else
+                {
+                    lfx_single_color_nightrider(0, 0, 0x00119911);
+                    xSemaphoreGive(strand->memSemphr);
+                }
+
+                /* if the leds require updating, take the semaphore and write new data */
+                if (strand->updateLeds)
+                {
+                    if (xSemaphoreTake(strand->memSemphr, pdMS_TO_TICKS(WS2812_SEMAPHORE_TIMEOUT)) == pdFALSE)
+                    {
+                        ESP_LOGE(WS2812_TAG, "Semaphore request timed out");
+                    }
+                    else
+                    {
+                        WS2812_transmitLedData(strand);
+                        strand->updateLeds = 0;
+                        xSemaphoreGive(strand->memSemphr);
+                    }
+                }
+            }
+        }
+
+        vTaskDelay(50);
     }
 }
 
@@ -425,11 +450,6 @@ esp_err_t WS2812_ledsOff(StrandData_t *strand)
 {
     esp_err_t status = ESP_OK;
 
-    if (xSemaphoreTake(strand->memSemphr, pdMS_TO_TICKS(WS2812_SEMAPHORE_TIMEOUT)) == pdFALSE)
-    {
-        status = ESP_ERR_TIMEOUT;
-    }
-    else
     {
         bzero(strand->strandMem, strand->strandMemLength); /* use bzero to quickly zero the pixel map */
         /** TODO: better to do all writes in ctrl task @ refresh rate? */
@@ -494,6 +514,8 @@ esp_err_t WS2812_setAllLedColour(StrandData_t *strand, uint32_t colour)
         status = ESP_FAIL;
     }
 
+    strand->updateLeds = 1;
+
     return status;
 }
 
@@ -501,7 +523,7 @@ static uint8_t lfx_single_color_nightrider(uint8_t strandIndex, int fade_len, ui
 {
 
     static bool direction = 1;
-    static uint16_t led_pos = 0;
+    static int16_t led_pos = 0;
     StrandData_t *strand = allStrands[strandIndex];
     uint16_t numLeds = strand->numLeds;
 
@@ -590,6 +612,8 @@ static uint8_t lfx_single_color_nightrider(uint8_t strandIndex, int fade_len, ui
             direction = !direction;
         }
     }
+
+    strand->updateLeds = 1;
 
     return 0;
 }
