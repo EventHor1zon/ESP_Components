@@ -104,14 +104,14 @@ typedef struct ws2812_ledEffectData
  **/
 typedef struct strandData
 {
-    uint8_t strandIndex;          /** <index of the current strand  */
-    uint8_t updateLeds;           /** <update flag - led mem has changed */
-    uint16_t numLeds;             /** <num leds in strand           */
-    uint16_t strandMemLength;     /** <length of memory    */
-    uint8_t *strandMem;           /** <pointer to LED data          */
-    ledEffectData_t *fxData;      /** < pointer to led effect data */
-    SemaphoreHandle_t *memSemphr; /** <sempahore for led data access*/
-    rmt_channel_t dataChannel;    /** <rmt channel driving leds (uint8_t)    */
+    uint8_t strandIndex;         /** <index of the current strand  */
+    uint8_t updateLeds;          /** <update flag - led mem has changed */
+    uint16_t numLeds;            /** <num leds in strand           */
+    uint16_t strandMemLength;    /** <length of memory    */
+    uint8_t *strandMem;          /** <pointer to LED data          */
+    ledEffectData_t *fxData;     /** < pointer to led effect data */
+    SemaphoreHandle_t memSemphr; /** <sempahore for led data access*/
+    rmt_channel_t dataChannel;   /** <rmt channel driving leds (uint8_t)    */
 } StrandData_t;
 
 /** ws2812 Driver Control structure 
