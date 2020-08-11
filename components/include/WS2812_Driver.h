@@ -1,5 +1,3 @@
-
-
 /****************************************
 * \file     FREESP_WS2812.h
 * \brief    Header file for the FREESP_WS2812 component
@@ -17,9 +15,12 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 #include "freertos/queue.h"
+#include "freertos/timers.h"
 #include "freertos/task.h"
 
 #define WS2812_DRIVER_USE_MANAGER
+
+#include "LedEffects.h"
 
 #ifdef ESP_HOME_API_ENABLE
 #include "FREESP_PeripheralManager.h"
@@ -74,29 +75,21 @@ typedef struct
 } ws2812b_timing_t;
 
 /**
- *  Peripheral init data struct
-*/
-typedef struct ws2812_initData
-{
-    uint8_t numStrands;  /** < number of strands to be init */
-    uint16_t *numLeds;   /** < pointer to an array of number of leds on each strand */
-    gpio_num_t *dataPin; /** < pointer to an array of gpio data pin for each strand */
-} ws2812_initData_t;
-
-/**
  *  Led effect struct
- *  Used for tracking persistent LED effect variables 
+ *  Used for tracking persistent LED effect variables?
  *  Try to build all effects to use the same type of data struct 
  *  TODO: better variable names, use union or bitfield?
 */
-
 typedef struct ws2812_ledEffectData
 {
-    ledEffect_t effect; /** < the current effect */
-    uint8_t variableA;  /** < variableA - step counter/led Index */
-    uint8_t variableB;  /** < variableB - speed, fade, totalSteps, etc */
-    uint8_t variableC;  /** < variableC - delta, booleans, etc */
-    uint32_t colour;    /** < colour - colour */
+    ledEffect_t effect;         /** < the current effect in enumeration */
+    EffectFunction func;        /** < a pointer to the LedEffects function */
+    TimerHandle_t refreshTimer; /** < handle for the effect refresh timer **/
+    uint32_t colour;            /** < colour - colour */
+    uint16_t refresh_t;         /** < refresh time in ms */
+    bool timerExpired;          /** < timer expired status */
+    bool updateEffect;          /** < led effect has been changed - adjust parameters */
+    uint32_t *LedEffectData_t;  /** < struct for holding led effect variables if needed */
 } ledEffectData_t;
 
 /** Strand Data. 
@@ -128,7 +121,6 @@ typedef struct ws2812Control
 const size_t WS2812_BYTES_PER_PIXEL;  /** <number of bytes per LED */
 const char *WS2812_TAG;               /** <esp-log tag */
 const ws2812b_timing_t ws2812Timings; /** <ws2812 bit timings  */
-const size_t pixelSize;
 
 const uint8_t ws2812_black_pixel[3]; /** < black (off) pixel */
 const uint8_t ws2812_white_pixel[3]; /** < white pixel */

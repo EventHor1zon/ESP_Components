@@ -1,6 +1,7 @@
 set(srcs
     "BME280_Driver.c"
     "WS2812_Driver.c"
+    "LedEffects.c"
     )
 
 set(includes "include")

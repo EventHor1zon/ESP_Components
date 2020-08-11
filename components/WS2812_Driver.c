@@ -35,8 +35,6 @@
 
 static void showmem(uint8_t *ptr, int len);
 static void WS2812_driverTask(void *args);
-static uint8_t lfx_single_color_nightrider(uint8_t strandIndex, int fade_len, uint32_t colour);
-static uint8_t fade_color(uint8_t color, uint8_t steps, uint8_t step_no);
 
 /****** Private Data ******************/
 
@@ -49,8 +47,6 @@ QueueHandle_t commandsQueue;
 
 const size_t WS2812_BYTES_PER_PIXEL = 3;    /** <number of bytes per LED */
 const char *WS2812_TAG = "[WS2812 Driver]"; /** <esp-log tag */
-
-const size_t pixelSize = 3;
 
 const uint8_t ws2812_black_pixel[3] = {0x00, 0x00, 0x00}; /** < black (off) pixel */
 const uint8_t ws2812_white_pixel[3] = {0xff, 0xff, 0xff}; /** < white pixel */
@@ -285,6 +281,10 @@ esp_err_t WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dataPin
             if (effectData != NULL)
             {
                 strand->fxData = effectData;
+                strand->fxData->LedEffectData_t = LED_EFFECT_SINGLE_COLOUR;
+                strand->fxData->refresh_t = 1000;
+                strand->fxData->timerExpired = 1;
+                strand->fxData->
             }
             else
             {
@@ -319,9 +319,9 @@ esp_err_t WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dataPin
                 strand->dataChannel = (rmt_channel_t)counter;
             }
 
-            ESP_LOGI(WS2812_TAG, "Success! Strand %u initialised at %p ", counter, strand);
+            /** set up the led effects section **/
 
-            // showmem((uint8_t *)strand, sizeof(StrandData_t));
+            ESP_LOGI(WS2812_TAG, "Success! Strand %u initialised at %p ", counter, strand);
         }
 
         /* finish setup of Driver structure */
@@ -412,24 +412,9 @@ static void WS2812_driverTask(void *args)
             {
                 StrandData_t *strand = allStrands[i];
 
-                if (xSemaphoreTake(strand->memSemphr, pdMS_TO_TICKS(WS2812_SEMAPHORE_TIMEOUT)) == pdFALSE)
-                {
-                    ESP_LOGE(WS2812_TAG, "Semaphore request timed out");
-                }
-                else
-                {
-                    WS2812_setAllLedColour(strand, colours[counter]);
-                    counter++;
-                    if (counter > 5)
-                    {
-                        counter = 0;
-                    }
-                    //lfx_single_color_nightrider(0, 0, 0x00119911);
-                    if (xSemaphoreGive(strand->memSemphr) == pdFALSE)
-                    {
-                        ESP_LOGE(WS2812_TAG, "Error in releasing semaphore");
-                    }
-                }
+                /*  for each strand, if there's an animation to run, take the semaphore and run it.
+                *   reset the timer to the next animation refresh    
+                */
 
                 /* if the leds require updating, take the semaphore and write new data */
                 if (strand->updateLeds)
@@ -521,116 +506,4 @@ esp_err_t WS2812_setAllLedColour(StrandData_t *strand, uint32_t colour)
     return status;
 }
 
-static uint8_t lfx_single_color_nightrider(uint8_t strandIndex, int fade_len, uint32_t colour)
-{
-
-    static bool direction = 1;
-    static int16_t led_pos = 0;
-    StrandData_t *strand = allStrands[strandIndex];
-    uint16_t numLeds = strand->numLeds;
-
-    if (fade_len > strand->numLeds)
-    {
-        fade_len = 0;
-    }
-
-    // TODO: replace these with MACROS
-    uint16_t data_length = strand->strandMemLength;
-    uint8_t r = colour;
-    uint8_t g = ((colour) >> 8);
-    uint8_t b = ((colour) >> 16);
-
-    memset((void *)strand->strandMem, 0, data_length);
-    if (direction)
-    {
-        int pixel_offset = led_pos * WS2812_BYTES_PER_PIXEL;
-
-        /* write color data to led_pos */
-        uint8_t *addr = (uint8_t *)strand->strandMem + pixel_offset;
-        uint8_t *anchor = addr;
-
-        *addr = r;
-        addr++;
-        *addr = g;
-        addr++;
-        *addr = b;
-
-        /* write fading data */
-        if (fade_len && led_pos > 0)
-        {
-            /* as long as not mapping past number of posible leds & not longer than fade len */
-            for (int i = 0; (i < fade_len) || (i < led_pos); i++)
-            {
-                uint8_t *addr = anchor + pixel_offset - ((i + 1) * 3);
-                *addr = fade_color(g, fade_len, i);
-                addr++;
-                *addr = fade_color(r, fade_len, i);
-                addr++;
-                *addr = fade_color(b, fade_len, i);
-            }
-        }
-        /* Increment the led position */
-        led_pos++;
-        if (led_pos > strand->numLeds - 1)
-        {
-            led_pos = strand->numLeds - 1;
-            /*if we've reached the end, change dir */
-            direction = !direction;
-        }
-    }
-    else
-    {
-        /* TODO: This, better. Why did I duplicate a whole bunch of code? */
-
-        int pixel_offset = led_pos * WS2812_BYTES_PER_PIXEL;
-        /* write color data to led_pos */
-        uint8_t *addr = (uint8_t *)strand->strandMem + pixel_offset;
-        *addr = g;
-        addr++;
-        *addr = r;
-        addr++;
-        *addr = b;
-
-        /* write fading data */
-        if (fade_len && led_pos < strand->numLeds)
-        {
-            /* as long as not mapping past number of posible leds & not longer than fade len */
-            for (int i = 0; i < fade_len || i < ((strand->numLeds - 1) - led_pos); i++)
-            {
-                uint8_t *addr = (uint8_t *)strand->strandMem + pixel_offset + ((i + 1) * 3);
-                *addr = fade_color(g, fade_len, i);
-                addr++;
-                *addr = fade_color(r, fade_len, i);
-                addr++;
-                *addr = fade_color(b, fade_len, i);
-            }
-        }
-        /* Decrement the led_position */
-        led_pos--;
-        if (led_pos < 0)
-        {
-            led_pos = 0;
-            /*if we've reached the end, change dir */
-            direction = !direction;
-        }
-    }
-
-    strand->updateLeds = 1;
-
-    return 0;
-}
-
 /********* UTILITY ***************/
-
-static uint8_t fade_color(uint8_t color, uint8_t steps, uint8_t step_no)
-{
-
-    if (step_no >= steps)
-    {
-        return 0;
-    }
-    int steps_remaining = steps - step_no;
-    int difference = color / (2 * steps_remaining);
-    uint8_t faded = color - difference;
-    return faded;
-}
