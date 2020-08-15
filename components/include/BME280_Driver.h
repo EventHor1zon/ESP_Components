@@ -15,7 +15,8 @@
 
 /********* Definitions *****************/
 
-#define DEVICE_TYPE BMP_280
+#define DEVICE_TYPE BME_280
+#define BME_280
 
 #define BM_I2C_ADDRESS_SDLOW 0x76
 #define BM_I2C_ADDRESS_SDHIGH 0x77
@@ -108,8 +109,8 @@
 #define DEBUG_MODE
 
 #ifdef DEBUG_MODE
-#define DEBUG_I2C_CLOCK_PIN 17
-#define DEBUG_I2C_DATA_PIN 16
+#define DEBUG_I2C_CLOCK_PIN 25
+#define DEBUG_I2C_DATA_PIN 26
 #define DEBUG_I2C_CHANNEL 0
 #endif
 
@@ -157,7 +158,7 @@ typedef enum bme_standbyT
     BM_T_STDBY_250MS = 0x03,
     BM_T_STDBY_500MS = 0x04,
     BM_T_STDBY_1000MS = 0x05,
-#ifdef BM_280
+#ifdef BME_280
     BM_T_STDBY_10MS = 0x06,
     BM_T_STDBY_20MS = 0x07
 #else
@@ -172,7 +173,7 @@ typedef enum bm_sampleTypes
     BM_MODE_TEMP,
     BM_MODE_PRESSURE,
     BM_MODE_TEMP_PRESSURE,
-#ifdef BM_280
+#ifdef BME_280
     BM_MODE_TEMP_HUMIDITY,
     BM_MODE_HUMIDITY_PRESSURE,
     BM_MODE_HUMIDITY,
@@ -194,7 +195,7 @@ typedef struct BM_CalibrationData
     int16_t dig_P7;
     int16_t dig_P8;
     int16_t dig_P9;
-#ifdef BM_280
+#ifdef BME_280
     uint8_t dig_H1;
     int16_t dig_H2;
     uint8_t dig_H3;

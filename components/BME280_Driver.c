@@ -25,7 +25,7 @@
 /****** Function Prototypes ***********/
 static int32_t bm280_compensate_T_int32(bm_controlData_t *bmCtrl);
 static uint32_t bm280_compensate_P_int64(bm_controlData_t *bmCtrl);
-#ifdef BME290
+#ifdef BME_280
 static uint32_t bm280_compensate_H_int32(bm_controlData_t *bmCtrl);
 #endif
 static esp_err_t bm280_debugPrintRegs(bm_controlData_t *bmCtrl);
@@ -234,6 +234,14 @@ static esp_err_t bm280_getCalibrationData(bm_controlData_t *bmCtrl)
 #else
     trxStatus = bm280_i2cReadFromAddress(bmCtrl, (uint8_t)BM_REG_ADDR_DIGT1_LSB, BM_CALIBR_DATA_LEN, buffer);
 #endif
+
+#ifdef DEBUG
+    for (uint8_t i = 0; i < BM_CALIBR_DATA_LEN + 1; i++)
+    {
+        printf("%u ", buffer[i]);
+    }
+    printf("\n");
+#endif
     /** now for some rejigging... **/
 
     if (trxStatus == ESP_OK)
@@ -300,7 +308,7 @@ static esp_err_t bm280_InitDeviceSettings(bm_controlData_t *bmCtrl, bm_initData_
     case BM_SAMPLE_OFF:
         break;
     case BM_FORCE_MODE:
-        //commands[0] |= (uint8_t)BM_FORCE_MODE;
+        commands[0] |= (uint8_t)BM_FORCE_MODE;
         break;
     case BM_NORMAL_MODE:
         commands[0] |= (uint8_t)BM_NORMAL_MODE;
@@ -328,11 +336,11 @@ static esp_err_t bm280_InitDeviceSettings(bm_controlData_t *bmCtrl, bm_initData_
         break;
     case BM_MODE_HUMIDITY_PRESSURE:
         commands[2] = 1;
-        commands[1] |= BM_CTRL_PRESSURE_BIT;
+        commands[0] |= BM_CTRL_PRESSURE_BIT;
         break;
     case BM_MODE_TEMP_PRESSURE_HUMIDITY:
         commands[2] = 1;
-        commands[1] |= (BM_CTRL_TEMP_BIT | BM_CTRL_PRESSURE_BIT);
+        commands[0] |= (BM_CTRL_TEMP_BIT | BM_CTRL_PRESSURE_BIT);
         break;
 #endif
     default:
@@ -354,7 +362,7 @@ static esp_err_t bm280_InitDeviceSettings(bm_controlData_t *bmCtrl, bm_initData_
         bmCtrl->configMask = commands[1];
     }
 
-    bm280_debugPrintRegs(bmCtrl);
+    //bm280_debugPrintRegs(bmCtrl);
 
     return trxStatus;
 }
@@ -388,13 +396,14 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
         }
         vTaskDelay(pdMS_TO_TICKS(200));
     }
-#ifdef DEBUG
-    bm280_debugPrintRegs(bmCtrl);
-    ESP_LOGI(BM_DRIVER_TAG, "Writing data %u", forcedMeasure);
-#endif
+
     trxStatus = bm280_i2cReadFromAddress(bmCtrl, BM_REG_ADDR_PRESSURE_MSB, (uint16_t)BM_MEASURE_READ_LEN, rxBuffer);
 #ifdef DEBUG
-    bm280_debugPrintRegs(bmCtrl);
+    for (int i = 0; i < BM_MEASURE_READ_LEN; i++)
+    {
+        printf("- %u ", rxBuffer[i]);
+    }
+    printf("\n");
     ESP_LOGI(BM_DRIVER_TAG, "Reading new data...");
 #endif
     if (trxStatus == ESP_OK)
@@ -556,7 +565,7 @@ bm_controlData_t *bm280_init(bm_initData_t *initData)
         }
     }
 
-    bm280_debugPrintRegs(bmCtrl);
+    //bm280_debugPrintRegs(bmCtrl);
 
     if (initStatus == ESP_OK)
     {

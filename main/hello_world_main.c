@@ -12,6 +12,7 @@
 #include "driver/spi_common.h"
 #include "driver/spi_master.h"
 #include "esp_system.h"
+#include "esp_log.h"
 #include "esp_spi_flash.h"
 #include "../inc/main.h"
 #include "WS2812_Driver.h"
@@ -43,6 +44,7 @@ void app_main(void)
 
     while (1)
     {
+        ESP_LOGI(MAIN_TAG, "ping");
         vTaskDelay(2000);
     }
 }
