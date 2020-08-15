@@ -135,6 +135,34 @@ static void IRAM_ATTR ws2812_TranslateDataToRMT(const void *src, rmt_item32_t *d
     *item_num = num;
 }
 
+/**
+*   fxCallbackFunction
+*   
+*       Callback function for the timer expiry
+*       set flag for Led Control task to deal with
+*       Don't call the led effects functions here
+**/
+void fxCallbackFunction(TimerHandle_t timer)
+{
+    StrandData_t *strand = NULL;
+
+    /** find the right strand from the timerHandle **/
+    for (uint8_t i = 0; i < ledControl.numStrands; i++)
+    {
+        if (timer == allStrands[i]->refreshTimer)
+        {
+            strand = allStrands[i];
+        }
+    }
+
+    if (strand != NULL)
+    {
+        strand->updateLeds = 1;
+    }
+
+    return;
+}
+
 /****** Private Functions *************/
 
 static void showmem(uint8_t *memptr, int len)
@@ -248,6 +276,7 @@ esp_err_t WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dataPin
                 break;
             }
 
+            /* Error check */
             if (numLeds[counter] == 0 || numLeds[counter] > WS2812_MAX_STRAND_LEDS)
             {
                 ESP_LOGE(WS2812_TAG, "Error - invalid LED count (min = 1, max = %u, requested = %u)", WS2812_MAX_STRAND_LEDS, numLeds[counter]);
@@ -260,7 +289,7 @@ esp_err_t WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dataPin
                 totalLeds += numLeds[counter];
             }
 
-            /* assign LED memory */
+            /* Init Function - assign LED memory */
             uint16_t spaceRequired = (WS2812_BYTES_PER_PIXEL * numLeds[counter]);
             uint8_t *ledMem = heap_caps_calloc(1, spaceRequired, MALLOC_CAP_8BIT);
 
@@ -276,24 +305,32 @@ esp_err_t WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dataPin
                 break;
             }
 
-            spaceRequired = sizeof(ledEffectData_t);
-            ledEffectData_t *effectData = heap_caps_calloc(1, spaceRequired, MALLOC_CAP_8BIT);
-            if (effectData != NULL)
+            /* init Function - create Led Effects structure */
+            if (initStatus == ESP_OK)
             {
-                strand->fxData = effectData;
-                strand->fxData->LedEffectData_t = LED_EFFECT_SINGLE_COLOUR;
-                strand->fxData->refresh_t = 1000;
-                strand->fxData->timerExpired = 1;
-                strand->fxData->
-            }
-            else
-            {
-                ESP_LOGE(WS2812_TAG, "Error! Insufficient heap memory to assign LED effects data memory ( %u needed | %u available 8-bit capable )", spaceRequired, heap_caps_get_free_size(MALLOC_CAP_8BIT));
-                initStatus = ESP_ERR_NO_MEM;
-                break;
+                ledEffect_t *ledFxData = LedEffectInit(strand);
+                TimerHandle_t fxTimer = xTimerCreate("fxTimer", (TickType_t)UINT32_MAX, pdTRUE, NULL, fxCallbackFunction);
+
+                if (ledFxData == NULL)
+                {
+                    ESP_LOGE(WS2812_TAG, "Error in assigning memory for led effects");
+                    initStatus = ESP_ERR_NO_MEM;
+                    break;
+                }
+                else if (fxTimer == NULL)
+                {
+                    ESP_LOGE(WS2812_TAG, "Error in creating led effect timer");
+                    initStatus = ESP_ERR_NO_MEM;
+                    break;
+                }
+                else
+                {
+                    strand->refreshTimer = fxTimer;
+                    strand->fxData = ledFxData;
+                }
             }
 
-            /* create Semaphore */
+            /* Init Function - create Strand Semaphore */
             SemaphoreHandle_t memSemphr = xSemaphoreCreateMutex();
             if (memSemphr != NULL)
             {

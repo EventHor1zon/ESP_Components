@@ -82,14 +82,12 @@ typedef struct
 */
 typedef struct ws2812_ledEffectData
 {
-    ledEffect_t effect;         /** < the current effect in enumeration */
-    EffectFunction func;        /** < a pointer to the LedEffects function */
-    TimerHandle_t refreshTimer; /** < handle for the effect refresh timer **/
-    uint32_t colour;            /** < colour - colour */
-    uint16_t refresh_t;         /** < refresh time in ms */
-    bool timerExpired;          /** < timer expired status */
-    bool updateEffect;          /** < led effect has been changed - adjust parameters */
-    uint32_t *LedEffectData_t;  /** < struct for holding led effect variables if needed */
+    ledEffect_t effect;        /** < the current effect in enumeration */
+    EffectFunction func;       /** < a pointer to the LedEffects function */
+    uint32_t colour;           /** < colour - colour */
+    uint16_t refresh_t;        /** < refresh time in ms */
+    bool updateEffect;         /** < led effect has been changed - adjust parameters */
+    uint32_t *LedEffectData_t; /** < struct for holding led effect variables if needed */
 } ledEffectData_t;
 
 /** Strand Data. 
@@ -105,6 +103,7 @@ typedef struct strandData
     ledEffectData_t *fxData;     /** < pointer to led effect data */
     SemaphoreHandle_t memSemphr; /** <sempahore for led data access*/
     rmt_channel_t dataChannel;   /** <rmt channel driving leds (uint8_t)    */
+    TimerHandle_t refreshTimer;  /** < handle for the effect refresh timer **/
 } StrandData_t;
 
 /** ws2812 Driver Control structure 
