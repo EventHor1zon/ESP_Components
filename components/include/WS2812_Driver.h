@@ -74,22 +74,6 @@ typedef struct
     uint32_t TRS;
 } ws2812b_timing_t;
 
-/**
- *  Led effect struct
- *  Used for tracking persistent LED effect variables?
- *  Try to build all effects to use the same type of data struct 
- *  TODO: better variable names, use union or bitfield?
-*/
-typedef struct ws2812_ledEffectData
-{
-    ledEffect_t effect;        /** < the current effect in enumeration */
-    EffectFunction func;       /** < a pointer to the LedEffects function */
-    uint32_t colour;           /** < colour - colour */
-    uint16_t refresh_t;        /** < refresh time in ms */
-    bool updateEffect;         /** < led effect has been changed - adjust parameters */
-    uint32_t *LedEffectData_t; /** < struct for holding led effect variables if needed */
-} ledEffectData_t;
-
 /** Strand Data. 
  *  Data for each individual strand of leds 
  **/
