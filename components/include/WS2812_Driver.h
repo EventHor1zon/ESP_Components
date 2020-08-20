@@ -50,18 +50,6 @@
 
 /********** Types **********************/
 
-typedef enum ledEffect
-{
-    LED_EFFECT_OFF,
-    LED_EFFECT_SINGLE_COLOUR,
-    LED_EFFECT_SLOW_FADE,
-    LED_EFFECT_RAINBOW,
-    LED_EFFECT_NIGHTRIDER,
-    LED_EFFECT_COLOUR_FADE,
-
-    LED_EFFECT_NO_EFFECT = 0xFF
-} ledEffect_t;
-
 /** WS2812b bit timings. 
  *  Hardware specific, the initalisation of values below. 
  **/
@@ -74,21 +62,22 @@ typedef struct
     uint32_t TRS;
 } ws2812b_timing_t;
 
-/** Strand Data. 
- *  Data for each individual strand of leds 
- **/
-typedef struct strandData
-{
-    uint8_t strandIndex;         /** <index of the current strand  */
-    uint8_t updateLeds;          /** <update flag - led mem has changed */
-    uint16_t numLeds;            /** <num leds in strand           */
-    uint16_t strandMemLength;    /** <length of memory    */
-    uint8_t *strandMem;          /** <pointer to LED data          */
-    ledEffectData_t *fxData;     /** < pointer to led effect data */
-    SemaphoreHandle_t memSemphr; /** <sempahore for led data access*/
-    rmt_channel_t dataChannel;   /** <rmt channel driving leds (uint8_t)    */
-    TimerHandle_t refreshTimer;  /** < handle for the effect refresh timer **/
-} StrandData_t;
+// /** Strand Data.
+//  *  Data for each individual strand of leds
+//  **/
+// typedef struct wsStrandData
+// {
+//     uint8_t strandIndex;         /** <index of the current strand  */
+//     uint8_t updateLeds;          /** <update flag - led mem has changed */
+//     uint16_t numLeds;            /** <num leds in strand           */
+//     uint16_t strandMemLength;    /** <length of memory    */
+//     uint8_t *strandMem;          /** <pointer to LED data          */
+//     ledEffect_t *fxData;         /** < pointer to led effect data */
+//     SemaphoreHandle_t memSemphr; /** <sempahore for led data access*/
+//     rmt_channel_t dataChannel;   /** <rmt channel driving leds (uint8_t)    */
+//     TimerHandle_t refreshTimer;  /** < handle for the effect refresh timer **/
+//     uint32_t *reserved;          /** < spare uint32_t ptr (size=4?) filler */
+// } wsStrandData_t;
 
 /** ws2812 Driver Control structure 
  *  Data storage for the driver. 

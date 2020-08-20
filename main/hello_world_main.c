@@ -44,7 +44,7 @@ void app_main(void)
 
     while (1)
     {
-        ESP_LOGI(MAIN_TAG, "ping");
+        ESP_LOGI("MAIN", "ping");
         vTaskDelay(2000);
     }
 }

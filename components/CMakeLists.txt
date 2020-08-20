@@ -4,6 +4,7 @@ set(srcs
     "LedEffects.c"
     "RotaryEncoder_Driver.c"
     "PushButton_Driver.c"
+    "APA102_Driver.c"
     )
 
 set(includes "include")

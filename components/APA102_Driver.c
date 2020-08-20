@@ -27,6 +27,33 @@
 
 /************ ISR *********************/
 
+/**
+*   fxCallbackFunction
+*   
+*       Callback function for the timer expiry
+*       set flag for Led Control task to deal with
+*       Don't call the led effects functions here
+**/
+void timerExpiredCallback(TimerHandle_t timer)
+{
+    // StrandData_t *strand = NULL;
+
+    // /** find the right strand from the timerHandle **/
+    // for (uint8_t i = 0; i < ledControl.numStrands; i++)
+    // {
+    //     if (timer == allStrands[i]->refreshTimer)
+    //     {
+    //         strand = allStrands[i];
+    //     }
+    // }
+
+    // if (strand != NULL)
+    // {
+    //     strand->updateLeds = 1;
+    // }
+
+    return;
+}
 /****** Private Data ******************/
 
 /****** Private Functions *************/
@@ -65,7 +92,7 @@ esp_err_t APA102_init(uint8_t numleds, gpio_num_t clock_pin, gpio_num_t data_pin
 
     if (!(spi_bus == SPI2_HOST || spi_bus == SPI3_HOST))
     {
-        ESP_LOGE("Error - invalid SPI bus. Please use SPI2_HOST or SPI3_HOST");
+        ESP_LOGE(APA_TAG, "Error - invalid SPI bus. Please use SPI2_HOST or SPI3_HOST");
         init_status = ESP_ERR_INVALID_ARG;
     }
 
@@ -102,12 +129,12 @@ esp_err_t APA102_init(uint8_t numleds, gpio_num_t clock_pin, gpio_num_t data_pin
         leds.clock_speed_hz = 200000; // APA claim to have refresh rate of 4KHz, start low.
         leds.input_delay_ns = 0;
 
-        spi_device_handle_t spi_dev_handle = 0;
-        ESP_ERROR_CHECK(spi_bus_add_device(HSPI_HOST, &leds, &spi_dev_handle));
+        spi_device_handle_t ledSPIHandle;
+        ESP_ERROR_CHECK(spi_bus_add_device(HSPI_HOST, &leds, &ledSPIHandle));
 
         StrandData_t *strand = (StrandData_t *)heap_caps_calloc(1, sizeof(StrandData_t), MALLOC_CAP_8BIT);
         uint32_t *ledMem = (uint32_t *)heap_caps_calloc(1, (numleds * APA_BYTES_PER_PIXEL), MALLOC_CAP_DMA);
-        ledEffect_t *lfx = ledEffectInit(StrandData_t * strand);
+        ledEffectData_t *lfx = ledEffectInit(strand);
 
         if (strand != NULL && lfx != NULL && ledMem != NULL)
         {
@@ -125,7 +152,7 @@ esp_err_t APA102_init(uint8_t numleds, gpio_num_t clock_pin, gpio_num_t data_pin
 
         if (init_status == ESP_OK)
         {
-            TimerHandle_t refreshTimer = xTimerCreate("refreshTimer", UINT16_MAX, pdTRUE, APA_TIMER_ID, timerExpiredCallBack);
+            TimerHandle_t refreshTimer = xTimerCreate("refreshTimer", UINT16_MAX, pdTRUE, APA_TIMER_ID, timerExpiredCallback);
             SemaphoreHandle_t ledSemaphore = xSemaphoreCreateMutex();
 
             if (refreshTimer != NULL && ledSemaphore != NULL)
@@ -144,30 +171,30 @@ esp_err_t APA102_init(uint8_t numleds, gpio_num_t clock_pin, gpio_num_t data_pin
     return init_status;
 }
 
-int test_frame(spi_device_handle_t spi)
-{
-    ESP_LOGI("SPI_SETUP", "[+] Sending init data");
-    showmem(&init_frame, (24 * 4));
+// int test_frame(spi_device_handle_t spi)
+// {
+//     ESP_LOGI("SPI_SETUP", "[+] Sending init data");
+//     showmem(&init_frame, (24 * 4));
 
-    for (int i = 0; i < 24; i++)
-    {
-        uint32_t *data = &init_frame[i];
-        ESP_LOGI("SPI SEND", "[>] Sending %08x", *data);
-        send_32bit_frame(spi, *data);
-    }
-    ESP_LOGI("SPI_SETUP", "[+] Transaction done!");
-    return 1;
-}
+//     for (int i = 0; i < 24; i++)
+//     {
+//         uint32_t *data = &init_frame[i];
+//         ESP_LOGI("SPI SEND", "[>] Sending %08x", *data);
+//         send_32bit_frame(spi, *data);
+//     }
+//     ESP_LOGI("SPI_SETUP", "[+] Transaction done!");
+//     return 1;
+// }
 
 uint8_t apa102_ctrl_generate_brt_segment(uint8_t bright)
 {
 
-    if (bright > APA102_CTRL_MAX_BR)
+    if (bright > APA_CTRL_MAX_BR)
     {
         return 0;
     }
 
-    uint8_t segment = (uint8_t)APA102_CTRL_BRT_SEGMENT_BASE;
+    uint8_t segment = (uint8_t)APA_CTRL_BRT_MASK;
     segment |= bright;
 
     return segment;

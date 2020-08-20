@@ -14,6 +14,9 @@
 #include "WS2812_Driver.h"
 #include "LedEffects.h"
 
+#include "esp_log.h"
+#include "esp_err.h"
+
 /****** Function Prototypes ***********/
 
 /****** Global Data *******************/
@@ -34,7 +37,7 @@ uint8_t numTimers = 0;
  *  \return a pointer to a ledEffects structure
 */
 
-ledEffect_t *ledEffectInit(StrandData_t *strand)
+ledEffectData_t *ledEffectInit(StrandData_t *strand)
 {
     esp_err_t initStatus = ESP_OK;
     uint16_t spaceRequired = sizeof(ledEffectData_t);

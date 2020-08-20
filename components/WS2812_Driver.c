@@ -190,7 +190,7 @@ static void showmem(uint8_t *memptr, int len)
 static esp_err_t WS2812_transmitLedData(StrandData_t *ledStrand)
 {
     esp_err_t transmitStatus;
-    transmitStatus = rmt_write_sample(ledStrand->dataChannel, ledStrand->strandMem, ledStrand->strandMemLength, true);
+    transmitStatus = rmt_write_sample(ledStrand->dataChannel, (uint8_t *)ledStrand->strandMem, ledStrand->strandMemLength, true);
     return transmitStatus;
 }
 
@@ -212,7 +212,7 @@ static esp_err_t WS2812_loadTestImage(StrandData_t *strand)
 
     for (i = 0; i < strand->numLeds; i++)
     {
-        pixelAddr = strand->strandMem + (i * WS2812_BYTES_PER_PIXEL);
+        pixelAddr = (uint8_t *)strand->strandMem + (i * WS2812_BYTES_PER_PIXEL);
         pixelIndex = i % testPixelsLen;
         pixelData = &testFrame[pixelIndex][0];
         ESP_LOGI(WS2812_TAG, "Writing %u to %p", *pixelData, pixelAddr);
@@ -295,7 +295,7 @@ esp_err_t WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dataPin
 
             if (ledMem != NULL)
             {
-                strand->strandMem = ledMem;
+                strand->strandMem = (uint32_t *)ledMem;
                 strand->strandMemLength = spaceRequired;
             }
             else
@@ -308,7 +308,7 @@ esp_err_t WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dataPin
             /* init Function - create Led Effects structure */
             if (initStatus == ESP_OK)
             {
-                ledEffect_t *ledFxData = LedEffectInit(strand);
+                ledEffectData_t *ledFxData = ledEffectInit(strand);
                 TimerHandle_t fxTimer = xTimerCreate("fxTimer", (TickType_t)UINT32_MAX, pdTRUE, NULL, fxCallbackFunction);
 
                 if (ledFxData == NULL)
@@ -507,7 +507,7 @@ esp_err_t WS2812_setAllLedColour(StrandData_t *strand, uint32_t colour)
 
     esp_err_t status = ESP_OK;
     uint8_t r, g, b;
-    uint8_t *ptr = strand->strandMem;
+    uint8_t *ptr = (uint8_t *)strand->strandMem;
 
     if (strand == NULL)
     {
