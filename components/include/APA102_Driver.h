@@ -39,4 +39,6 @@
 
 /******** Function Definitions *********/
 
+esp_err_t APA102_init(uint8_t numleds, int clock_pin, int data_pin, uint8_t spi_bus, bool init_spi);
+
 #endif /* APA102_DRIVER_H */

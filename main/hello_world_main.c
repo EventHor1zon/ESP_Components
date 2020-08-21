@@ -16,6 +16,7 @@
 #include "esp_spi_flash.h"
 #include "../inc/main.h"
 #include "WS2812_Driver.h"
+#include "APA102_Driver.h"
 
 void app_main(void)
 {
@@ -38,9 +39,10 @@ void app_main(void)
     printf("Free heap: %d\n", esp_get_free_heap_size());
 
     printf("Starting LEDSs\n");
-    uint16_t numLeds = 6;
-    gpio_num_t pin = GPIO_NUM_5;
-    WS2812_init(1, &numLeds, &pin);
+    uint16_t numLeds = 16;
+    // gpio_num_t pin = GPIO_NUM_5;
+    // WS2812_init(1, &numLeds, &pin);
+    esp_err_t status = APA102_init(numLeds, 32, 33, 2, 1);
 
     while (1)
     {

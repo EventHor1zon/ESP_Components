@@ -33,7 +33,6 @@
 
 /****** Function Prototypes ***********/
 
-static void showmem(uint8_t *ptr, int len);
 static void WS2812_driverTask(void *args);
 
 /****** Private Data ******************/
@@ -165,25 +164,6 @@ void fxCallbackFunction(TimerHandle_t timer)
 
 /****** Private Functions *************/
 
-static void showmem(uint8_t *memptr, int len)
-{
-    for (int i = 0; i < len; i++)
-    {
-        if (i % 8 == 0)
-        {
-            printf("[%p] %02x", memptr, *memptr);
-        }
-        else if (i % 8 == 7)
-        {
-            printf(" %02x\n", *memptr);
-        }
-        else
-        {
-            printf(" %02x", *memptr);
-        }
-        memptr++;
-    }
-}
 /**
  * Write data from led mem to the RMT data output
  **/
@@ -265,6 +245,7 @@ esp_err_t WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dataPin
             StrandData_t *strand = heap_caps_calloc(1, sizeof(StrandData_t), MALLOC_CAP_8BIT);
             if (strand != NULL)
             {
+                strand->ledType = LEDTYPE_WS2812B;
                 strand->strandIndex = counter;
                 strand->updateLeds = 0;
                 allStrands[counter] = strand;
