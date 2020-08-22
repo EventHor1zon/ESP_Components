@@ -91,6 +91,105 @@
 #define LSM_MD1_CFG_REG 0x5E
 #define LSM_MD2_CFG_REG 0x5F
 
+/** ctrl3 register bits */
+#define LSM_CTRL3_BOOT_BIT (1 << 7)
+#define LSM_CTRL3_BLOCKDATA_UPDATE_BIT (1 << 6)
+#define LSM_CTRL3_ISR_ACTIVE_LVL_BIT (1 << 5)
+#define LSM_CTRL3_ISR_PUSHPULL_OD_BIT (1 << 4)
+#define LSM_CTRL3_SPI_MODE_BIT (1 << 3)
+#define LSM_CTRL3_AUTOINC_ADDR_BIT (1 << 2)
+#define LSM_CTRL3_ENDIAN_BIT (1 << 1)
+#define LSM_CTRL3_SW_RESET_BIT (1)
+
+/** CTRL4 REGISTER BITS **/
+#define LSM_CTRL4_ACCEL_BW_SEL_BIT (1 << 7)
+#define LSM_CTRL4_GYRO_SLEEP_BIT (1 << 6)
+#define LSM_CTRL4_ALL_ISR_PAD1_BIT (1 << 5)
+#define LSM_CTRL4_FIFO_TEMP_EN_BIT (1 << 4)
+#define LSM_CTRL4_DRDY_MASK_BIT (1 << 3)
+#define LSM_CTRL4_I2C_DISABLE_BIT (1 << 2)
+#define LSM_CTRL4_FIFO_THRLD_EN_BIT (1)
+
+/** ctrl 6 register bits **/
+
+#define LSM_CTRL6_GYRO_TRIG_EN_BIT (1 << 7)
+#define LSM_CTRL6_GYRO_LVL_EN_BIT (1 << 6)
+#define LSM_CTRL6_GYRO_LATCH_EN_BIT (1 << 5)
+#define LSM_CTRL6_ACCEL_HPMODE_DISABLE_BIT (1 << 4)
+
+/** CTRL 7 REGISTER BITS **/
+#define LSM_CTRL7_GYRO_HPMODE_DISABLE_BIT (1 << 7)
+#define LSM_CTRL7_GYRO_HIPASS_EN_BIT (1 << 6)
+#define LSM_CTRL7_GYRO_HIGHPASS_RST_BIT (1 << 5)
+#define LSM_CTRL7_ROUNDING_EN_BIT (1 << 4)
+
+/** CTRL 8 REGISTER BITS **/
+
+#define LSM_CTRL8_ACCEL_LPF2_EN_BIT (1 << 7)
+#define LSM_CTRL8_ACCEL_HPSLOPE_EN_BIT (1 << 2)
+#define LSM_CTRL8_ACCEL_6D_LOWPASS_EN_BIT (1)
+
+/** CTRL 9 REGISTER BITS */
+#define LSM_CTRL9_ACCEL_Z_EN_BIT (1 << 5)
+#define LSM_CTRL9_ACCEL_Y_EN_BIT (1 << 4)
+#define LSM_CTRL9_ACCEL_X_EN_BIT (1 << 3)
+#define LSM_CTRL9_SOFTIRON_MGT_EN_BIT (1 << 2)
+
+/** CTRL 10 REGISTER BITS */
+#define LSM_CTRL10_GYRO_Z_EN_BIT (1 << 5)
+#define LSM_CTRL10_GYRO_Y_EN_BIT (1 << 4)
+#define LSM_CTRL10_GYRO_X_EN_BIT (1 << 3)
+#define LSM_CTRL10_EMBEDDED_FUNC_EN_BIT (1 << 2)
+#define LSM_CTRL10_PEDO_RST_STEP_BIT (1 << 1)
+#define LSM_CTRL10_SGNF_MOTN_EN_BIT (1)
+
+/** MASTER CONFIG BITS */
+#define LSM_MSTRCONF_DRDY_INT1_EN_BIT (1 << 7)
+#define LSM_MSTRCONF_FIFO_DVALID_BIT (1 << 6)
+#define LSM_MSTRCONF_STARTCFG_BIT (1 << 5)
+#define LSM_MSTRCONF_I2C_PULLUP_EN_BIT (1 << 4)
+#define LSM_MSTRCONF_I2C_PASSTHRU_EN_BIT (1 << 3)
+#define LSM_MSTRCONF_HARDIRON_MGT_EN_BIT (1 << 2)
+#define LSM_MSTRCONF_SENSEHUB_I2C_MASTER_EN_BIT (1)
+
+/** WAKEUP SOURCE  REG **/
+#define LSM_WKUP_FREEFALL_DETECT_EN_BIT (1 << 5)
+#define LSM_WKUP_SLEEP_EVT_STATUS_BIT (1 << 4)
+#define LSM_WKUP_EVT_STATUS_BIT (1 << 3)
+#define LSM_WKUP_EVTX_BIT (1 << 2)
+#define LSM_WKUP_EVTY_BIT (1 << 1)
+#define LSM_WKUP_EVTZ_BIT (1)
+
+/** TODO: TAP SOURCE REG **/
+/** TODO: D6D SOURCE REG **/
+
+/** STATUS REG **/
+
+#define LSM_STATUS_TEMP_AVAIL_BIT (1 << 2)
+#define LSM_STATUS_GYRO_AVAIL_BIT (1 << 1)
+#define LSM_STATUS_ACCEL_AVAIL_BIT (1)
+
+/** TODO: SENSORHUB STUFF? SEEMS LIKE A LOT OF WORK THO... */
+
+/** FIFO STATUS2 REG **/
+#define LSM_FIFO2_WATERMARK_BIT (1 << 7)
+#define LSM_FIFO2_OVRRUN_BIT (1 << 6)
+#define LSM_FIFO2_FULL_BIT (1 << 5)
+#define LSM_FIFO2_EMPTY_BIT (1 << 4)
+
+/** FUNC SOURCE REG **/
+
+#define LSM_FUNCSRC_PEDO_DELTA_T_BIT (1 << 7)
+#define LSM_FUNCSRC_SGNFT_MTN_DETECT_BIT (1 << 6)
+#define LSM_FUNCSRC_TILT_EVT_DETECT_BIT (1 << 5)
+#define LSM_FUNCSRC_STEP_EVT_DETECT_BIT (1 << 4)
+#define LSM_FUNCSRC_STEP_OVERFLOW_BIT (1 << 3)
+#define LSM_FUNCSRC_IRONCALC_STATUS_BIT (1 << 1)
+#define LSM_FUNCSRC_SENSHUB_COMM_STATUS_BIT (1)
+
+/** TODO: MORE TAP STUFF... **/
+/** TODO: WAKEUP EVENTS **/
+
 /********** Types **********************/
 
 /** Device operating modes **/
@@ -125,6 +224,94 @@ typedef enum LSM_FIFOMode
     LSM_FIFO_MODE_CONT_TO_FIFO,   /** < both fifo & cont, changes depending on event trigger */
     LSM_FIFO_MODE_BYPASS_TO_FIFO, /** < same as above but with bypass */
 } LSM_FIFOMode_t;
+
+/** ctrl1 accel */
+typedef enum LSM_AccelODR
+{
+    LSM_ACCODR_PWR_OFF,
+    LSM_ACCODR_12_5HZ,
+    LSM_ACCODR_26_HZ,
+    LSM_ACCODR_52_HZ,
+    LSM_ACCODR_104_HZ,
+    LSM_ACCODR_208_HZ,
+    LSM_ACCODR_416_HZ,
+    LSM_ACCODR_833_HZ,
+    LSM_ACCODR_1_66KHZ,
+    LSM_ACCODR_3_33KHZ,
+    LSM_ACCODR_6_66KHZ,
+} LSM_AccelODR_t;
+
+typedef enum LSM_AccelScale
+{
+    LSM_ACCSCALE_2G,
+    LSM_ACCSCALE_16G,
+    LSM_ACCSCALE_4G,
+    LSM_ACCSCALE_8G
+} LSM_AccelScale_t;
+
+typedef enum LSM_AccelAntiAliasBW
+{
+    LSM_ACC_AA_BW_400HZ,
+    LSM_ACC_AA_BW_200HZ,
+    LSM_ACC_AA_BW_100HZ,
+    LSM_ACC_AA_BW_50HZ
+} LSM_AccelAntiAliasBW_t;
+
+typedef enum LSM_HighpassSlopeSettings
+{
+    LSM_HPLP_ODR_4_LP_50,
+    LSM_HPLP_ODR_100,
+    LSM_HPLP_ODR_9,
+    LSM_HPLP_ODR_400
+
+} LSM_HighpassSlopeSettings_t;
+
+/** ctrl2 Gyro */
+
+typedef enum LSM_GyroScale
+{
+    LSM_GYRO_SCALE_250DPS,
+    LSM_GYRO_SCALE_500DPS,
+    LSM_GYRO_SCALE_1000DPS,
+    LSM_GYRO_SCALE_2000DPS
+} LSM_GyroScale_t;
+
+typedef enum LSM_GyroODR
+{
+    LSM_GYRO_ODR_PWR_OFF,
+    LSM_GYRO_ODR_12_5HZ,
+    LSM_GYRO_ODR_26_HZ,
+    LSM_GYRO_ODR_52_HZ,
+    LSM_GYRO_ODR_104_HZ,
+    LSM_GYRO_ODR_208_HZ,
+    LSM_GYRO_ODR_416_HZ,
+    LSM_GYRO_ODR_833_HZ,
+    LSM_GYRO_ODR_1_66KHZ,
+} LSM_GyroODR_t;
+
+typedef enum LSM_GyroHighpassCutoff
+{
+    LSM_GYRO_HPCUTOFF_8mHZ,
+    LSM_GYRO_HPCUTOFF_324mHZ,
+    LSM_GYRO_HPCUTOFF_2HZ,
+    LSM_GYRO_HPCUTOFF_16_3HZ
+} LSM_GyroHighpassCutoff_t;
+
+/** CTRL5 REGISTER ST MODES **/
+
+typedef enum LSM_AccelSelfTest
+{
+    LSM_ACCEL_SELFTEST_NORMAL = 0,
+    LSM_ACCEL_SELFTEST_POSITIVE = 1,
+    LSM_ACCEL_SELFTEST_NEGATIVE = 3
+} LSM_AccelSelfTest_t;
+
+typedef enum LSM_GyroSelfTest
+{
+    LSM_gyro_SELFTEST_NORMAL = 0,
+    LSM_gyro_SELFTEST_POSITIVE = 1,
+    LSM_gyro_SELFTEST_NEGATIVE = 2
+} LSM_GyroSelfTest_t;
 
 /******** Function Definitions *********/
 
