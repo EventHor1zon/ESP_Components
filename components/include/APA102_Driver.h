@@ -16,10 +16,14 @@
 
 /********* Definitions *****************/
 
+#define DEBUG_MODE 1
+
 #define APA_BYTES_PER_PIXEL 4
 #define APA_TIMER_ID 0
 #define APA_CTRL_MAX_BR 31
 #define APA_CTRL_BRT_MASK 0b11100000
+
+#define APA_SEMTAKE_TIMEOUT 50
 
 /********** Types **********************/
 

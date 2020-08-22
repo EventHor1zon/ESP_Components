@@ -58,6 +58,12 @@ void timerExpiredCallback(TimerHandle_t timer)
 }
 /****** Private Data ******************/
 
+/** To do quicker transactions, going to put startFrame & endFrame data in some DMA_CAP memory
+ *      some static pointers to reference easily
+ **/
+static uint32_t *startFrame = NULL;
+static uint32_t *endFrame = NULL;
+
 static uint32_t init_frame[16] = {
     0xFF0000E1,
     0x00FF00E1,
@@ -67,16 +73,51 @@ static uint32_t init_frame[16] = {
     0x001111E1,
     0x111111E1,
     0xFF0000E1,
+    0x000000E1,
     0xFF0000E1,
+    0x000000E1,
     0xFF0000E1,
+    0x000000E1,
     0xFF0000E1,
-    0xFF0000E1,
-    0xFF0000E1,
-    0xFF0000E1,
-    0xFF0000E1,
+    0x000000E1,
     0xFF0000E1,
 };
 /****** Private Functions *************/
+
+/** \brief apaWriteLeds(StrandData_t *strand) 
+ *          - write the data in led memory to the leds via SPI
+ *  \param strand - a pointer to the strand control structure
+ * 
+ *  \return esp_ok or error
+ **/
+
+static esp_err_t apaWriteLeds(StrandData_t *strand)
+{
+
+    esp_err_t txStatus = ESP_OK;
+
+    if (xSemaphoreTake(strand->memSemphr, pdMS_TO_TICKS(APA_SEMTAKE_TIMEOUT)))
+    {
+        spi_transaction_t tx = {0};
+        tx.length = 32;
+        tx.tx_buffer = startFrame;
+        txStatus = spi_device_queue_trans(strand->ledSPIHandle, &tx, pdMS_TO_TICKS(50));
+        tx.length = (8 * strand->numLeds * APA_BYTES_PER_PIXEL);
+        tx.tx_buffer = strand->strandMem;
+        txStatus |= spi_device_queue_trans(strand->ledSPIHandle, &tx, pdMS_TO_TICKS(50));
+        tx.length = 32;
+        tx.tx_buffer = endFrame;
+        txStatus |= spi_device_queue_trans(strand->ledSPIHandle, &tx, pdMS_TO_TICKS(50));
+        txStatus |= spi_device_queue_trans(strand->ledSPIHandle, &tx, pdMS_TO_TICKS(50));
+
+        if (xSemaphoreGive(strand->memSemphr) != ESP_OK)
+        {
+            ESP_LOGE(APA_TAG, "ERROR GIVING SEMAPHORE");
+        }
+    }
+
+    return txStatus;
+}
 
 /****** Global Data *******************/
 
@@ -138,12 +179,16 @@ esp_err_t APA102_init(uint8_t numleds, int clock_pin, int data_pin, uint8_t spi_
         spi_device_handle_t ledSPIHandle;
         ESP_ERROR_CHECK(spi_bus_add_device(HSPI_HOST, &leds, &ledSPIHandle));
 
+        startFrame = (uint32_t *)heap_caps_calloc(1, sizeof(uint32_t), MALLOC_CAP_DMA);
+        endFrame = (uint32_t *)heap_caps_calloc(1, sizeof(uint32_t), MALLOC_CAP_DMA);
         strand = (StrandData_t *)heap_caps_calloc(1, sizeof(StrandData_t), MALLOC_CAP_8BIT);
         uint32_t *ledMem = (uint32_t *)heap_caps_calloc(1, (numleds * APA_BYTES_PER_PIXEL), MALLOC_CAP_DMA);
         ledEffectData_t *lfx = ledEffectInit(strand);
 
-        if (strand != NULL && lfx != NULL && ledMem != NULL)
+        if (strand != NULL && lfx != NULL && ledMem != NULL && startFrame != NULL && endFrame != NULL)
         {
+            memset(endFrame, "0xFF", sizeof(uint32_t));
+
             strand->ledType = LEDTYPE_APA102;
             strand->numLeds = numleds;
             strand->spi_channel_no = spi_bus;
@@ -176,21 +221,21 @@ esp_err_t APA102_init(uint8_t numleds, int clock_pin, int data_pin, uint8_t spi_
         }
     }
 
+#ifdef DEBUG_MODE
     if (init_status == ESP_OK)
     {
-        test_frame_polling(strand);
+        //test_frame_polling(strand);
+        memcpy(strand->strandMem, init_frame, (sizeof(uint32_t) * strand->numLeds));
+        apaWriteLeds(strand);
     }
-
+#endif
     return init_status;
 }
 
+#ifdef DEBUG_MODE
 static int test_frame_polling(StrandData_t *strand)
 {
     ESP_LOGI("SPI_SETUP", "[+] Sending init data");
-
-    printf("Gonna dump some shit:\n\n");
-    printf("The strand: \n");
-    showmem((uint8_t *)strand, sizeof(StrandData_t));
 
     spi_transaction_t tx = {0};
     uint16_t length = (sizeof(uint32_t) * 8);
@@ -203,10 +248,6 @@ static int test_frame_polling(StrandData_t *strand)
     tx.rx_buffer = NULL;
     tx.user = NULL;
 
-    // printf("Attempting to send 0x%02x%02x%02x%02x tx struct...\n", tx.tx_data[0], tx.tx_data[1], tx.tx_data[2], tx.tx_data[3]);
-    printf("This is our spi handle... %p\n", strand->ledSPIHandle);
-    showmem((uint8_t *)&tx, sizeof(spi_transaction_t));
-
     esp_err_t txStatus = spi_device_polling_transmit(strand->ledSPIHandle, &tx);
 
     if (txStatus != ESP_OK)
@@ -218,7 +259,6 @@ static int test_frame_polling(StrandData_t *strand)
     tx.flags = 0;
     for (int i = 0; i < strand->numLeds; i++)
     {
-        printf("setting tx_buffer to %p which contains %zu\n", &init_frame[i], init_frame[i]);
         tx.tx_buffer = (void *)&init_frame[i];
         txStatus = spi_device_polling_transmit(strand->ledSPIHandle, &tx);
         if (txStatus != ESP_OK)
@@ -245,6 +285,7 @@ static int test_frame_polling(StrandData_t *strand)
 
     return txStatus;
 }
+#endif
 
 uint8_t apa102_ctrl_generate_brt_segment(uint8_t bright)
 {
