@@ -108,7 +108,6 @@ static esp_err_t apaWriteLeds(StrandData_t *strand)
         tx.length = 32;
         tx.tx_buffer = endFrame;
         txStatus |= spi_device_queue_trans(strand->ledSPIHandle, &tx, pdMS_TO_TICKS(50));
-        txStatus |= spi_device_queue_trans(strand->ledSPIHandle, &tx, pdMS_TO_TICKS(50));
 
         ESP_LOGI(APA_TAG, "Tx Status: %u", txStatus);
 
@@ -261,7 +260,7 @@ static int test_frame_polling(StrandData_t *strand)
     tx.flags = 0;
     for (int i = 0; i < strand->numLeds; i++)
     {
-        tx.tx_buffer = (void *)strand->strandMem + (i * 32);
+        tx.tx_buffer = (void *)&init_frame[i];
         txStatus = spi_device_polling_transmit(strand->ledSPIHandle, &tx);
         if (txStatus != ESP_OK)
         {
