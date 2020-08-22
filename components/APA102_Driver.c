@@ -59,22 +59,22 @@ void timerExpiredCallback(TimerHandle_t timer)
 /****** Private Data ******************/
 
 static uint32_t init_frame[16] = {
-    0xFF0000FF,
-    0xFF000000,
-    0xFF0000FF,
-    0xFF000000,
-    0xFF0000FF,
-    0xFF000000,
-    0xFF0000FF,
-    0xFF000000,
-    0xFF0000FF,
-    0xFF000000,
-    0xFF0000FF,
-    0xFF000000,
-    0xFF0000FF,
-    0xFF000000,
-    0xFF0000FF,
-    0xFF000000,
+    0xFF0000E1,
+    0x00FF00E1,
+    0x0000FFE1,
+    0x110011E1,
+    0x111100E1,
+    0x001111E1,
+    0x111111E1,
+    0xFF0000E1,
+    0xFF0000E1,
+    0xFF0000E1,
+    0xFF0000E1,
+    0xFF0000E1,
+    0xFF0000E1,
+    0xFF0000E1,
+    0xFF0000E1,
+    0xFF0000E1,
 };
 /****** Private Functions *************/
 
@@ -125,7 +125,7 @@ esp_err_t APA102_init(uint8_t numleds, int clock_pin, int data_pin, uint8_t spi_
         leds.command_bits = 0;
         leds.address_bits = 0;
         leds.dummy_bits = 0;
-        leds.mode = 3;
+        leds.mode = 1;
         leds.duty_cycle_pos = 128;
         leds.cs_ena_posttrans = 0;
         leds.cs_ena_pretrans = 0;
@@ -192,12 +192,11 @@ static int test_frame_polling(StrandData_t *strand)
     printf("The strand: \n");
     showmem((uint8_t *)strand, sizeof(StrandData_t));
 
-    spi_transaction_t tx;
+    spi_transaction_t tx = {0};
     uint16_t length = (sizeof(uint32_t) * 8);
 
     tx.length = 32;
-    tx.flags = 0;
-    tx.tx_buffer = (void *)&zerodata;
+    tx.flags = SPI_TRANS_USE_TXDATA;
     tx.addr = 0;
     tx.cmd = 0;
     tx.rxlength = 0;
@@ -216,8 +215,10 @@ static int test_frame_polling(StrandData_t *strand)
     }
 
     tx.length = 32;
+    tx.flags = 0;
     for (int i = 0; i < strand->numLeds; i++)
     {
+        printf("setting tx_buffer to %p which contains %zu\n", &init_frame[i], init_frame[i]);
         tx.tx_buffer = (void *)&init_frame[i];
         txStatus = spi_device_polling_transmit(strand->ledSPIHandle, &tx);
         if (txStatus != ESP_OK)
@@ -233,7 +234,10 @@ static int test_frame_polling(StrandData_t *strand)
     tx.tx_data[2] = 0xFF;
     tx.tx_data[3] = 0xFF;
 
-    txStatus = spi_device_polling_transmit(strand->ledSPIHandle, &tx);
+    for (int i = 0; i < 3; i++)
+    {
+        txStatus = spi_device_polling_transmit(strand->ledSPIHandle, &tx);
+    }
     if (txStatus != ESP_OK)
     {
         ESP_LOGE("SPI_TX", "Error in sending end frame %u", txStatus);
