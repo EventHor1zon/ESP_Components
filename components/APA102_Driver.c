@@ -110,7 +110,9 @@ static esp_err_t apaWriteLeds(StrandData_t *strand)
         txStatus |= spi_device_queue_trans(strand->ledSPIHandle, &tx, pdMS_TO_TICKS(50));
         txStatus |= spi_device_queue_trans(strand->ledSPIHandle, &tx, pdMS_TO_TICKS(50));
 
-        if (xSemaphoreGive(strand->memSemphr) != ESP_OK)
+        ESP_LOGI(APA_TAG, "Tx Status: %u", txStatus);
+
+        if (xSemaphoreGive(strand->memSemphr) != pdTRUE)
         {
             ESP_LOGE(APA_TAG, "ERROR GIVING SEMAPHORE");
         }
@@ -155,7 +157,7 @@ esp_err_t APA102_init(uint8_t numleds, int clock_pin, int data_pin, uint8_t spi_
         buscfg.quadwp_io_num = -1;
         buscfg.flags = 0;
         buscfg.intr_flags = 0;
-        ESP_ERROR_CHECK(spi_bus_initialize(HSPI_HOST, &buscfg, 0));
+        ESP_ERROR_CHECK(spi_bus_initialize(HSPI_HOST, &buscfg, 1));
     }
 
     if (init_status == ESP_OK)
@@ -187,7 +189,7 @@ esp_err_t APA102_init(uint8_t numleds, int clock_pin, int data_pin, uint8_t spi_
 
         if (strand != NULL && lfx != NULL && ledMem != NULL && startFrame != NULL && endFrame != NULL)
         {
-            memset(endFrame, "0xFF", sizeof(uint32_t));
+            memset(endFrame, 0xFF, sizeof(uint32_t));
 
             strand->ledType = LEDTYPE_APA102;
             strand->numLeds = numleds;
@@ -226,7 +228,7 @@ esp_err_t APA102_init(uint8_t numleds, int clock_pin, int data_pin, uint8_t spi_
     {
         //test_frame_polling(strand);
         memcpy(strand->strandMem, init_frame, (sizeof(uint32_t) * strand->numLeds));
-        apaWriteLeds(strand);
+        test_frame_polling(strand);
     }
 #endif
     return init_status;
@@ -259,7 +261,7 @@ static int test_frame_polling(StrandData_t *strand)
     tx.flags = 0;
     for (int i = 0; i < strand->numLeds; i++)
     {
-        tx.tx_buffer = (void *)&init_frame[i];
+        tx.tx_buffer = (void *)strand->strandMem + (i * 32);
         txStatus = spi_device_polling_transmit(strand->ledSPIHandle, &tx);
         if (txStatus != ESP_OK)
         {
