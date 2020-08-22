@@ -17,6 +17,8 @@
 /********* Includes ********************/
 
 #include <stdint.h>
+#include "esp_err.h"
+#include "esp_log.h"
 
 /********* Definitions *****************/
 
@@ -24,6 +26,7 @@
 #define LSM_I2C_ADDR 0b1101010
 #define LSM_I2C_SA_HIGH (1)
 #define LSM_I2C_SA_LOW (0)
+#define LSM_WHOAMI 0x69
 
 #define LSM_FUNC_CFG_REG 0x01
 #define LSM_SNES_SYNC_REG 0x04
@@ -91,13 +94,35 @@
 #define LSM_MD1_CFG_REG 0x5E
 #define LSM_MD2_CFG_REG 0x5F
 
+/** int1 ctrl reg **/
+
+#define LSM_INT1CTRL_STEP_ISR_BIT (1 << 7)
+#define LSM_INT1CTRL_SGFT_MTN_ISR_BIT (1 << 6)
+#define LSM_INT1CTRL_FIFOFULL_ISR_BIT (1 << 5)
+#define LSM_INT1CTRL_FIFOOVRN_ISR_BIT (1 << 4)
+#define LSM_INT1CTRL_FIFOTHRSHLD_ISR_BIT (1 << 3)
+#define LSM_INT1CTRL_BOOTSTATUS_ISR_BIT (1 << 2)
+#define LSM_INT1CTRL_GYRO_DTRDY_ISR_BIT (1 << 1)
+#define LSM_INT1CTRL_ACCEL_DTRDY_ISR_BIT (1)
+
+/** intcrtl 2 reg **/
+
+#define LSM_INT2CTRL_STEP_ISR_BIT (1 << 7)
+#define LSM_INT2CTRL_SGFT_MTN_ISR_BIT (1 << 6)
+#define LSM_INT2CTRL_FIFOFULL_ISR_BIT (1 << 5)
+#define LSM_INT2CTRL_FIFOOVRN_ISR_BIT (1 << 4)
+#define LSM_INT2CTRL_FIFOTHRSHLD_ISR_BIT (1 << 3)
+#define LSM_INT2CTRL_BOOTSTATUS_ISR_BIT (1 << 2)
+#define LSM_INT2CTRL_GYRO_DTRDY_ISR_BIT (1 << 1)
+#define LSM_INT2CTRL_ACCEL_DTRDY_ISR_BIT (1)
+
 /** ctrl3 register bits */
 #define LSM_CTRL3_BOOT_BIT (1 << 7)
 #define LSM_CTRL3_BLOCKDATA_UPDATE_BIT (1 << 6)
 #define LSM_CTRL3_ISR_ACTIVE_LVL_BIT (1 << 5)
 #define LSM_CTRL3_ISR_PUSHPULL_OD_BIT (1 << 4)
 #define LSM_CTRL3_SPI_MODE_BIT (1 << 3)
-#define LSM_CTRL3_AUTOINC_ADDR_BIT (1 << 2)
+#define LSM_CTRL3_AUTOINC_ADDR_BIT (1 << 2) /** < use this bit to read fifo ? */
 #define LSM_CTRL3_ENDIAN_BIT (1 << 1)
 #define LSM_CTRL3_SW_RESET_BIT (1)
 
@@ -177,6 +202,11 @@
 #define LSM_FIFO2_FULL_BIT (1 << 5)
 #define LSM_FIFO2_EMPTY_BIT (1 << 4)
 
+#define LSM_FIFOCTRL2_PEDO_STEPT_EN_BIT (1 << 7)
+#define LSM_FIFOCTRL2_PEDO_WRITESTEP_EN_BIT (1 << 6)
+
+#define LSM_FIFOCTRL4_MSBDATA_ONLY_BIT (1 << 6)
+
 /** FUNC SOURCE REG **/
 
 #define LSM_FUNCSRC_PEDO_DELTA_T_BIT (1 << 7)
@@ -218,12 +248,46 @@ typedef enum LSM_AccelPowerMode
 
 typedef enum LSM_FIFOMode
 {
-    LSM_FIFO_MODE_BYPASS,         /** < Fifo is not used */
-    LSM_FIFO_MODE_FIFO,           /** < Fifo stores until full */
-    LSM_FIFO_MODE_CONTINUOUS,     /** < continuously updates fifo dumping older data */
-    LSM_FIFO_MODE_CONT_TO_FIFO,   /** < both fifo & cont, changes depending on event trigger */
-    LSM_FIFO_MODE_BYPASS_TO_FIFO, /** < same as above but with bypass */
+    LSM_FIFO_MODE_BYPASS = 0,         /** < Fifo is not used */
+    LSM_FIFO_MODE_FIFO = 1,           /** < Fifo stores until full */
+    LSM_FIFO_MODE_CONT_TO_FIFO = 3,   /** < both fifo & cont, changes depending on event trigger */
+    LSM_FIFO_MODE_BYPASS_TO_FIFO = 4, /** < same as above but with bypass */
+    LSM_FIFO_MODE_CONTINUOUS = 6,     /** < continuously updates fifo dumping older data */
 } LSM_FIFOMode_t;
+
+typedef enum LSM_FIFOodr
+{
+    LSM_FIFO_ODR_DISABLED,
+    LSM_FIFO_ODR_12_5HZ,
+    LSM_FIFO_ODR_26_HZ,
+    LSM_FIFO_ODR_52_HZ,
+    LSM_FIFO_ODR_104_HZ,
+    LSM_FIFO_ODR_208_HZ,
+    LSM_FIFO_ODR_416_HZ,
+    LSM_FIFO_ODR_833_HZ,
+    LSM_FIFO_ODR_1_66KHZ,
+    LSM_FIFO_ODR_3_33KHZ,
+    LSM_FIFO_ODR_6_66KHZ,
+} LSM_FIFOodr_t;
+
+typedef enum LSM_FifoPktCfg
+{
+    LSM_FIFO_UNUSED,
+    LSM_FIFO_0_DECM,
+    LSM_FIFO_2_DECM,
+    LSM_FIFO_3_DECM,
+    LSM_FIFO_4_DECM,
+    LSM_FIFO_8_DECM,
+    LSM_FIFO_16_DECM,
+    LSM_FIFO_32_DECM,
+} LSM_FifoPktCfg_t;
+
+/**  ISR control 1 **/
+
+// typedef enum LSM_ISR1Mode
+// {
+
+// } LSM_ISR1Mode_t;
 
 /** ctrl1 accel */
 typedef enum LSM_AccelODR
@@ -308,11 +372,84 @@ typedef enum LSM_AccelSelfTest
 
 typedef enum LSM_GyroSelfTest
 {
-    LSM_gyro_SELFTEST_NORMAL = 0,
-    LSM_gyro_SELFTEST_POSITIVE = 1,
-    LSM_gyro_SELFTEST_NEGATIVE = 2
+    LSM_GYRO_SELFTEST_NORMAL = 0,
+    LSM_GYRO_SELFTEST_POSITIVE = 1,
+    LSM_GYRO_SELFTEST_NEGATIVE = 2
 } LSM_GyroSelfTest_t;
 
+typedef enum LSM_DeviceCommMode
+{
+    LSM_DEVICE_COMM_MODE_I2C,
+    LSM_DEVICE_COMM_MODE_SPI,
+    LSM_DEVICE_COMM_MODE_SPI_3
+} LSM_DeviceCommMode_t;
+
+/** initData struct 
+ *  - keep it simple, let user configure with extra functions
+ * 
+ */
+typedef struct LSM_initData
+{
+    uint16_t dataPin;  /** < gpio pin for the data line */
+    uint16_t clockPin; /** < gpio pin for the clock line */
+    uint16_t int1Pin;  /** < gpio pin for int 1 - 0 if unused */
+    uint16_t int2Pin;  /** < gpio pin for int 2 - 0 if unused */
+    LSM_DeviceCommMode_t commMode;
+    LSM_OperatingMode_t opMode;
+    LSM_AccelODR_t accelRate;
+    LSM_GyroODR_t gyroRate;
+
+} LSM_initData_t;
+
+/**
+ *  LSM_DeviceSettings_t - a settings struct for the device
+ *  keep track of various things..
+ * 
+ * 
+*/
+typedef struct LSM_DeviceSettings
+{
+    uint16_t dtPin;
+    uint16_t clkPin;
+    uint16_t i1Pin;
+    uint16_t i2Pin;
+    bool int1En;
+    bool int2En;
+    LSM_DeviceCommMode_t commMode;
+    uint8_t commChannel; /** < the i2c or spi channel being used */
+    void *commsHandle;   /** < can be used to hold a device handle */
+
+} LSM_DeviceSettings_t;
+
 /******** Function Definitions *********/
+
+/** \brief LSM_init()
+ *      
+ *          initilise the LSM driver. Assumes a single device. 
+ *          takes a pointer to an LSM init struct
+ * 
+ *  \param LSM_initData_t initData 
+ *  \return ESP_OK or error
+ */
+esp_err_t
+LSM_init(LSM_initData_t initData);
+
+/** 
+ *  LSM_deinit() 
+ *      tear down the LSM driver 
+ *  
+ *  \return ESP_OK or error
+*/
+
+esp_err_t LSM_deInit();
+
+esp_err_t LSM_setFIFOmode(LSM_FIFOMode_t mode);
+esp_err_t LSM_setFIFOwatermark(uint16_t watermark);
+esp_err_t LSM_getFIFOCount(uint16_t *count);
+esp_err_t LSM_setFIFOpackets(LSM_FifoPktCfg_t config, uint8_t fifoPacket);
+esp_err_t LSM_configInt(LSM_DeviceSettings_t *device, uint8_t intNum);
+
+esp_err_t LSM_readFifoBlock(LSM_DeviceSettings_t *device, uint16_t length);
+esp_err_t LSM_readWhoAmI(LSM_DeviceSettings_t *device);
 
 #endif /* LSM_DRIVER_H */
