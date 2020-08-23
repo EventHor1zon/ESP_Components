@@ -390,10 +390,11 @@ typedef enum LSM_DeviceCommMode
  */
 typedef struct LSM_initData
 {
-    uint16_t dataPin;  /** < gpio pin for the data line */
-    uint16_t clockPin; /** < gpio pin for the clock line */
-    uint16_t int1Pin;  /** < gpio pin for int 1 - 0 if unused */
-    uint16_t int2Pin;  /** < gpio pin for int 2 - 0 if unused */
+    uint16_t dataPin;     /** < gpio pin for the data line */
+    uint16_t clockPin;    /** < gpio pin for the clock line */
+    gpio_num_t int1Pin;   /** < gpio pin for int 1 - 0 if unused */
+    gpio_num_t int2Pin;   /** < gpio pin for int 2 - 0 if unused */
+    uint8_t commsChannel; /** < comms channel for i2c or spi */
     LSM_DeviceCommMode_t commMode;
     LSM_OperatingMode_t opMode;
     LSM_AccelODR_t accelRate;
@@ -410,11 +411,13 @@ typedef struct LSM_initData
 typedef struct LSM_DeviceSettings
 {
     uint16_t dtPin;
-    uint16_t clkPin;
+    uint16_t clkPin; /** TODO: Need these pins? **/
     uint16_t i1Pin;
     uint16_t i2Pin;
     bool int1En;
     bool int2En;
+    uint8_t int1Function;
+    uint8_t int2Function;
     LSM_DeviceCommMode_t commMode;
     uint8_t commChannel; /** < the i2c or spi channel being used */
     void *commsHandle;   /** < can be used to hold a device handle */
