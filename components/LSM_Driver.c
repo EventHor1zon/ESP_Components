@@ -15,8 +15,11 @@
 
 #include "LSM_Driver.h"
 
+#include "genericCommsDriver.h"
+
 #include "esp_err.h"
 #include "esp_log.h"
+#include "esp_heap_caps.h"
 #include "driver/gpio.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -36,7 +39,7 @@ void ISR_int2
 }
 /****** Private Data ******************/
 
-static LSM_DeviceSettings_t *device = NULL;
+LSM_DeviceSettings_t *device = NULL;
 /****** Private Functions *************/
 
 /****** Global Data *******************/
@@ -146,24 +149,155 @@ esp_err_t LSM_init(LSM_initData_t *initData)
             }
         }
 
-        return initStatus;
+        if (initStatus == ESP_OK && initData->assignFifoBuffer)
+        {
+            size_t dmaMem = heap_caps_get_free_size(MALLOC_CAP_DMA);
+            if (dmaMem < 8000)
+            {
+                ESP_LOGE("LSM Driver", "Error: insufficient DMA cap mem. Only %d bytes available", dmaMem);
+                initStatus = ESP_ERR_NO_MEM;
+            }
+            else
+            {
+                void *fifoMem = heap_caps_malloc(LSM_FIFO_BUFFER_MEM_LEN, MALLOC_CAP_DMA);
+                if (fifoMem != NULL)
+                {
+                    device->fifoBuffer = fifoMem;
+                }
+            }
+        }
     }
 
-    /** 
+    return initStatus;
+}
+
+/** 
  *  LSM_deinit() 
  *      tear down the LSM driver 
  *  
  *  \return ESP_OK or error
 */
 
-    esp_err_t LSM_deInit();
+esp_err_t LSM_deInit(LSM_DeviceSettings_t *dev)
+{
+    if (dev->fifoBuffer != NULL)
+    {
+        heap_caps_free(dev->fifoBuffer);
+    }
 
-    esp_err_t LSM_assignDMABuffer(LSM_DeviceSettings_t * device);
-    esp_err_t LSM_setFIFOmode(LSM_FIFOMode_t mode);
-    esp_err_t LSM_setFIFOwatermark(uint16_t watermark);
-    esp_err_t LSM_getFIFOCount(uint16_t * count);
-    esp_err_t LSM_setFIFOpackets(LSM_FifoPktCfg_t config, uint8_t fifoPacket);
-    esp_err_t LSM_configInt(LSM_DeviceSettings_t * device, uint8_t intNum);
+    free(dev);
 
-    esp_err_t LSM_readFifoBlock(LSM_DeviceSettings_t * device, uint16_t length);
-    esp_err_t LSM_readWhoAmI(LSM_DeviceSettings_t * device);
+    return ESP_OK;
+}
+
+esp_err_t LSM_setFIFOmode(LSM_FIFOMode_t mode)
+{
+    esp_err_t status = ESP_OK;
+    switch (mode)
+    {
+    case LSM_FIFO_MODE_BYPASS:
+        status = genericI2CwriteToAddress();
+        break;
+    case LSM_FIFO_MODE_FIFO:
+        status = genericI2CwriteToAddress();
+        break;
+    case LSM_FIFO_MODE_CONT_TO_FIFO:
+        status = genericI2CwriteToAddress();
+        break;
+    case LSM_FIFO_MODE_BYPASS_TO_FIFO:
+        status = genericI2CwriteToAddress();
+        break;
+    case LSM_FIFO_MODE_CONTINUOUS:
+        status = genericI2CwriteToAddress();
+        break;
+    default:
+        ESP_LOGE("LSM Driver", "Error - invalid Fifo mode");
+        status = ESP_ERR_INVALID_ARG;
+        break;
+    }
+
+    return status;
+}
+
+esp_err_t LSM_setFIFOwatermark(uint16_t watermark)
+{
+    esp_err_t status = ESP_OK;
+    /** TODO: this **/
+    return ESP_OK;
+}
+
+static esp_err_t LSM_getFIFOpktCount(LSM_DeviceSettings_t *dev, uint16_t *count)
+{
+    esp_err_t status = ESP_OK;
+    uint8_t rxBuffer[2] = {0};
+    uint8_t msbMask = 0b1111;
+    uint16_t fifoCount = 0;
+
+    status = genericI2CReadFromAddress(dev->commsChannel, (uint8_t)LSM_I2C_ADDR, LSM_FIFO_STATUS1_REG, 2, rxBuffer);
+
+    if (status == ESP_OK)
+    {
+        msbMask &= rxBuffer[1];
+        fifoCount = ((uint16_t)msbMask << 8 | (uint16_t)rxBuffer[0]);
+        *count = fifoCount;
+    }
+
+    return status;
+}
+
+esp_err_t LSM_setFIFOpackets(LSM_DeviceSettings_t *device, LSM_FifoPktCfg_t config, LSM_PktType_t pktType)
+{
+    esp_err_t status = ESP_OK;
+
+    uint8_t regAddr = 0, regValue = 0, shift = 0;
+
+    switch (fifoPacket)
+    {
+    case LSM_PKT1_GYRO:
+        regAddr = LSM_FIFO_CTRL3_REG;
+        shift = 3;
+        break;
+    case LSM_PKT2_ACCL:
+        regAddr = LSM_FIFO_CTRL3_REG;
+        break;
+    case LSM_PKT3_SENSHUB:
+        regAddr = LSM_FIFO_CTRL4_REG;
+        shift = 3;
+        break;
+    case LSM_PKT4_STEP_OR_TEMP:
+        regAddr = LSM_FIFO_CTRL4_REG;
+    default:
+        status = ESP_ERR_INVALID_ARG;
+        break;
+    }
+
+    if (status == ESP_OK)
+    {
+        status = genericI2CReadFromAddress(device->commChannel, (uint8_t)LSM_I2C_ADDR, regAddr, 1, &regValue);
+    }
+    if (status == ESP_OK)
+    {
+        uint8_t txByte = (regValue | (config << shift));
+        status = genericI2CwriteToAddress(device->commChannel, (uint8_t)LSM_I2C_ADDR, regAddr, 1, &txByte);
+    }
+
+    return status;
+}
+esp_err_t LSM_configInt(LSM_DeviceSettings_t *device, uint8_t intNum)
+{
+    esp_err_t status = ESP_OK;
+    if (intNum == 1 && device->i1Pin > 0)
+    {
+    }
+    else if (intNum == 2 && device->i2Pin > 0)
+    {
+    }
+    else
+    {
+    }
+
+    return status;
+}
+
+esp_err_t LSM_readFifoBlock(LSM_DeviceSettings_t *device, uint16_t length);
+esp_err_t LSM_readWhoAmI(LSM_DeviceSettings_t *device);

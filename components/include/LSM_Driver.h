@@ -282,6 +282,14 @@ typedef enum LSM_FifoPktCfg
     LSM_FIFO_32_DECM,
 } LSM_FifoPktCfg_t;
 
+typedef enum LSM_PktType
+{
+    LSM_PKT1_GYRO,
+    LSM_PKT2_ACCL,
+    LSM_PKT3_SENSHUB,
+    LSM_PKT4_STEP_OR_TEMP
+} LSM_PktType_t;
+
 /**  ISR control 1 **/
 
 // typedef enum LSM_ISR1Mode
@@ -399,7 +407,7 @@ typedef struct LSM_initData
     LSM_OperatingMode_t opMode;
     LSM_AccelODR_t accelRate;
     LSM_GyroODR_t gyroRate;
-
+    bool assignFifoBuffer; /** < assign an 8Kb dma-cap buffer for burst fifo reads **/
 } LSM_initData_t;
 
 /**
@@ -421,6 +429,7 @@ typedef struct LSM_DeviceSettings
     LSM_DeviceCommMode_t commMode;
     uint8_t commChannel; /** < the i2c or spi channel being used */
     void *commsHandle;   /** < can be used to hold a device handle */
+    void *fifoBuffer;
 
 } LSM_DeviceSettings_t;
 
@@ -434,8 +443,7 @@ typedef struct LSM_DeviceSettings
  *  \param LSM_initData_t initData 
  *  \return ESP_OK or error
  */
-esp_err_t
-LSM_init(LSM_initData_t initData);
+esp_err_t LSM_init(LSM_initData_t initData);
 
 /** 
  *  LSM_deinit() 
