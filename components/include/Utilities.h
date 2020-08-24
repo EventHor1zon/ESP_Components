@@ -9,7 +9,7 @@
 #define UTILITIES_H
 
 /********* Includes ********************/
-
+#include <stdint.h>
 /********* Definitions *****************/
 
 #define INCREMENT_TO_MAX(i, max) ((i == max) ? (max) : (i + 1))
@@ -19,4 +19,5 @@
 
 /******** Function Definitions *********/
 
+void showmem(uint8_t *ptr, uint16_t len);
 #endif /* UTILITIES_H */

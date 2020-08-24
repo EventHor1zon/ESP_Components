@@ -33,7 +33,6 @@
 
 /****** Function Prototypes ***********/
 
-static void showmem(uint8_t *ptr, int len);
 static void WS2812_driverTask(void *args);
 
 /****** Private Data ******************/
@@ -165,25 +164,6 @@ void fxCallbackFunction(TimerHandle_t timer)
 
 /****** Private Functions *************/
 
-static void showmem(uint8_t *memptr, int len)
-{
-    for (int i = 0; i < len; i++)
-    {
-        if (i % 8 == 0)
-        {
-            printf("[%p] %02x", memptr, *memptr);
-        }
-        else if (i % 8 == 7)
-        {
-            printf(" %02x\n", *memptr);
-        }
-        else
-        {
-            printf(" %02x", *memptr);
-        }
-        memptr++;
-    }
-}
 /**
  * Write data from led mem to the RMT data output
  **/

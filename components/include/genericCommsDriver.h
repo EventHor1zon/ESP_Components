@@ -1,8 +1,9 @@
 /****************************************
 * \file     genericCommsDriver.h
-* \brief
-* \date
-* \author
+* \brief    some generic comms functions for 
+*           general use
+* \date     Aug 2020
+* \author   RJAM
 ****************************************/
 
 #ifndef GENERIC_COMMS_DRIVER_H
@@ -12,6 +13,8 @@
 
 #include <stdint.h>
 #include "esp_err.h"
+
+#include "driver/i2c.h"
 
 /********* Definitions *****************/
 
@@ -43,5 +46,15 @@ esp_err_t genericI2CReadFromAddress(uint8_t i2cChannel, uint8_t deviceAddr, uint
  *  \return ESP_OK or error
  * **/
 esp_err_t genericI2CwriteToAddress(uint8_t i2cChannel, uint8_t deviceAddr, uint8_t regAddr, uint16_t writeLen, uint8_t *txBuffer);
+
+/** \brief  genericI2Cinit()
+ *          initialise an i2c bus
+ *  \param  dataPin     -    duh
+ *  \param  clockPin    -   also duh
+ *  \param  clockSpeed  -   bus speed
+ *  \param  busNum      -   i2c bus number (0 or 1)
+ *  \return ESP_OK or error
+ * **/
+esp_err_t genericI2Cinit(gpio_num_t dataPin, gpio_num_t clockPin, uint32_t clockSpeed, uint8_t busNum);
 
 #endif /* GENERIC_COMMS_DRIVER_H */
