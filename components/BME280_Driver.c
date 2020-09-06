@@ -225,14 +225,15 @@ static esp_err_t bm280_getCalibrationData(bm_controlData_t *bmCtrl)
 {
     esp_err_t trxStatus = ESP_OK;
 
-    uint8_t buffer[BM_CALIBR_DATA_LEN + 1] = {0};
+    uint8_t buffer[BM_CALIBR_DATA_BANK1_LEN] = {0};
 
 #ifdef BME_280
     /** retrieve the calibration data - add +1 to length of bank1 as there's an unused byte (A0, index[24]) in there **/
-    trxStatus = bm280_i2cReadFromAddress(bmCtrl, (uint8_t)BM_REG_ADDR_DIGT1_LSB, BM_CALIBR_DATA_BANK1_LEN + 1, buffer);
-    trxStatus = bm280_i2cReadFromAddress(bmCtrl, (uint8_t)BM_REG_ADDR_DIGH2_LSB, BM_CALIBR_DATA_BANK2_LEN, &buffer[BM_CALIBR_DATA_BANK1_LEN + 1]);
+    uint8_t bufferB[BM_CALIBR_DATA_BANK2_LEN] = {0};
+    trxStatus = bm280_i2cReadFromAddress(bmCtrl, (uint8_t)BM_REG_ADDR_DIGT1_LSB, BM_CALIBR_DATA_BANK1_LEN, buffer);
+    trxStatus = bm280_i2cReadFromAddress(bmCtrl, (uint8_t)BM_REG_ADDR_DIGH2_LSB, BM_CALIBR_DATA_BANK2_LEN, bufferB);
 #else
-    trxStatus = bm280_i2cReadFromAddress(bmCtrl, (uint8_t)BM_REG_ADDR_DIGT1_LSB, BM_CALIBR_DATA_LEN, buffer);
+    trxStatus = bm280_i2cReadFromAddress(bmCtrl, (uint8_t)BM_REG_ADDR_DIGT1_LSB, BM_CALIBR_DATA_BANK1_LEN, buffer);
 #endif
 
 #ifdef DEBUG
@@ -246,25 +247,31 @@ static esp_err_t bm280_getCalibrationData(bm_controlData_t *bmCtrl)
 
     if (trxStatus == ESP_OK)
     {
-        bmCtrl->calibrationData.dig_T1 = (uint16_t)buffer[0] << 8 | (uint16_t)buffer[1];
-        bmCtrl->calibrationData.dig_T2 = (int16_t)buffer[2] << 8 | (int16_t)buffer[3];
-        bmCtrl->calibrationData.dig_T3 = (int16_t)buffer[4] << 8 | (int16_t)buffer[5];
-        bmCtrl->calibrationData.dig_P1 = (uint16_t)buffer[6] << 8 | (uint16_t)buffer[7];
-        bmCtrl->calibrationData.dig_P2 = (int16_t)buffer[8] << 8 | (int16_t)buffer[9];
-        bmCtrl->calibrationData.dig_P3 = (int16_t)buffer[10] << 8 | (int16_t)buffer[11];
-        bmCtrl->calibrationData.dig_P4 = (int16_t)buffer[12] << 8 | (int16_t)buffer[13];
-        bmCtrl->calibrationData.dig_P5 = (int16_t)buffer[14] << 8 | (int16_t)buffer[15];
-        bmCtrl->calibrationData.dig_P6 = (int16_t)buffer[16] << 8 | (int16_t)buffer[17];
-        bmCtrl->calibrationData.dig_P7 = (int16_t)buffer[18] << 8 | (int16_t)buffer[19];
-        bmCtrl->calibrationData.dig_P8 = (int16_t)buffer[20] << 8 | (int16_t)buffer[21];
-        bmCtrl->calibrationData.dig_P9 = (int16_t)buffer[22] << 8 | (int16_t)buffer[23];
+        bmCtrl->calibrationData.dig_T1 = (uint16_t)buffer[1] << 8 | (uint16_t)buffer[0];
+        bmCtrl->calibrationData.dig_T2 = (int16_t)buffer[3] << 8 | (int16_t)buffer[2];
+        bmCtrl->calibrationData.dig_T3 = (int16_t)buffer[5] << 8 | (int16_t)buffer[4];
+        bmCtrl->calibrationData.dig_P1 = (uint16_t)buffer[7] << 8 | (uint16_t)buffer[6];
+        bmCtrl->calibrationData.dig_P2 = (int16_t)buffer[9] << 8 | (int16_t)buffer[8];
+        bmCtrl->calibrationData.dig_P3 = (int16_t)buffer[11] << 8 | (int16_t)buffer[10];
+        bmCtrl->calibrationData.dig_P4 = (int16_t)buffer[13] << 8 | (int16_t)buffer[12];
+        bmCtrl->calibrationData.dig_P5 = (int16_t)buffer[15] << 8 | (int16_t)buffer[14];
+        bmCtrl->calibrationData.dig_P6 = (int16_t)buffer[17] << 8 | (int16_t)buffer[16];
+        bmCtrl->calibrationData.dig_P7 = (int16_t)buffer[19] << 8 | (int16_t)buffer[18];
+        bmCtrl->calibrationData.dig_P8 = (int16_t)buffer[21] << 8 | (int16_t)buffer[20];
+        bmCtrl->calibrationData.dig_P9 = (int16_t)buffer[23] << 8 | (int16_t)buffer[22];
+
 #ifdef BME_280
+        int16_t dig_H4_lsb= 0, dig_H4_msb = 0, dig_H5_lsb= 0, dig_H5_msb = 0;
         bmCtrl->calibrationData.dig_H1 = buffer[25];
-        bmCtrl->calibrationData.dig_H2 = (int16_t)buffer[26] << 8 | (int16_t)buffer[27];
-        bmCtrl->calibrationData.dig_H3 = buffer[28];
-        bmCtrl->calibrationData.dig_H4 = (int16_t)buffer[28] << 8 | (int16_t)buffer[29];
-        bmCtrl->calibrationData.dig_H5 = (int16_t)buffer[30] << 8 | (int16_t)buffer[31];
-        bmCtrl->calibrationData.dig_H6 = (int8_t)buffer[32];
+        bmCtrl->calibrationData.dig_H2 = (int16_t)bufferB[1] << 8 | (int16_t)bufferB[0];
+        bmCtrl->calibrationData.dig_H3 = bufferB[2];
+        dig_H4_msb = (int16_t)(int8_t)bufferB[3] * 16;
+        dig_H4_lsb = (int16_t)(bufferB[4] & 0x0F); 
+        bmCtrl->calibrationData.dig_H4 = dig_H4_msb | dig_H4_lsb;
+        dig_H5_msb = (int16_t)(int8_t)bufferB[5] * 16;
+        dig_H5_lsb = (int16_t)(bufferB[4] >> 4);
+        bmCtrl->calibrationData.dig_H5 = dig_H5_msb | dig_H5_lsb;
+        bmCtrl->calibrationData.dig_H6 = (int8_t)bufferB[6];
 #endif
         bmCtrl->calibrationAquired = true;
     }
