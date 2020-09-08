@@ -55,6 +55,6 @@ esp_err_t genericI2CwriteToAddress(uint8_t i2cChannel, uint8_t deviceAddr, uint8
  *  \param  busNum      -   i2c bus number (0 or 1)
  *  \return ESP_OK or error
  * **/
-esp_err_t genericI2Cinit(gpio_num_t dataPin, gpio_num_t clockPin, uint32_t clockSpeed, uint8_t busNum);
+esp_err_t genericI2Cinit(int16_t dataPin, int16_t clockPin, uint32_t clockSpeed, uint8_t busNum);
 
 #endif /* GENERIC_COMMS_DRIVER_H */

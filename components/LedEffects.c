@@ -14,6 +14,7 @@
 #include "WS2812_Driver.h"
 #include "LedEffects.h"
 
+#include "esp_log.h"
 /****** Function Prototypes ***********/
 
 /****** Global Data *******************/
@@ -34,8 +35,9 @@ uint8_t numTimers = 0;
  *  \return a pointer to a ledEffects structure
 */
 
-ledEffect_t *ledEffectInit(StrandData_t *strand)
+void *ledEffectInit(void *arg)
 {
+    StrandData_t *strand = (StrandData_t *)arg;
     esp_err_t initStatus = ESP_OK;
     uint16_t spaceRequired = sizeof(ledEffectData_t);
     ledEffectData_t *effectData = NULL;
@@ -66,7 +68,7 @@ ledEffect_t *ledEffectInit(StrandData_t *strand)
      **/
 
     numTimers++;
-    return effectData;
+    return (void *)effectData;
 }
 
 /**  \brief     A basic night-rider style effect with optional fade 
@@ -76,11 +78,12 @@ ledEffect_t *ledEffectInit(StrandData_t *strand)
  *  \param      colour - 32 bit colour XBGR format 
  * 
 */
-void ledEffects_nightrider(StrandData_t *strand, int fade_len, uint32_t colour)
+void ledEffects_nightrider(void *arg, int fade_len, uint32_t colour)
 {
 
     static bool direction = 1;
     static int16_t led_pos = 0;
+    StrandData_t *strand = (StrandData_t *)arg;
     uint16_t numLeds = strand->numLeds;
 
     if (fade_len > numLeds)

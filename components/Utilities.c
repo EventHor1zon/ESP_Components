@@ -44,3 +44,14 @@ void showmem(uint8_t *memptr, int len)
         memptr++;
     }
 }
+
+void printByteBits(uint8_t num)
+{
+    printf("[");
+    for (int bit = 0; bit < 8; bit++)
+    {
+        printf("%d", num & 0x01);
+        num = num >> 1;
+    }
+    printf("]");
+}

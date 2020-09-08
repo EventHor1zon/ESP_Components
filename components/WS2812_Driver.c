@@ -288,7 +288,7 @@ esp_err_t WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dataPin
             /* init Function - create Led Effects structure */
             if (initStatus == ESP_OK)
             {
-                ledEffect_t *ledFxData = LedEffectInit(strand);
+                ledEffectData_t *ledFxData = ledEffectInit((void *)strand);
                 TimerHandle_t fxTimer = xTimerCreate("fxTimer", (TickType_t)UINT32_MAX, pdTRUE, NULL, fxCallbackFunction);
 
                 if (ledFxData == NULL)

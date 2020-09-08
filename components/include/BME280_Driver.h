@@ -203,6 +203,8 @@ typedef struct BM_CalibrationData
     int16_t dig_H5;
     int8_t dig_H6;
 #endif
+    uint32_t t_fine; /** < fine temperature used in calibration */
+
 } bm_calibrationData_t;
 
 typedef struct BM_sensorData
@@ -222,30 +224,10 @@ typedef struct BM_sensorData
     uint32_t rawHumidity;        /** < output of the device register */
 #endif
 
-    uint32_t t_fine; /** < fine temperature used in calibration */
-
     uint8_t statusMeasure;
     uint8_t statusUpdate;
 
 } bm_sensorData_t;
-
-typedef struct bm_controlData
-{
-    bm_calibrationData_t calibrationData;
-    bm_sensorData_t sensorData;
-    BM_sampleTypes_t sampleType;
-    BM_sampleMode_t sampleMode;
-
-    uint8_t peripheralID;
-    uint8_t deviceAddress;
-    uint8_t i2cChannel;
-
-    bool calibrationAquired;
-
-    uint8_t sampleMask;
-    uint8_t configMask;
-
-} bm_controlData_t;
 
 typedef struct bm_initData
 {
@@ -258,12 +240,33 @@ typedef struct bm_initData
 
 } bm_initData_t;
 
+typedef struct bm_controlData
+{
+    bm_calibrationData_t calibrationData;
+    bm_sensorData_t sensorData;
+    BM_sampleTypes_t sampleType;
+    BM_sampleMode_t sampleMode;
+    bm_initData_t *initData;
+
+    uint8_t peripheralID;
+    uint8_t deviceAddress;
+    uint8_t i2cChannel;
+
+    bool calibrationAquired;
+
+    uint8_t sampleMask;
+    uint8_t configMask;
+
+} bm_controlData_t;
+
 /******** Function Definitions *********/
 
 bm_controlData_t *bm280_init(bm_initData_t *initData);
+esp_err_t bm280_getDeviceID(bm_controlData_t *bmCtrl, uint8_t *deviceID);
 esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl);
 esp_err_t bm280_getTemperature(bm_controlData_t *bmCtrl, float *realTemp);
 esp_err_t bm280_getPressure(bm_controlData_t *bmCtrl, float *realPressure);
+esp_err_t bm280_getHumidity(bm_controlData_t *bmCtrl, float *realHumidity);
 esp_err_t bm280_setOverSampling(bm_controlData_t *bmCtrl);
 
 #endif /* BM280_DRIVER_H */

@@ -28,12 +28,12 @@
 
 /************ ISR *********************/
 
-void ISR_int1
+void ISR_int1(void *args)
 {
     return;
 }
 
-void ISR_int2
+void ISR_int2(void *args)
 {
     return;
 }
@@ -121,7 +121,7 @@ esp_err_t LSM_init(LSM_initData_t *initData)
             if (initStatus == ESP_OK)
             {
                 initStatus = gpio_install_isr_service(ESP_INTR_FLAG_LOWMED);
-                if (initStatus = ESP_ERR_INVALID_STATE)
+                if (initStatus == ESP_ERR_INVALID_STATE)
                 {
                     /** driver already initialised, don't freak out */
                     initStatus = ESP_OK;
@@ -196,19 +196,19 @@ esp_err_t LSM_setFIFOmode(LSM_FIFOMode_t mode)
     switch (mode)
     {
     case LSM_FIFO_MODE_BYPASS:
-        status = genericI2CwriteToAddress();
+        //status = genericI2CwriteToAddress();
         break;
     case LSM_FIFO_MODE_FIFO:
-        status = genericI2CwriteToAddress();
+        //status = genericI2CwriteToAddress();
         break;
     case LSM_FIFO_MODE_CONT_TO_FIFO:
-        status = genericI2CwriteToAddress();
+        //status = genericI2CwriteToAddress();
         break;
     case LSM_FIFO_MODE_BYPASS_TO_FIFO:
-        status = genericI2CwriteToAddress();
+        //status = genericI2CwriteToAddress();
         break;
     case LSM_FIFO_MODE_CONTINUOUS:
-        status = genericI2CwriteToAddress();
+        //status = genericI2CwriteToAddress();
         break;
     default:
         ESP_LOGE("LSM Driver", "Error - invalid Fifo mode");
@@ -233,7 +233,7 @@ static esp_err_t LSM_getFIFOpktCount(LSM_DeviceSettings_t *dev, uint16_t *count)
     uint8_t msbMask = 0b1111;
     uint16_t fifoCount = 0;
 
-    status = genericI2CReadFromAddress(dev->commsChannel, (uint8_t)LSM_I2C_ADDR, LSM_FIFO_STATUS1_REG, 2, rxBuffer);
+    status = genericI2CReadFromAddress(dev->commChannel, (uint8_t)LSM_I2C_ADDR, LSM_FIFO_STATUS1_REG, 2, rxBuffer);
 
     if (status == ESP_OK)
     {
@@ -251,7 +251,7 @@ esp_err_t LSM_setFIFOpackets(LSM_DeviceSettings_t *device, LSM_FifoPktCfg_t conf
 
     uint8_t regAddr = 0, regValue = 0, shift = 0;
 
-    switch (fifoPacket)
+    switch (pktType)
     {
     case LSM_PKT1_GYRO:
         regAddr = LSM_FIFO_CTRL3_REG;
@@ -266,6 +266,7 @@ esp_err_t LSM_setFIFOpackets(LSM_DeviceSettings_t *device, LSM_FifoPktCfg_t conf
         break;
     case LSM_PKT4_STEP_OR_TEMP:
         regAddr = LSM_FIFO_CTRL4_REG;
+        break;
     default:
         status = ESP_ERR_INVALID_ARG;
         break;
