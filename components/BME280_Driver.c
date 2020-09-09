@@ -467,23 +467,158 @@ esp_err_t bm280_getHumidity(bm_controlData_t *bmCtrl, float *realHumidity)
     return status;
 }
 
+esp_err_t bm280_getHumidityOS(bm_controlData_t *bmCtrl, uint8_t *humidOS)
+{
+    esp_err_t status = ESP_OK;
+    *humidOS = bmCtrl->devSettings.humidOS;
+    return status;
+}
+
+esp_err_t bm280_getTemperatureOS(bm_controlData_t *bmCtrl, uint8_t *tempOS)
+{
+    esp_err_t status = ESP_OK;
+    *tempOS = bmCtrl->devSettings.humidOS;
+    return status;
+}
+
+esp_err_t bm280_getPressureOS(bm_controlData_t *bmCtrl, uint8_t *presOS)
+{
+    esp_err_t status = ESP_OK;
+    *presOS = bmCtrl->devSettings.humidOS;
+    return status;
+}
+
+esp_err_t bm280_setHumidityOS(bm_controlData_t *bmCtrl, BM_overSample_t os)
+{
+    esp_err_t status = ESP_OK;
+    uint8_t OSlevel = os;
+    status = genericI2CwriteToAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_HUMID, 1, OSlevel);
+    bmCtrl->devSettings.humidOS = os;
+    return status;
+}
+
+esp_err_t bm280_setTemperatureOS(bm_controlData_t *bmCtrl, BM_overSample_t os)
+{
+    esp_err_t status = ESP_OK;
+
+    uint8_t reg = 0;
+    status = genericI2CReadFromAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg);
+    if (status == ESP_OK)
+    {
+        reg &= 0b00011111;       /* clear the top 3 bits */
+        uint8_t level = os << 5; /** shift level over 5 bits */
+        reg &= level;            /* set the new value in reg */
+        status = genericI2CwriteToAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg);
+    }
+    bmCtrl->devSettings.tempOS = os;
+    return status;
+}
+
+esp_err_t bm280_setPressureOS(bm_controlData_t *bmCtrl, BM_overSample_t os)
+{
+    esp_err_t status = ESP_OK;
+
+    uint8_t reg = 0;
+    status = genericI2CReadFromAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg);
+    if (status == ESP_OK)
+    {
+        reg &= 0b11100011;       /* clear the mid 3 bits */
+        uint8_t level = os << 2; /** shift level over 2 bits */
+        reg &= level;            /* set the new value in reg */
+        status = genericI2CwriteToAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg);
+    }
+    bmCtrl->devSettings.pressOS;
+    return status;
+}
+
+esp_err_t bm280_getSampleMode(bm_controlData_t *bmCtrl, uint8_t *sampleMode)
+{
+    esp_err_t status = ESP_OK;
+
+    *sampleMode = bmCtrl->devSettings.sampleMode;
+
+    return status;
+}
+
+esp_err_t bm280_setSampleMode(bm_controlData_t *bmCtrl, BM_sampleMode_t sampleMode)
+{
+    esp_err_t status = ESP_OK;
+
+    uint8_t reg = 0;
+    if (genericI2CReadFromAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg) == ESP_OK)
+    {
+        reg &= 0x11111100;
+        reg |= sampleMode;
+        status = genericI2CwriteToAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg);
+    }
+    bmCtrl->devSettings.sampleMode = sampleMode;
+    return status;
+}
+
+esp_err_t bm280_getSampleType(bm_controlData_t *bmCtrl, uint8_t *sampleType)
+{
+    esp_err_t status = ESP_OK;
+
+    *sampleType = bmCtrl->devSettings.sampleType;
+
+    return status;
+}
+
+esp_err_t bm280_getFilterSetting(bm_controlData_t *bmCtrl, uint8_t *filter)
+{
+    esp_err_t status = ESP_OK;
+    *filter = bmCtrl->devSettings.filterCoefficient;
+    return status;
+}
+
+esp_err_t bm280_setFilterSetting(bm_controlData_t *bmCtrl, bm_Filter_t filter)
+{
+    esp_err_t status = ESP_OK;
+    uint8_t reg = 0;
+    if (genericI2CReadFromAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CONFIG, 1, &reg) == ESP_OK)
+    {
+        reg &= 0b11100011;
+        reg |= (filter << 2);
+        status = genericI2CwriteToAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CONFIG, 1, &reg);
+        bmCtrl->devSettings.filterCoefficient = filter;
+    }
+    return status;
+}
+
+esp_err_t bm280_getSampleInterval(bm_controlData_t *bmCtrl, uint8_t *dT)
+{
+    esp_err_t status = ESP_OK;
+    *dT = bmCtrl->devSettings.sampleInterval;
+    return status;
+}
+
+esp_err_t bm280_setSampleInterval(bm_controlData_t *bmCtrl, BM_standbyT_t dT)
+{
+    esp_err_t status = ESP_OK;
+    uint8_t reg = 0;
+    if (genericI2CReadFromAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CONFIG, 1, &reg) == ESP_OK)
+    {
+        reg &= 0b00011111;
+        reg |= (dT << 5);
+        status = genericI2CwriteToAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CONFIG, 1, &reg);
+        bmCtrl->devSettings.sampleInterval = dT;
+    }
+    return status;
+}
+
 void bmCtrlTask(void *args)
 {
-
+    /** TODO: Message pump 
+     *        task delay based on timing?
+     *        auto sample mode for latest?
+     * **/
     bm_controlData_t *bmCtrl = (bm_controlData_t *)args;
-    uint8_t devId = 0, setup = 0;
 
     while (1)
     {
 
-        vTaskDelay(1000);
-        devId = 0;
-
+        vTaskDelay(200);
         bm280_updateMeasurements(bmCtrl);
-        printf("Sense\traw\tcal\treal\r\n");
-        printf("temp: %ul\t%ul\t%f\r\n", bmCtrl->sensorData.rawTemperature, bmCtrl->sensorData.calibratedTemperature, bmCtrl->sensorData.realTemperature);
-        printf("pres: %ul\t%ul\t%f\r\n", bmCtrl->sensorData.rawPressure, bmCtrl->sensorData.calibratedPressure, bmCtrl->sensorData.realPressure);
-        printf("hum : %ul\t%ul\t%f\r\n", bmCtrl->sensorData.rawHumidity, bmCtrl->sensorData.calibratedHumidity, bmCtrl->sensorData.realHumidity);
     }
 }
 
@@ -502,8 +637,14 @@ bm_controlData_t *bm280_init(bm_initData_t *initData)
 
     if (initStatus == ESP_OK)
     {
-        bmCtrl->initData = initData;
+        bmCtrl->devSettings.sampleType = initData->sampleType;
+        bmCtrl->devSettings.sampleMode = initData->sampleMode;
+        bmCtrl->devSettings.humidOS = 0;
+        bmCtrl->devSettings.tempOS = 0;
+        bmCtrl->devSettings.pressOS = 0;
+
         bmCtrl->i2cChannel = initData->i2cChannel;
+
         if (initData->addressPinState)
         {
             bmCtrl->deviceAddress = (uint8_t)BM_I2C_ADDRESS_SDHIGH;

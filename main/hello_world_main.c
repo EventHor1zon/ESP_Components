@@ -59,10 +59,7 @@ void app_main(void)
     id.sampleType = BM_MODE_TEMP_PRESSURE_HUMIDITY;
 
     bm_controlData_t *bmHandle = bm280_init(&id);
-    uint8_t whoami = 0;
-    uint8_t cal = 0;
-    uint8_t set = 0;
-    uint8_t other = 0;
+
     while (1)
     {
 

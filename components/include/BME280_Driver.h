@@ -168,6 +168,15 @@ typedef enum bme_standbyT
 
 } BM_standbyT_t;
 
+typedef enum bm_Filter
+{
+    BM_FILTER_OFF = 0,
+    BM_FILTER_2 = 1,
+    BM_FILTER_4 = 2,
+    BM_FILTER_8 = 3,
+    BM_FILTER_16 = 4
+} bm_Filter_t;
+
 typedef enum bm_sampleTypes
 {
     BM_MODE_TEMP,
@@ -240,12 +249,22 @@ typedef struct bm_initData
 
 } bm_initData_t;
 
+typedef struct bm_deviceSettings
+{
+    BM_sampleTypes_t sampleType;
+    BM_sampleMode_t sampleMode;
+    BM_overSample_t tempOS;
+    BM_overSample_t pressOS;
+    BM_overSample_t humidOS;
+    BM_standbyT_t sampleInterval;
+    bm_Filter_t filterCoefficient;
+} bm_deviceSettings_t;
+
 typedef struct bm_controlData
 {
     bm_calibrationData_t calibrationData;
     bm_sensorData_t sensorData;
-    BM_sampleTypes_t sampleType;
-    BM_sampleMode_t sampleMode;
+    bm_deviceSettings_t devSettings;
     bm_initData_t *initData;
 
     uint8_t peripheralID;
