@@ -105,13 +105,6 @@ static uint32_t bm280_compensate_H_int32(bm_controlData_t *bmCtrl)
 {
     if (bmCtrl->calibrationAquired)
     {
-        // printf("t_fine: %ul\n", bmCtrl->calibrationData.t_fine);
-        // printf("H1: %d\n", bmCtrl->calibrationData.dig_H1);
-        // printf("H2: %d\n", bmCtrl->calibrationData.dig_H2);
-        // printf("H3: %d\n", bmCtrl->calibrationData.dig_H3);
-        // printf("H4: %d\n", bmCtrl->calibrationData.dig_H4);
-        // printf("H5: %d\n", bmCtrl->calibrationData.dig_H5);
-        // printf("H6: %d\n", bmCtrl->calibrationData.dig_H6);
 
         int32_t adc_H = bmCtrl->sensorData.rawHumidity;
         int32_t v_x1_u32r;
@@ -129,27 +122,6 @@ static uint32_t bm280_compensate_H_int32(bm_controlData_t *bmCtrl)
     }
 }
 #endif
-
-// static esp_err_t bm280_debugPrintRegs(bm_controlData_t *bmCtrl)
-// {
-
-//     uint8_t id = 0, ctrl_meas = 0, config = 0;
-//     uint8_t measure[6] = {0};
-
-//     bm280_i2cReadFromAddress(bmCtrl, BM_REG_ADDR_DEVICEID, 1, &id);
-//     bm280_i2cReadFromAddress(bmCtrl, BM_REG_ADDR_CTRL_MEASURE, 1, &ctrl_meas);
-//     bm280_i2cReadFromAddress(bmCtrl, BM_REG_ADDR_CONFIG, 1, &config);
-//     bm280_i2cReadFromAddress(bmCtrl, BM_REG_ADDR_PRESSURE_MSB, 6, measure);
-
-//     ESP_LOGI(BM_DRIVER_TAG, "DEVICE-ID: Reg: 0x%02x\t -  0x%02x - %u\n", BM_REG_ADDR_DEVICEID, id, id);
-//     ESP_LOGI(BM_DRIVER_TAG, "CTRLMESRE: Reg: 0x%02x\t - 0x%02x - %u\n", BM_REG_ADDR_CTRL_MEASURE, ctrl_meas, ctrl_meas);
-//     ESP_LOGI(BM_DRIVER_TAG, "CONFIG   :Reg: 0x%02x\t - 0x%02x - %u\n", BM_REG_ADDR_CONFIG, config, config);
-//     for (uint8_t i = 0; i < 6; i++)
-//     {
-//         ESP_LOGI(BM_DRIVER_TAG, "MEASURE: Reg 0x%02x\t - 0x%02x - %u\n", BM_REG_ADDR_PRESSURE_MSB + i, measure[i], measure[i]);
-//     }
-//     return ESP_OK;
-// }
 
 static esp_err_t bm280_getDeviceStatus(bm_controlData_t *bmCtrl)
 {
