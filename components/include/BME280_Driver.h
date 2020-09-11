@@ -168,6 +168,9 @@ typedef enum bme_standbyT
 
 } BM_standbyT_t;
 
+/** bm_filter_t
+ *  -   controls filter setting 
+ **/
 typedef enum bm_Filter
 {
     BM_FILTER_OFF = 0,
@@ -175,20 +178,21 @@ typedef enum bm_Filter
     BM_FILTER_4 = 2,
     BM_FILTER_8 = 3,
     BM_FILTER_16 = 4
-} bm_Filter_t;
+} bm_filter_t;
 
+/** bm_sampleType_t
+ *  -   sampling done by the device 
+ *  -   iff sampling hum/pres must sample temp
+ **/
 typedef enum bm_sampleTypes
 {
     BM_MODE_TEMP,
-    BM_MODE_PRESSURE,
     BM_MODE_TEMP_PRESSURE,
 #ifdef BME_280
     BM_MODE_TEMP_HUMIDITY,
-    BM_MODE_HUMIDITY_PRESSURE,
-    BM_MODE_HUMIDITY,
     BM_MODE_TEMP_PRESSURE_HUMIDITY
 #endif
-} BM_sampleTypes_t;
+} bm_sampleType_t;
 
 typedef struct BM_CalibrationData
 {
@@ -241,7 +245,7 @@ typedef struct BM_sensorData
 typedef struct bm_initData
 {
     BM_deviceType_t devType;
-    BM_sampleTypes_t sampleType;
+    bm_sampleType_t sampleType;
     BM_sampleMode_t sampleMode;
 
     bool addressPinState;
@@ -251,13 +255,13 @@ typedef struct bm_initData
 
 typedef struct bm_deviceSettings
 {
-    BM_sampleTypes_t sampleType;
+    bm_sampleType_t sampleType;
     BM_sampleMode_t sampleMode;
     BM_overSample_t tempOS;
     BM_overSample_t pressOS;
     BM_overSample_t humidOS;
     BM_standbyT_t sampleInterval;
-    bm_Filter_t filterCoefficient;
+    bm_filter_t filterCoefficient;
 } bm_deviceSettings_t;
 
 typedef struct bm_controlData
@@ -284,7 +288,7 @@ bm_controlData_t *bm280_init(bm_initData_t *initData);
 esp_err_t bm280_getSampleInterval(bm_controlData_t *bmCtrl, uint8_t *dT);
 esp_err_t bm280_setSampleInterval(bm_controlData_t *bmCtrl, BM_standbyT_t dT);
 esp_err_t bm280_getFilterSetting(bm_controlData_t *bmCtrl, uint8_t *filter);
-esp_err_t bm280_setFilterSetting(bm_controlData_t *bmCtrl, bm_Filter_t filter);
+esp_err_t bm280_setFilterSetting(bm_controlData_t *bmCtrl, bm_filter_t filter);
 
 esp_err_t bm280_getDeviceID(bm_controlData_t *bmCtrl, uint8_t *deviceID);
 esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl);

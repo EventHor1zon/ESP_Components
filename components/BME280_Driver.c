@@ -142,6 +142,16 @@ static esp_err_t bm280_getCalibrationData(bm_controlData_t *bmCtrl)
 
     uint8_t buffer[BM_CALIBR_DATA_BANK1_LEN] = {0};
 
+    /* check the status register for calibration load complete */
+    uint8_t statusReg = 0;
+    genericI2CReadFromAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, (uint8_t)BM_REG_ADDR_DEV_STATUS, 1, &statusReg);
+
+    while (statusReg & BM_STATUS_UPDATE_MASK)
+    {
+        vTaskDelay(10);
+        genericI2CReadFromAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, (uint8_t)BM_REG_ADDR_DEV_STATUS, 1, &statusReg);
+    }
+
 #ifdef BME_280
     /** retrieve the calibration data - add +1 to length of bank1 as there's an unused byte (A0, index[24]) in there **/
     uint8_t bufferB[BM_CALIBR_DATA_BANK2_LEN] = {0};
@@ -195,7 +205,6 @@ esp_err_t bm280_getDeviceID(bm_controlData_t *bmCtrl, uint8_t *deviceID)
     esp_err_t trxStatus = ESP_OK;
 
     uint8_t devID = 0;
-
     trxStatus = genericI2CReadFromAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, (uint8_t)BM_REG_ADDR_DEVICEID, 1, &devID);
 
     if (trxStatus == ESP_OK)
@@ -245,16 +254,10 @@ static esp_err_t bm280_InitDeviceSettings(bm_controlData_t *bmCtrl)
     case BM_MODE_TEMP_PRESSURE:
         commands[0] |= (BM_CTRL_TEMP_BIT | BM_CTRL_PRESSURE_BIT);
         break;
-    case BM_MODE_PRESSURE:
-        commands[0] |= BM_CTRL_PRESSURE_BIT;
-        break;
 #ifdef BME_280
-    case BM_MODE_HUMIDITY:
+    case BM_MODE_TEMP_HUMIDITY:
         commands[2] = 1;
-        break;
-    case BM_MODE_HUMIDITY_PRESSURE:
-        commands[2] = 1;
-        commands[0] |= BM_CTRL_PRESSURE_BIT;
+        commands[0] |= BM_CTRL_TEMP_BIT;
         break;
     case BM_MODE_TEMP_PRESSURE_HUMIDITY:
         commands[2] = 1;
@@ -288,19 +291,6 @@ static esp_err_t bm280_InitDeviceSettings(bm_controlData_t *bmCtrl)
 
 /****** Global Functions *************/
 
-esp_err_t bm280_setOverSampling(bm_controlData_t *bmCtrl)
-{
-
-    uint8_t data = 0xFF;
-    esp_err_t status = genericI2CwriteToAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &data);
-    return status;
-}
-
-/** \brief read new data measurements from device 
- * 
- * 
- * 
- * **/
 esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
 {
 
@@ -354,11 +344,6 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
             bmCtrl->sensorData.realTemperature = (float)bmCtrl->sensorData.calibratedTemperature / 100.0;
             bmCtrl->devSettings.tempOS = 1;
             break;
-        case BM_MODE_PRESSURE:
-            bmCtrl->sensorData.calibratedPressure = bm280_compensate_P_int64(bmCtrl);
-            bmCtrl->sensorData.realPressure = (float)bmCtrl->sensorData.calibratedPressure / 256;
-            bmCtrl->devSettings.pressOS = 1;
-            break;
         case BM_MODE_TEMP_PRESSURE:
             bmCtrl->sensorData.calibratedTemperature = bm280_compensate_T_int32(bmCtrl);
             bmCtrl->sensorData.calibratedPressure = bm280_compensate_P_int64(bmCtrl);
@@ -375,16 +360,6 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
             bmCtrl->sensorData.realHumidity = (float)bmCtrl->sensorData.calibratedHumidity / 1024;
             bmCtrl->devSettings.tempOS = 1;
             bmCtrl->devSettings.humidOS = 1;
-            break;
-        case BM_MODE_HUMIDITY_PRESSURE:
-            bmCtrl->sensorData.calibratedPressure = bm280_compensate_P_int64(bmCtrl);
-            bmCtrl->sensorData.realPressure = (float)bmCtrl->sensorData.calibratedPressure / 256;
-            bmCtrl->sensorData.calibratedHumidity = bm280_compensate_H_int32(bmCtrl);
-            bmCtrl->sensorData.realHumidity = (float)bmCtrl->sensorData.calibratedHumidity / 1024;
-            break;
-        case BM_MODE_HUMIDITY:
-            bmCtrl->sensorData.calibratedHumidity = bm280_compensate_H_int32(bmCtrl);
-            bmCtrl->sensorData.realHumidity = (float)bmCtrl->sensorData.calibratedHumidity / 1024;
             break;
         case BM_MODE_TEMP_PRESSURE_HUMIDITY:
             bmCtrl->sensorData.calibratedTemperature = bm280_compensate_T_int32(bmCtrl);
@@ -540,7 +515,7 @@ esp_err_t bm280_getFilterSetting(bm_controlData_t *bmCtrl, uint8_t *filter)
     return status;
 }
 
-esp_err_t bm280_setFilterSetting(bm_controlData_t *bmCtrl, bm_Filter_t filter)
+esp_err_t bm280_setFilterSetting(bm_controlData_t *bmCtrl, bm_filter_t filter)
 {
     esp_err_t status = ESP_OK;
     uint8_t reg = 0;
