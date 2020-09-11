@@ -29,15 +29,14 @@ static uint32_t bm280_compensate_P_int64(bm_controlData_t *bmCtrl);
 #ifdef BME_280
 static uint32_t bm280_compensate_H_int32(bm_controlData_t *bmCtrl);
 #endif
-//static esp_err_t bm280_debugPrintRegs(bm_controlData_t *bmCtrl);
 static esp_err_t bm280_getDeviceStatus(bm_controlData_t *bmCtrl);
 /************ ISR *********************/
 
 /****** Global Data *******************/
 
-#define DEBUG 1
+// #define DEBUG 1
 
-const char *BM_DRIVER_TAG = "BME280 DRIVER::";
+const char *BM_DRIVER_TAG = "[BM280 DRIVER]";
 /****** Private Functions *************/
 
 /** Calibration Functions :  The following calibration fucntions are adapted from the Bosch BME280 Data sheet **/
@@ -105,14 +104,6 @@ static uint32_t bm280_compensate_H_int32(bm_controlData_t *bmCtrl)
 {
     if (bmCtrl->calibrationAquired)
     {
-        // printf("t_fine: %ul\n", bmCtrl->calibrationData.t_fine);
-        // printf("H1: %d\n", bmCtrl->calibrationData.dig_H1);
-        // printf("H2: %d\n", bmCtrl->calibrationData.dig_H2);
-        // printf("H3: %d\n", bmCtrl->calibrationData.dig_H3);
-        // printf("H4: %d\n", bmCtrl->calibrationData.dig_H4);
-        // printf("H5: %d\n", bmCtrl->calibrationData.dig_H5);
-        // printf("H6: %d\n", bmCtrl->calibrationData.dig_H6);
-
         int32_t adc_H = bmCtrl->sensorData.rawHumidity;
         int32_t v_x1_u32r;
         v_x1_u32r = (bmCtrl->calibrationData.t_fine - ((int32_t)76800));
@@ -129,27 +120,6 @@ static uint32_t bm280_compensate_H_int32(bm_controlData_t *bmCtrl)
     }
 }
 #endif
-
-// static esp_err_t bm280_debugPrintRegs(bm_controlData_t *bmCtrl)
-// {
-
-//     uint8_t id = 0, ctrl_meas = 0, config = 0;
-//     uint8_t measure[6] = {0};
-
-//     bm280_i2cReadFromAddress(bmCtrl, BM_REG_ADDR_DEVICEID, 1, &id);
-//     bm280_i2cReadFromAddress(bmCtrl, BM_REG_ADDR_CTRL_MEASURE, 1, &ctrl_meas);
-//     bm280_i2cReadFromAddress(bmCtrl, BM_REG_ADDR_CONFIG, 1, &config);
-//     bm280_i2cReadFromAddress(bmCtrl, BM_REG_ADDR_PRESSURE_MSB, 6, measure);
-
-//     ESP_LOGI(BM_DRIVER_TAG, "DEVICE-ID: Reg: 0x%02x\t -  0x%02x - %u\n", BM_REG_ADDR_DEVICEID, id, id);
-//     ESP_LOGI(BM_DRIVER_TAG, "CTRLMESRE: Reg: 0x%02x\t - 0x%02x - %u\n", BM_REG_ADDR_CTRL_MEASURE, ctrl_meas, ctrl_meas);
-//     ESP_LOGI(BM_DRIVER_TAG, "CONFIG   :Reg: 0x%02x\t - 0x%02x - %u\n", BM_REG_ADDR_CONFIG, config, config);
-//     for (uint8_t i = 0; i < 6; i++)
-//     {
-//         ESP_LOGI(BM_DRIVER_TAG, "MEASURE: Reg 0x%02x\t - 0x%02x - %u\n", BM_REG_ADDR_PRESSURE_MSB + i, measure[i], measure[i]);
-//     }
-//     return ESP_OK;
-// }
 
 static esp_err_t bm280_getDeviceStatus(bm_controlData_t *bmCtrl)
 {
@@ -180,15 +150,6 @@ static esp_err_t bm280_getCalibrationData(bm_controlData_t *bmCtrl)
 #else
     trxStatus = genericI2CReadFromAddress(bmCtrl, (uint8_t)BM_REG_ADDR_DIGT1_LSB, BM_CALIBR_DATA_BANK1_LEN, buffer);
 #endif
-
-    // #ifdef DEBUG
-    //     for (uint8_t i = 0; i < BM_CALIBR_DATA_LEN; i++)
-    //     {
-    //         printf("%u ", buffer[i]);
-    //     }
-    //     printf("\n");
-    // #endif
-    /** now for some rejigging... **/
 
     if (trxStatus == ESP_OK)
     {
@@ -318,8 +279,8 @@ static esp_err_t bm280_InitDeviceSettings(bm_controlData_t *bmCtrl)
     {
         bmCtrl->sampleMask = commands[0];
         bmCtrl->configMask = commands[1];
-        bmCtrl->sampleMode = sampleMode;
-        bmCtrl->sampleType = sampleType;
+        bmCtrl->devSettings.sampleMode = sampleMode;
+        bmCtrl->devSettings.sampleType = sampleType;
     }
 
     return trxStatus;
@@ -347,7 +308,7 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
     uint8_t forcedMeasure = bmCtrl->sampleMask | BM_CTRL_MODE_FORCED;
     uint8_t rxBuffer[BM_MEASURE_READ_LEN] = {0};
 
-    if (bmCtrl->sampleMode == BM_FORCE_MODE)
+    if (bmCtrl->devSettings.sampleMode == BM_FORCE_MODE)
     {
 #ifdef DEBUG
         ESP_LOGI(BM_DRIVER_TAG, "Telling device to sample...");
@@ -386,21 +347,25 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
             ESP_LOGI(BM_DRIVER_TAG, "Info: Humid is disabled");
         }
 #endif
-        switch (bmCtrl->sampleType)
+        switch (bmCtrl->devSettings.sampleType)
         {
         case BM_MODE_TEMP:
             bmCtrl->sensorData.calibratedTemperature = bm280_compensate_T_int32(bmCtrl);
             bmCtrl->sensorData.realTemperature = (float)bmCtrl->sensorData.calibratedTemperature / 100.0;
+            bmCtrl->devSettings.tempOS = 1;
             break;
         case BM_MODE_PRESSURE:
             bmCtrl->sensorData.calibratedPressure = bm280_compensate_P_int64(bmCtrl);
             bmCtrl->sensorData.realPressure = (float)bmCtrl->sensorData.calibratedPressure / 256;
+            bmCtrl->devSettings.pressOS = 1;
             break;
         case BM_MODE_TEMP_PRESSURE:
             bmCtrl->sensorData.calibratedTemperature = bm280_compensate_T_int32(bmCtrl);
             bmCtrl->sensorData.calibratedPressure = bm280_compensate_P_int64(bmCtrl);
             bmCtrl->sensorData.realTemperature = (float)bmCtrl->sensorData.calibratedTemperature / 100.0;
             bmCtrl->sensorData.realPressure = (float)bmCtrl->sensorData.calibratedPressure / 256;
+            bmCtrl->devSettings.tempOS = 1;
+            bmCtrl->devSettings.pressOS = 1;
             break;
 #ifdef BME_280
         case BM_MODE_TEMP_HUMIDITY:
@@ -408,6 +373,8 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
             bmCtrl->sensorData.realTemperature = (float)bmCtrl->sensorData.calibratedTemperature / 100.0;
             bmCtrl->sensorData.calibratedHumidity = bm280_compensate_H_int32(bmCtrl);
             bmCtrl->sensorData.realHumidity = (float)bmCtrl->sensorData.calibratedHumidity / 1024;
+            bmCtrl->devSettings.tempOS = 1;
+            bmCtrl->devSettings.humidOS = 1;
             break;
         case BM_MODE_HUMIDITY_PRESSURE:
             bmCtrl->sensorData.calibratedPressure = bm280_compensate_P_int64(bmCtrl);
@@ -426,6 +393,8 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
             bmCtrl->sensorData.realPressure = (float)bmCtrl->sensorData.calibratedPressure / 256;
             bmCtrl->sensorData.calibratedHumidity = bm280_compensate_H_int32(bmCtrl);
             bmCtrl->sensorData.realHumidity = (float)bmCtrl->sensorData.calibratedHumidity / 1024;
+            bmCtrl->devSettings.tempOS = 1;
+            bmCtrl->devSettings.humidOS = 1;
             break;
 #endif
         default:
@@ -434,7 +403,7 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
     }
     else
     {
-        ESP_LOGE(BM_DRIVER_TAG, "Error in reading data %u", trxStatus);
+        ESP_LOGE(BM_DRIVER_TAG, "Error in reading data [%u]", trxStatus);
     }
 
     return trxStatus;

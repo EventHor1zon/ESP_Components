@@ -281,6 +281,11 @@ typedef struct bm_controlData
 /******** Function Definitions *********/
 
 bm_controlData_t *bm280_init(bm_initData_t *initData);
+esp_err_t bm280_getSampleInterval(bm_controlData_t *bmCtrl, uint8_t *dT);
+esp_err_t bm280_setSampleInterval(bm_controlData_t *bmCtrl, BM_standbyT_t dT);
+esp_err_t bm280_getFilterSetting(bm_controlData_t *bmCtrl, uint8_t *filter);
+esp_err_t bm280_setFilterSetting(bm_controlData_t *bmCtrl, bm_Filter_t filter);
+
 esp_err_t bm280_getDeviceID(bm_controlData_t *bmCtrl, uint8_t *deviceID);
 esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl);
 esp_err_t bm280_getTemperature(bm_controlData_t *bmCtrl, float *realTemp);
