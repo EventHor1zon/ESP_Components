@@ -168,18 +168,34 @@ typedef enum bme_standbyT
 
 } BM_standbyT_t;
 
+/** bm_filter_t
+ *  -   controls filter setting 
+ **/
+typedef enum bm_Filter
+{
+    BM_FILTER_OFF = 0,
+    BM_FILTER_2 = 1,
+    BM_FILTER_4 = 2,
+    BM_FILTER_8 = 3,
+    BM_FILTER_16 = 4
+} bm_filter_t;
+
+/** bm_sampleType_t
+ *  -   sampling done by the device 
+ *  -   iff sampling hum/pres must sample temp
+ **/
 typedef enum bm_sampleTypes
 {
-    BM_MODE_TEMP,
-    BM_MODE_PRESSURE,
-    BM_MODE_TEMP_PRESSURE,
+    BM_MODE_OFF = 0x00,
+    BM_MODE_TEMP = 0x01,
+    BM_MODE_PRESSURE = 0x02,
+    BM_MODE_TEMP_PRESSURE = 0x03,
 #ifdef BME_280
-    BM_MODE_TEMP_HUMIDITY,
-    BM_MODE_HUMIDITY_PRESSURE,
-    BM_MODE_HUMIDITY,
-    BM_MODE_TEMP_PRESSURE_HUMIDITY
+    BM_MODE_HUMIDITY = 0x04,
+    BM_MODE_TEMP_HUMIDITY = 0x05,
+    BM_MODE_TEMP_PRESSURE_HUMIDITY = 0x07
 #endif
-} BM_sampleTypes_t;
+} bm_sampleType_t;
 
 typedef struct BM_CalibrationData
 {
@@ -232,7 +248,7 @@ typedef struct BM_sensorData
 typedef struct bm_initData
 {
     BM_deviceType_t devType;
-    BM_sampleTypes_t sampleType;
+    bm_sampleType_t sampleType;
     BM_sampleMode_t sampleMode;
 
     bool addressPinState;
@@ -240,12 +256,22 @@ typedef struct bm_initData
 
 } bm_initData_t;
 
+typedef struct bm_deviceSettings
+{
+    bm_sampleType_t sampleType;
+    BM_sampleMode_t sampleMode;
+    BM_overSample_t tempOS;
+    BM_overSample_t pressOS;
+    BM_overSample_t humidOS;
+    BM_standbyT_t sampleInterval;
+    bm_filter_t filterCoefficient;
+} bm_deviceSettings_t;
+
 typedef struct bm_controlData
 {
     bm_calibrationData_t calibrationData;
     bm_sensorData_t sensorData;
-    BM_sampleTypes_t sampleType;
-    BM_sampleMode_t sampleMode;
+    bm_deviceSettings_t devSettings;
     bm_initData_t *initData;
 
     uint8_t peripheralID;
@@ -261,12 +287,96 @@ typedef struct bm_controlData
 
 /******** Function Definitions *********/
 
+/** \brief bm280_init
+ *         initialises the device driver & returns a device handle
+ *  \param initData - of type bm_initData_t, initial device settings
+ *  \return pointer to device handle, or NULL
+*/
 bm_controlData_t *bm280_init(bm_initData_t *initData);
-esp_err_t bm280_getDeviceID(bm_controlData_t *bmCtrl, uint8_t *deviceID);
+
+/** \brief getSampleInterval - returns the sample interval. Matters in 
+ *          auto mode only. See enum bm_standbyT_t for int > time
+ *  \param  bmCtrl - device handle
+ *  \param  dT  - pointer to integer space
+ *  \return ESP_OK or FAIL
+ **/
+esp_err_t bm280_getSampleInterval(bm_controlData_t *bmCtrl, uint8_t *dT);
+
+/** \brief setSampleInterval - sets the sample interval time. Only for auto mode
+ *  \param  bmCtrl - device handle
+ *  \param  dT - the time interval - see enum bm_standbyT_ts
+ * \return  ESP_OK or FAIL
+ **/
+esp_err_t bm280_setSampleInterval(bm_controlData_t *bmCtrl, BM_standbyT_t dT);
+
+/** \brief getFilterSetting - gets the current filter level
+ *  \param  bmCtrl - device handle
+ *  \param  filter - storage for return value
+ * \return  ESP_OK or FAIL
+ **/
+esp_err_t bm280_getFilterSetting(bm_controlData_t *bmCtrl, uint8_t *filter);
+
+/** \brief setFilterSetting - set the filter level
+ *  \param  bmCtrl - device handle
+ *  \param  filter - pointer to filter value
+ * \return  ESP_OK or FAIL
+ **/
+esp_err_t bm280_setFilterSetting(bm_controlData_t *bmCtrl, bm_filter_t filter);
+
+/** \brief  updateMeasurements - read measurements from device
+ *  \param  bmCtrl - device handle
+ * \return  ESP_OK or FAIL
+ **/
 esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl);
+
+/** \brief  getDeviceID - get the device ID - should be 0x60
+ *  \param  bmCtrl - device handle
+ *  \param  deviceId - storage for return value
+ * \return  ESP_OK or FAIL
+ **/
+esp_err_t bm280_getDeviceID(bm_controlData_t *bmCtrl, uint8_t *deviceID);
+
+/** \brief  getTemperature - return the latest temperature measurement retrieved - in degreesC
+ *  \param  bmCtrl - device handle
+ *  \param  realTemp - storage for return value
+ * \return  ESP_OK or FAIL
+ **/
 esp_err_t bm280_getTemperature(bm_controlData_t *bmCtrl, float *realTemp);
+
+/** \brief  getPressure = returns latest pressure measurement retrieved - in hPa
+ *  \param  bmCtrl - device handle
+ *  \param  realPressure - storage for return value
+ * \return  ESP_OK or FAIL
+ **/
 esp_err_t bm280_getPressure(bm_controlData_t *bmCtrl, float *realPressure);
+
+/** \brief  getHumidity - gets the humidity measuremennt retrieved: in %
+ *  \param  bmCtrl - device handle
+ *  \param   realHumidity- storage for return value
+ * \return  ESP_OK or FAIL
+ **/
 esp_err_t bm280_getHumidity(bm_controlData_t *bmCtrl, float *realHumidity);
-esp_err_t bm280_setOverSampling(bm_controlData_t *bmCtrl);
+
+/** \brief  getHumidityOS - get the sample rate of humidity
+ *  \param  bmCtrl - device handle
+ *  \param  humidOS - storage for return value
+ * \return  ESP_OK or FAIL
+ **/
+esp_err_t bm280_getHumidityOS(bm_controlData_t *bmCtrl, uint8_t *humidOS);
+
+esp_err_t bm280_getTemperatureOS(bm_controlData_t *bmCtrl, uint8_t *tempOS);
+esp_err_t bm280_getPressureOS(bm_controlData_t *bmCtrl, uint8_t *presOS);
+
+esp_err_t bm280_setHumidityOS(bm_controlData_t *bmCtrl, BM_overSample_t os);
+esp_err_t bm280_setTemperatureOS(bm_controlData_t *bmCtrl, BM_overSample_t os);
+esp_err_t bm280_setPressureOS(bm_controlData_t *bmCtrl, BM_overSample_t os);
+
+esp_err_t bm280_getSampleMode(bm_controlData_t *bmCtrl, uint8_t *sampleMode);
+esp_err_t bm280_setSampleMode(bm_controlData_t *bmCtrl, BM_sampleMode_t sampleMode);
+
+esp_err_t bm280_getSampleType(bm_controlData_t *bmCtrl, uint8_t *sampleType);
+
+esp_err_t bm280_getFilterSetting(bm_controlData_t *bmCtrl, uint8_t *filter);
+esp_err_t bm280_setFilterSetting(bm_controlData_t *bmCtrl, bm_filter_t filter);
 
 #endif /* BM280_DRIVER_H */

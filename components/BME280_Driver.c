@@ -29,15 +29,14 @@ static uint32_t bm280_compensate_P_int64(bm_controlData_t *bmCtrl);
 #ifdef BME_280
 static uint32_t bm280_compensate_H_int32(bm_controlData_t *bmCtrl);
 #endif
-//static esp_err_t bm280_debugPrintRegs(bm_controlData_t *bmCtrl);
 static esp_err_t bm280_getDeviceStatus(bm_controlData_t *bmCtrl);
 /************ ISR *********************/
 
 /****** Global Data *******************/
 
-#define DEBUG 1
+// #define DEBUG 1
 
-const char *BM_DRIVER_TAG = "BME280 DRIVER::";
+const char *BM_DRIVER_TAG = "[BM280 DRIVER]";
 /****** Private Functions *************/
 
 /** Calibration Functions :  The following calibration fucntions are adapted from the Bosch BME280 Data sheet **/
@@ -98,14 +97,11 @@ static uint32_t bm280_compensate_P_int64(bm_controlData_t *bmCtrl)
 
 // Returns humidity in %RH as unsigned 32 bit integer in Q22.10 format (22 integer and 10 fractional bits).
 // Output value of “47445” represents 47445/1024 = 46.333 %RH
-
-/** bm280_compensate_H_int32: Compensate Humidity Data **/
 #ifdef BME_280
 static uint32_t bm280_compensate_H_int32(bm_controlData_t *bmCtrl)
 {
     if (bmCtrl->calibrationAquired)
     {
-
         int32_t adc_H = bmCtrl->sensorData.rawHumidity;
         int32_t v_x1_u32r;
         v_x1_u32r = (bmCtrl->calibrationData.t_fine - ((int32_t)76800));
@@ -144,6 +140,16 @@ static esp_err_t bm280_getCalibrationData(bm_controlData_t *bmCtrl)
 
     uint8_t buffer[BM_CALIBR_DATA_BANK1_LEN] = {0};
 
+    /* check the status register for calibration load complete */
+    uint8_t statusReg = 0;
+    genericI2CReadFromAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, (uint8_t)BM_REG_ADDR_DEV_STATUS, 1, &statusReg);
+
+    while (statusReg & BM_STATUS_UPDATE_MASK)
+    {
+        vTaskDelay(10);
+        genericI2CReadFromAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, (uint8_t)BM_REG_ADDR_DEV_STATUS, 1, &statusReg);
+    }
+
 #ifdef BME_280
     /** retrieve the calibration data - add +1 to length of bank1 as there's an unused byte (A0, index[24]) in there **/
     uint8_t bufferB[BM_CALIBR_DATA_BANK2_LEN] = {0};
@@ -152,15 +158,6 @@ static esp_err_t bm280_getCalibrationData(bm_controlData_t *bmCtrl)
 #else
     trxStatus = genericI2CReadFromAddress(bmCtrl, (uint8_t)BM_REG_ADDR_DIGT1_LSB, BM_CALIBR_DATA_BANK1_LEN, buffer);
 #endif
-
-    // #ifdef DEBUG
-    //     for (uint8_t i = 0; i < BM_CALIBR_DATA_LEN; i++)
-    //     {
-    //         printf("%u ", buffer[i]);
-    //     }
-    //     printf("\n");
-    // #endif
-    /** now for some rejigging... **/
 
     if (trxStatus == ESP_OK)
     {
@@ -200,26 +197,6 @@ static esp_err_t bm280_getCalibrationData(bm_controlData_t *bmCtrl)
     return trxStatus;
 }
 
-esp_err_t bm280_getDeviceID(bm_controlData_t *bmCtrl, uint8_t *deviceID)
-{
-
-    esp_err_t trxStatus = ESP_OK;
-
-    uint8_t devID = 0;
-
-    trxStatus = genericI2CReadFromAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, (uint8_t)BM_REG_ADDR_DEVICEID, 1, &devID);
-
-    if (trxStatus == ESP_OK)
-    {
-        *deviceID = devID;
-    }
-    else
-    {
-        printf("txStatus = %d", trxStatus);
-    }
-    return trxStatus;
-}
-
 static esp_err_t bm280_InitDeviceSettings(bm_controlData_t *bmCtrl)
 {
 
@@ -256,16 +233,10 @@ static esp_err_t bm280_InitDeviceSettings(bm_controlData_t *bmCtrl)
     case BM_MODE_TEMP_PRESSURE:
         commands[0] |= (BM_CTRL_TEMP_BIT | BM_CTRL_PRESSURE_BIT);
         break;
-    case BM_MODE_PRESSURE:
-        commands[0] |= BM_CTRL_PRESSURE_BIT;
-        break;
 #ifdef BME_280
-    case BM_MODE_HUMIDITY:
+    case BM_MODE_TEMP_HUMIDITY:
         commands[2] = 1;
-        break;
-    case BM_MODE_HUMIDITY_PRESSURE:
-        commands[2] = 1;
-        commands[0] |= BM_CTRL_PRESSURE_BIT;
+        commands[0] |= BM_CTRL_TEMP_BIT;
         break;
     case BM_MODE_TEMP_PRESSURE_HUMIDITY:
         commands[2] = 1;
@@ -290,8 +261,8 @@ static esp_err_t bm280_InitDeviceSettings(bm_controlData_t *bmCtrl)
     {
         bmCtrl->sampleMask = commands[0];
         bmCtrl->configMask = commands[1];
-        bmCtrl->sampleMode = sampleMode;
-        bmCtrl->sampleType = sampleType;
+        bmCtrl->devSettings.sampleMode = sampleMode;
+        bmCtrl->devSettings.sampleType = sampleType;
     }
 
     return trxStatus;
@@ -299,19 +270,25 @@ static esp_err_t bm280_InitDeviceSettings(bm_controlData_t *bmCtrl)
 
 /****** Global Functions *************/
 
-esp_err_t bm280_setOverSampling(bm_controlData_t *bmCtrl)
+esp_err_t bm280_getDeviceID(bm_controlData_t *bmCtrl, uint8_t *deviceID)
 {
 
-    uint8_t data = 0xFF;
-    esp_err_t status = genericI2CwriteToAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &data);
-    return status;
+    esp_err_t trxStatus = ESP_OK;
+
+    uint8_t devID = 0;
+    trxStatus = genericI2CReadFromAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, (uint8_t)BM_REG_ADDR_DEVICEID, 1, &devID);
+
+    if (trxStatus == ESP_OK)
+    {
+        *deviceID = devID;
+    }
+    else
+    {
+        printf("txStatus = %d", trxStatus);
+    }
+    return trxStatus;
 }
 
-/** \brief read new data measurements from device 
- * 
- * 
- * 
- * **/
 esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
 {
 
@@ -319,7 +296,7 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
     uint8_t forcedMeasure = bmCtrl->sampleMask | BM_CTRL_MODE_FORCED;
     uint8_t rxBuffer[BM_MEASURE_READ_LEN] = {0};
 
-    if (bmCtrl->sampleMode == BM_FORCE_MODE)
+    if (bmCtrl->devSettings.sampleMode == BM_FORCE_MODE)
     {
 #ifdef DEBUG
         ESP_LOGI(BM_DRIVER_TAG, "Telling device to sample...");
@@ -358,21 +335,20 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
             ESP_LOGI(BM_DRIVER_TAG, "Info: Humid is disabled");
         }
 #endif
-        switch (bmCtrl->sampleType)
+        switch (bmCtrl->devSettings.sampleType)
         {
         case BM_MODE_TEMP:
             bmCtrl->sensorData.calibratedTemperature = bm280_compensate_T_int32(bmCtrl);
             bmCtrl->sensorData.realTemperature = (float)bmCtrl->sensorData.calibratedTemperature / 100.0;
-            break;
-        case BM_MODE_PRESSURE:
-            bmCtrl->sensorData.calibratedPressure = bm280_compensate_P_int64(bmCtrl);
-            bmCtrl->sensorData.realPressure = (float)bmCtrl->sensorData.calibratedPressure / 256;
+            bmCtrl->devSettings.tempOS = 1;
             break;
         case BM_MODE_TEMP_PRESSURE:
             bmCtrl->sensorData.calibratedTemperature = bm280_compensate_T_int32(bmCtrl);
             bmCtrl->sensorData.calibratedPressure = bm280_compensate_P_int64(bmCtrl);
             bmCtrl->sensorData.realTemperature = (float)bmCtrl->sensorData.calibratedTemperature / 100.0;
             bmCtrl->sensorData.realPressure = (float)bmCtrl->sensorData.calibratedPressure / 256;
+            bmCtrl->devSettings.tempOS = 1;
+            bmCtrl->devSettings.pressOS = 1;
             break;
 #ifdef BME_280
         case BM_MODE_TEMP_HUMIDITY:
@@ -380,16 +356,8 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
             bmCtrl->sensorData.realTemperature = (float)bmCtrl->sensorData.calibratedTemperature / 100.0;
             bmCtrl->sensorData.calibratedHumidity = bm280_compensate_H_int32(bmCtrl);
             bmCtrl->sensorData.realHumidity = (float)bmCtrl->sensorData.calibratedHumidity / 1024;
-            break;
-        case BM_MODE_HUMIDITY_PRESSURE:
-            bmCtrl->sensorData.calibratedPressure = bm280_compensate_P_int64(bmCtrl);
-            bmCtrl->sensorData.realPressure = (float)bmCtrl->sensorData.calibratedPressure / 256;
-            bmCtrl->sensorData.calibratedHumidity = bm280_compensate_H_int32(bmCtrl);
-            bmCtrl->sensorData.realHumidity = (float)bmCtrl->sensorData.calibratedHumidity / 1024;
-            break;
-        case BM_MODE_HUMIDITY:
-            bmCtrl->sensorData.calibratedHumidity = bm280_compensate_H_int32(bmCtrl);
-            bmCtrl->sensorData.realHumidity = (float)bmCtrl->sensorData.calibratedHumidity / 1024;
+            bmCtrl->devSettings.tempOS = 1;
+            bmCtrl->devSettings.humidOS = 1;
             break;
         case BM_MODE_TEMP_PRESSURE_HUMIDITY:
             bmCtrl->sensorData.calibratedTemperature = bm280_compensate_T_int32(bmCtrl);
@@ -398,6 +366,8 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
             bmCtrl->sensorData.realPressure = (float)bmCtrl->sensorData.calibratedPressure / 256;
             bmCtrl->sensorData.calibratedHumidity = bm280_compensate_H_int32(bmCtrl);
             bmCtrl->sensorData.realHumidity = (float)bmCtrl->sensorData.calibratedHumidity / 1024;
+            bmCtrl->devSettings.tempOS = 1;
+            bmCtrl->devSettings.humidOS = 1;
             break;
 #endif
         default:
@@ -406,7 +376,7 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
     }
     else
     {
-        ESP_LOGE(BM_DRIVER_TAG, "Error in reading data %u", trxStatus);
+        ESP_LOGE(BM_DRIVER_TAG, "Error in reading data [%u]", trxStatus);
     }
 
     return trxStatus;
@@ -439,23 +409,182 @@ esp_err_t bm280_getHumidity(bm_controlData_t *bmCtrl, float *realHumidity)
     return status;
 }
 
+esp_err_t bm280_getHumidityOS(bm_controlData_t *bmCtrl, uint8_t *humidOS)
+{
+    esp_err_t status = ESP_OK;
+    *humidOS = bmCtrl->devSettings.humidOS;
+    return status;
+}
+
+esp_err_t bm280_getTemperatureOS(bm_controlData_t *bmCtrl, uint8_t *tempOS)
+{
+    esp_err_t status = ESP_OK;
+    *tempOS = bmCtrl->devSettings.humidOS;
+    return status;
+}
+
+esp_err_t bm280_getPressureOS(bm_controlData_t *bmCtrl, uint8_t *presOS)
+{
+    esp_err_t status = ESP_OK;
+    *presOS = bmCtrl->devSettings.humidOS;
+    return status;
+}
+
+esp_err_t bm280_setHumidityOS(bm_controlData_t *bmCtrl, BM_overSample_t os)
+{
+    esp_err_t status = ESP_OK;
+    uint8_t OSlevel = os;
+    status = genericI2CwriteToAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_HUMID, 1, &OSlevel);
+    bmCtrl->devSettings.humidOS = os;
+    if (OSlevel > 0)
+    {
+        bmCtrl->devSettings.sampleType |= BM_MODE_HUMIDITY;
+    }
+    else
+    {
+        bmCtrl->devSettings.sampleType &= ~(BM_MODE_HUMIDITY);
+    }
+    return status;
+}
+
+esp_err_t bm280_setTemperatureOS(bm_controlData_t *bmCtrl, BM_overSample_t os)
+{
+    esp_err_t status = ESP_OK;
+
+    uint8_t reg = 0;
+    status = genericI2CReadFromAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg);
+    if (status == ESP_OK)
+    {
+        reg &= 0b00011111;       /* clear the top 3 bits */
+        uint8_t level = os << 5; /** shift level over 5 bits */
+        reg &= level;            /* set the new value in reg */
+        status = genericI2CwriteToAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg);
+    }
+    bmCtrl->devSettings.tempOS = os;
+    if (os > 0)
+    {
+        bmCtrl->devSettings.sampleType |= BM_MODE_TEMP;
+    }
+    else
+    {
+        bmCtrl->devSettings.sampleType &= ~(BM_MODE_TEMP);
+    }
+    return status;
+}
+
+esp_err_t bm280_setPressureOS(bm_controlData_t *bmCtrl, BM_overSample_t os)
+{
+    esp_err_t status = ESP_OK;
+
+    uint8_t reg = 0;
+    status = genericI2CReadFromAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg);
+    if (status == ESP_OK)
+    {
+        reg &= 0b11100011;       /* clear the mid 3 bits */
+        uint8_t level = os << 2; /** shift level over 2 bits */
+        reg &= level;            /* set the new value in reg */
+        status = genericI2CwriteToAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg);
+    }
+    bmCtrl->devSettings.pressOS = os;
+    if (os > 0)
+    {
+        bmCtrl->devSettings.sampleType |= BM_MODE_PRESSURE;
+    }
+    else
+    {
+        bmCtrl->devSettings.sampleType &= ~(BM_MODE_PRESSURE);
+    }
+    return status;
+}
+
+esp_err_t bm280_getSampleMode(bm_controlData_t *bmCtrl, uint8_t *sampleMode)
+{
+    esp_err_t status = ESP_OK;
+
+    *sampleMode = bmCtrl->devSettings.sampleMode;
+
+    return status;
+}
+
+esp_err_t bm280_setSampleMode(bm_controlData_t *bmCtrl, BM_sampleMode_t sampleMode)
+{
+    esp_err_t status = ESP_OK;
+
+    uint8_t reg = 0;
+    if (genericI2CReadFromAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg) == ESP_OK)
+    {
+        reg &= 0b11111100;
+        reg |= sampleMode;
+        status = genericI2CwriteToAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg);
+    }
+    bmCtrl->devSettings.sampleMode = sampleMode;
+    return status;
+}
+
+esp_err_t bm280_getSampleType(bm_controlData_t *bmCtrl, uint8_t *sampleType)
+{
+    esp_err_t status = ESP_OK;
+
+    *sampleType = bmCtrl->devSettings.sampleType;
+
+    return status;
+}
+
+esp_err_t bm280_getFilterSetting(bm_controlData_t *bmCtrl, uint8_t *filter)
+{
+    esp_err_t status = ESP_OK;
+    *filter = bmCtrl->devSettings.filterCoefficient;
+    return status;
+}
+
+esp_err_t bm280_setFilterSetting(bm_controlData_t *bmCtrl, bm_filter_t filter)
+{
+    esp_err_t status = ESP_OK;
+    uint8_t reg = 0;
+    if (genericI2CReadFromAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CONFIG, 1, &reg) == ESP_OK)
+    {
+        reg &= 0b11100011;
+        reg |= (filter << 2);
+        status = genericI2CwriteToAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CONFIG, 1, &reg);
+        bmCtrl->devSettings.filterCoefficient = filter;
+    }
+    return status;
+}
+
+esp_err_t bm280_getSampleInterval(bm_controlData_t *bmCtrl, uint8_t *dT)
+{
+    esp_err_t status = ESP_OK;
+    *dT = bmCtrl->devSettings.sampleInterval;
+    return status;
+}
+
+esp_err_t bm280_setSampleInterval(bm_controlData_t *bmCtrl, BM_standbyT_t dT)
+{
+    esp_err_t status = ESP_OK;
+    uint8_t reg = 0;
+    if (genericI2CReadFromAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CONFIG, 1, &reg) == ESP_OK)
+    {
+        reg &= 0b00011111;
+        reg |= (dT << 5);
+        status = genericI2CwriteToAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CONFIG, 1, &reg);
+        bmCtrl->devSettings.sampleInterval = dT;
+    }
+    return status;
+}
+
 void bmCtrlTask(void *args)
 {
-
+    /** TODO: Message pump 
+     *        task delay based on timing?
+     *        auto sample mode for latest?
+     * **/
     bm_controlData_t *bmCtrl = (bm_controlData_t *)args;
-    uint8_t devId = 0, setup = 0;
 
     while (1)
     {
 
-        vTaskDelay(1000);
-        devId = 0;
-
+        vTaskDelay(200);
         bm280_updateMeasurements(bmCtrl);
-        printf("Sense\traw\tcal\treal\r\n");
-        printf("temp: %ul\t%ul\t%f\r\n", bmCtrl->sensorData.rawTemperature, bmCtrl->sensorData.calibratedTemperature, bmCtrl->sensorData.realTemperature);
-        printf("pres: %ul\t%ul\t%f\r\n", bmCtrl->sensorData.rawPressure, bmCtrl->sensorData.calibratedPressure, bmCtrl->sensorData.realPressure);
-        printf("hum : %ul\t%ul\t%f\r\n", bmCtrl->sensorData.rawHumidity, bmCtrl->sensorData.calibratedHumidity, bmCtrl->sensorData.realHumidity);
     }
 }
 
@@ -474,8 +603,14 @@ bm_controlData_t *bm280_init(bm_initData_t *initData)
 
     if (initStatus == ESP_OK)
     {
-        bmCtrl->initData = initData;
+        bmCtrl->devSettings.sampleType = initData->sampleType;
+        bmCtrl->devSettings.sampleMode = initData->sampleMode;
+        bmCtrl->devSettings.humidOS = 0;
+        bmCtrl->devSettings.tempOS = 0;
+        bmCtrl->devSettings.pressOS = 0;
+
         bmCtrl->i2cChannel = initData->i2cChannel;
+
         if (initData->addressPinState)
         {
             bmCtrl->deviceAddress = (uint8_t)BM_I2C_ADDRESS_SDHIGH;
