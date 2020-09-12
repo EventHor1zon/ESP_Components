@@ -97,8 +97,6 @@ static uint32_t bm280_compensate_P_int64(bm_controlData_t *bmCtrl)
 
 // Returns humidity in %RH as unsigned 32 bit integer in Q22.10 format (22 integer and 10 fractional bits).
 // Output value of “47445” represents 47445/1024 = 46.333 %RH
-
-/** bm280_compensate_H_int32: Compensate Humidity Data **/
 #ifdef BME_280
 static uint32_t bm280_compensate_H_int32(bm_controlData_t *bmCtrl)
 {
@@ -199,25 +197,6 @@ static esp_err_t bm280_getCalibrationData(bm_controlData_t *bmCtrl)
     return trxStatus;
 }
 
-esp_err_t bm280_getDeviceID(bm_controlData_t *bmCtrl, uint8_t *deviceID)
-{
-
-    esp_err_t trxStatus = ESP_OK;
-
-    uint8_t devID = 0;
-    trxStatus = genericI2CReadFromAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, (uint8_t)BM_REG_ADDR_DEVICEID, 1, &devID);
-
-    if (trxStatus == ESP_OK)
-    {
-        *deviceID = devID;
-    }
-    else
-    {
-        printf("txStatus = %d", trxStatus);
-    }
-    return trxStatus;
-}
-
 static esp_err_t bm280_InitDeviceSettings(bm_controlData_t *bmCtrl)
 {
 
@@ -290,6 +269,25 @@ static esp_err_t bm280_InitDeviceSettings(bm_controlData_t *bmCtrl)
 }
 
 /****** Global Functions *************/
+
+esp_err_t bm280_getDeviceID(bm_controlData_t *bmCtrl, uint8_t *deviceID)
+{
+
+    esp_err_t trxStatus = ESP_OK;
+
+    uint8_t devID = 0;
+    trxStatus = genericI2CReadFromAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, (uint8_t)BM_REG_ADDR_DEVICEID, 1, &devID);
+
+    if (trxStatus == ESP_OK)
+    {
+        *deviceID = devID;
+    }
+    else
+    {
+        printf("txStatus = %d", trxStatus);
+    }
+    return trxStatus;
+}
 
 esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
 {
@@ -438,6 +436,14 @@ esp_err_t bm280_setHumidityOS(bm_controlData_t *bmCtrl, BM_overSample_t os)
     uint8_t OSlevel = os;
     status = genericI2CwriteToAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_HUMID, 1, OSlevel);
     bmCtrl->devSettings.humidOS = os;
+    if (OSlevel > 0)
+    {
+        bmCtrl->devSettings.sampleType |= BM_MODE_HUMIDITY;
+    }
+    else
+    {
+        bmCtrl->devSettings.sampleType &= ~(BM_MODE_HUMIDITY);
+    }
     return status;
 }
 
@@ -455,6 +461,14 @@ esp_err_t bm280_setTemperatureOS(bm_controlData_t *bmCtrl, BM_overSample_t os)
         status = genericI2CwriteToAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg);
     }
     bmCtrl->devSettings.tempOS = os;
+    if (os > 0)
+    {
+        bmCtrl->devSettings.sampleType |= BM_MODE_TEMP;
+    }
+    else
+    {
+        bmCtrl->devSettings.sampleType &= ~(BM_MODE_TEMP);
+    }
     return status;
 }
 
@@ -472,6 +486,14 @@ esp_err_t bm280_setPressureOS(bm_controlData_t *bmCtrl, BM_overSample_t os)
         status = genericI2CwriteToAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg);
     }
     bmCtrl->devSettings.pressOS;
+    if (os > 0)
+    {
+        bmCtrl->devSettings.sampleType |= BM_MODE_PRESSURE;
+    }
+    else
+    {
+        bmCtrl->devSettings.sampleType & ~(BM_MODE_PRESSURE);
+    }
     return status;
 }
 
