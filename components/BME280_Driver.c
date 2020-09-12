@@ -434,7 +434,7 @@ esp_err_t bm280_setHumidityOS(bm_controlData_t *bmCtrl, BM_overSample_t os)
 {
     esp_err_t status = ESP_OK;
     uint8_t OSlevel = os;
-    status = genericI2CwriteToAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_HUMID, 1, OSlevel);
+    status = genericI2CwriteToAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_HUMID, 1, &OSlevel);
     bmCtrl->devSettings.humidOS = os;
     if (OSlevel > 0)
     {
@@ -485,14 +485,14 @@ esp_err_t bm280_setPressureOS(bm_controlData_t *bmCtrl, BM_overSample_t os)
         reg &= level;            /* set the new value in reg */
         status = genericI2CwriteToAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg);
     }
-    bmCtrl->devSettings.pressOS;
+    bmCtrl->devSettings.pressOS = os;
     if (os > 0)
     {
         bmCtrl->devSettings.sampleType |= BM_MODE_PRESSURE;
     }
     else
     {
-        bmCtrl->devSettings.sampleType & ~(BM_MODE_PRESSURE);
+        bmCtrl->devSettings.sampleType &= ~(BM_MODE_PRESSURE);
     }
     return status;
 }
@@ -513,7 +513,7 @@ esp_err_t bm280_setSampleMode(bm_controlData_t *bmCtrl, BM_sampleMode_t sampleMo
     uint8_t reg = 0;
     if (genericI2CReadFromAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg) == ESP_OK)
     {
-        reg &= 0x11111100;
+        reg &= 0b11111100;
         reg |= sampleMode;
         status = genericI2CwriteToAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg);
     }
