@@ -360,7 +360,7 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
         {
             while (genericI2CReadFromAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_DEV_STATUS, 1, &reg) & BM_STATUS_MEASURE_MASK)
             {
-                vTaskDelay(wait_sample_fin);
+                vTaskDelay(pd_MS_TO_TICKS(wait_sample_fin));
             }
         }
     }
