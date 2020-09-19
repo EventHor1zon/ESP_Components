@@ -18,6 +18,7 @@
 #include "../inc/PeripheralManager.h"
 
 #include "BME280_Driver.h"
+#include "../components/include/APIComponentMap.h"
 
 /**
  *      The plan - 
@@ -67,15 +68,16 @@ esp_err_t peripheral_manager_init()
 
     bm_controlData_t *bmHandle = bm280_init(&bme);
 
-    peripheral_t bmeP = {0};
-    bmeP.handle = bmHandle;
-    bmeP.ptype = PTYPE_ENVIRO_SENSOR;
-    bmeP.stype = STYPE_ENVIRO_SENSOR_BME_290;
-    bmeP.actions = bm_action_mappings;
-    bmeP.action_len = bm_action_len;
-    bmeP.params = bm_param_mappings;
-    bmeP.param_len = bm_param_len;
-    bmeP.peripheral_id = (uint32_t)(bmeP.ptype << 16) | (uint32_t)(bmeP.stype << 8) | (uint32_t)peripheral_num;
+    peripheral_t *bmeP = heap_caps_calloc(1, sizeof(peripheral_t), MALLOC_CAP_DEFAULT);
+    bmeP->handle = bmHandle;
+    bmeP->ptype = PTYPE_ENVIRO_SENSOR;
+    bmeP->stype = STYPE_ENVIRO_SENSOR_BME_290;
+    bmeP->actions = bm_action_mappings;
+    bmeP->actions_len = bm_action_len;
+    bmeP->params = bm_param_mappings;
+    bmeP->param_len = bm_param_len;
+    bmeP->peripheral_id = (uint32_t)(bmeP->ptype << 16) | (uint32_t)(bmeP->stype << 8) | (uint32_t)peripheral_num;
 
+    
     return initStatus;
 }
