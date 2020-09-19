@@ -11,7 +11,13 @@
 /********* Includes ********************/
 #include <stdint.h>
 #include "esp_err.h"
+
+#include "driver/i2c.h"
 /********* Definitions *****************/
+
+#define PM_MAX_PERIPHERALS 30
+
+#define PM_I2C_BUS_PRIMARY I2C_NUM_0
 
 typedef void *peripheral_handle_t;
 
@@ -115,7 +121,7 @@ typedef struct parameter
  * **/
 typedef struct action
 {
-    char action_name[16]; /** < action name **/
+    char action_name[32]; /** < action name **/
     uint32_t action_id;   /** < action unique id **/
     actionFunc action;    /** < pointer to action function **/
 } action_t;
