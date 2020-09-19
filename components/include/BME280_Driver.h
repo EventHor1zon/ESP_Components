@@ -124,11 +124,6 @@ const int wait_sample_fin = 10;
 const int wait_new_sample = 50;
 const int wait_idle = 1000;
 
-/**
- *  E4:   -  digH4[11:4]
- *  E5:   -  digH4[3:0]
- **/
-
 /********** Types **********************/
 
 typedef enum bm_devTypes
