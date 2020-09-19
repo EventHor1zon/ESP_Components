@@ -307,7 +307,7 @@ esp_err_t bm280_getSampleInterval(bm_controlData_t *bmCtrl, uint8_t *dT);
  *  \param  dT - the time interval - see enum bm_standbyT_ts
  * \return  ESP_OK or FAIL
  **/
-esp_err_t bm280_setSampleInterval(bm_controlData_t *bmCtrl, BM_standbyT_t dT);
+esp_err_t bm280_setSampleInterval(bm_controlData_t *bmCtrl, BM_standbyT_t *dT);
 
 /** \brief getFilterSetting - gets the current filter level
  *  \param  bmCtrl - device handle
@@ -321,7 +321,7 @@ esp_err_t bm280_getFilterSetting(bm_controlData_t *bmCtrl, uint8_t *filter);
  *  \param  filter - pointer to filter value
  * \return  ESP_OK or FAIL
  **/
-esp_err_t bm280_setFilterSetting(bm_controlData_t *bmCtrl, bm_filter_t filter);
+esp_err_t bm280_setFilterSetting(bm_controlData_t *bmCtrl, bm_filter_t *filter);
 
 /** \brief  updateMeasurements - read measurements from device
  *  \param  bmCtrl - device handle
@@ -367,16 +367,16 @@ esp_err_t bm280_getHumidityOS(bm_controlData_t *bmCtrl, uint8_t *humidOS);
 esp_err_t bm280_getTemperatureOS(bm_controlData_t *bmCtrl, uint8_t *tempOS);
 esp_err_t bm280_getPressureOS(bm_controlData_t *bmCtrl, uint8_t *presOS);
 
-esp_err_t bm280_setHumidityOS(bm_controlData_t *bmCtrl, BM_overSample_t os);
-esp_err_t bm280_setTemperatureOS(bm_controlData_t *bmCtrl, BM_overSample_t os);
-esp_err_t bm280_setPressureOS(bm_controlData_t *bmCtrl, BM_overSample_t os);
+esp_err_t bm280_setHumidityOS(bm_controlData_t *bmCtrl, BM_overSample_t *os);
+esp_err_t bm280_setTemperatureOS(bm_controlData_t *bmCtrl, BM_overSample_t *os);
+esp_err_t bm280_setPressureOS(bm_controlData_t *bmCtrl, BM_overSample_t *os);
 
 esp_err_t bm280_getSampleMode(bm_controlData_t *bmCtrl, uint8_t *sampleMode);
-esp_err_t bm280_setSampleMode(bm_controlData_t *bmCtrl, BM_sampleMode_t sampleMode);
+esp_err_t bm280_setSampleMode(bm_controlData_t *bmCtrl, BM_sampleMode_t *sampleMode);
 
 esp_err_t bm280_getSampleType(bm_controlData_t *bmCtrl, uint8_t *sampleType);
 
 esp_err_t bm280_getFilterSetting(bm_controlData_t *bmCtrl, uint8_t *filter);
-esp_err_t bm280_setFilterSetting(bm_controlData_t *bmCtrl, bm_filter_t filter);
+esp_err_t bm280_setFilterSetting(bm_controlData_t *bmCtrl, bm_filter_t *filter);
 
 #endif /* BM280_DRIVER_H */
