@@ -97,6 +97,7 @@
 
 #define BM_STATUS_IM_UPDATE_BIT 0
 #define BM_STATUS_MEASURE_BIT (4)
+#define BM_STATUS_MEASURE_MASK (1 << 3)
 #define BM_CTRL_TEMP_BIT (1 << 5)
 #define BM_CTRL_PRESSURE_BIT (1 << 2)
 #define BM_CTRL_MODE_FORCED 1
@@ -118,6 +119,10 @@
 #define BM_DEFAULT_HUM_CTRL 0x01
 #define BM_DEFAULT_TEMP_CTRL 0x01
 #define BM_DEFAULT_T_STDBY (1 << 5)
+
+const int wait_sample_fin = 10;
+const int wait_new_sample = 50;
+const int wait_idle = 1000;
 
 /**
  *  E4:   -  digH4[11:4]

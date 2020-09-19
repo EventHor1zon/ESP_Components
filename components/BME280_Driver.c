@@ -119,6 +119,53 @@ static uint32_t bm280_compensate_H_int32(bm_controlData_t *bmCtrl)
 }
 #endif
 
+static uint16_t bm280_sleepTime(bm_controlData_t *bmCtrl)
+{
+    uint8_t timeSetting = bmCtrl->devSettings.sampleInterval;
+    uint16_t time;
+    switch (timeSetting)
+    {
+    case BM_T_STDBY_0_5MS:
+        time = 1; /** this one is trick? divide by 2, I guess **/
+        break;
+    case BM_T_STDBY_62_5MS:
+        time = 63;
+        break;
+    case BM_T_STDBY_125MS:
+        time = 125;
+        break;
+    case BM_T_STDBY_250MS:
+        time = 250;
+        break;
+    case BM_T_STDBY_500MS:
+        time = 500;
+        break;
+    case BM_T_STDBY_1000MS:
+        time = 1000;
+        break;
+#ifdef BME_280
+    case BM_T_STDBY_10MS:
+        time = 10;
+        break;
+    case BM_T_STDBY_20MS:
+        time = 20;
+        break;
+#else
+    case BM_T_STDBY_2000MS:
+        time = 2000;
+        break;
+    case BM_T_STDBY_4000MS:
+        time = 4000;
+        break;
+#endif
+    default:
+        time = 1000;
+        break;
+    }
+
+    return time;
+}
+
 static esp_err_t bm280_getDeviceStatus(bm_controlData_t *bmCtrl)
 {
     esp_err_t trxStatus = ESP_OK;
@@ -306,7 +353,16 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
         {
             ESP_LOGE(BM_DRIVER_TAG, "Error in writing to mode");
         }
-        vTaskDelay(pdMS_TO_TICKS(200));
+        vTaskDelay(pdMS_TO_TICKS(wait_new_sample));
+
+        /** check sample finished **/
+        if (genericI2CReadFromAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_DEV_STATUS, 1, &reg) & BM_STATUS_MEASURE_MASK)
+        {
+            while (genericI2CReadFromAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_DEV_STATUS, 1, &reg) & BM_STATUS_MEASURE_MASK)
+            {
+                vTaskDelay(wait_sample_fin);
+            }
+        }
     }
 
     trxStatus = genericI2CReadFromAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_PRESSURE_MSB, (uint16_t)BM_MEASURE_READ_LEN, rxBuffer);
@@ -574,17 +630,48 @@ esp_err_t bm280_setSampleInterval(bm_controlData_t *bmCtrl, BM_standbyT_t *dT)
 
 void bmCtrlTask(void *args)
 {
-    /** TODO: Message pump 
-     *        task delay based on timing?
+    /**  DONE: Message pump - dont really need - only actuve command is sample?
+     *        task delay based on timing? 
      *        auto sample mode for latest?
      * **/
     bm_controlData_t *bmCtrl = (bm_controlData_t *)args;
 
+    uint16_t sleep_time = 0;
+
     while (1)
     {
 
-        vTaskDelay(200);
-        bm280_updateMeasurements(bmCtrl);
+        if (bmCtrl->devSettings.sampleMode == BM_FORCE_MODE)
+        {
+            /** wait for task notify  to sample**/
+            ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+            ESP_LOGI(BM_DRIVER_TAG, "Sampling device");
+
+            bm280_updateMeasurements(bmCtrl);
+        }
+        else if (bmCtrl->devSettings.sampleMode == BM_NORMAL_MODE)
+        {
+            uint8_t reg = 0;
+
+            /** check the device isn't copying sample data... **/
+            if (genericI2CReadFromAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_DEV_STATUS, 1, &reg) & BM_STATUS_MEASURE_MASK)
+            {
+                while (genericI2CReadFromAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_DEV_STATUS, 1, &reg) & BM_STATUS_MEASURE_MASK)
+                {
+                    vTaskDelay(pdMS_TO_TICKS(wait_sample_fin));
+                }
+            }
+            bm280_updateMeasurements(bmCtrl);
+            sleep_time = bm280_sleepTime(bmCtrl);
+
+            /** sleep until next measurement - this can get busy at high frequencies **/
+            /** TODO: Test at high frequency sampling **/
+            vTaskDelay(pdMS_TO_TICKS(sleep_time));
+        }
+        else
+        {
+            vTaskDelay(pdMS_TO_TICKS(wait_idle));
+        }
     }
 }
 
