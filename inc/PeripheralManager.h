@@ -18,6 +18,11 @@
 
 #define PM_MAX_PERIPHERALS 30
 
+#define PM_ERR_INVALID_ID 0x80
+#define PM_ERR_INVALID_ARG 0x81
+#define PM_ERR_INVALID_TYPE 0x82
+#define PM_ERR_INVALID_CMD 0x83
+
 #define PM_I2C_BUS_PRIMARY I2C_NUM_0
 
 /** \brief  Peripheral_type

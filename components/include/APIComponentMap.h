@@ -12,6 +12,7 @@
 /********* Includes ********************/
 
 #include "BME280_Driver.h"
+#include "../../inc/CommandAPI.h"
 #include <stdint.h>
 #include "esp_err.h"
 
@@ -43,33 +44,16 @@ typedef esp_err_t (*setFunc)(handle_t, void *); /** cast depending on param_type
 
 typedef esp_err_t (*actionFunc)(handle_t);
 
-/** \brief parameter value enum
- *          is also size of value in bytes
- * **/
-typedef enum param_type
-{
-    PARAMTYPE_INT8 = 0x01,
-    PARAMTYPE_UINT8 = 0x01,
-    PARAMTYPE_INT16 = 0x02,
-    PARAMTYPE_UINT16 = 0x02,
-    PARAMTYPE_INT32 = 0x04,
-    PARAMTYPE_UINT32 = 0x04,
-    PARAMTYPE_FLOAT = 0x04,
-    PARAMTYPE_DOUBLE = 0x08,
-
-    PARAMTYPE_INVALID = 0xFF
-} param_type_t;
-
 /** \brief Detail struct for each parameter
  * **/
 typedef struct parameter
 {
-    char param_name[32];    /** < parameter name **/
-    uint32_t param_id;      /** < parameter unique id **/
-    getFunc get;            /** < get function pointer **/
-    setFunc set;            /** < set function pointer **/
-    param_type_t valueType; /** < size of parameter in bytes **/
-    uint32_t maxValid;      /** < maximum valid value **/
+    char param_name[32]; /** < parameter name **/
+    uint32_t param_id;   /** < parameter unique id **/
+    getFunc get;         /** < get function pointer **/
+    setFunc set;         /** < set function pointer **/
+    uint8_t valueType;   /** < size of parameter in bytes **/
+    uint32_t maxValid;   /** < maximum valid value **/
 } parameter_t;
 
 /** \brief detail struct for each action

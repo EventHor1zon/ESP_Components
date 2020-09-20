@@ -14,6 +14,23 @@
 
 /********* Definitions *****************/
 
+/** \brief parameter value enum
+ *          is also size of value in bytes
+ * **/
+typedef enum param_type
+{
+    PARAMTYPE_INT8 = 0x01,
+    PARAMTYPE_UINT8 = 0x01,
+    PARAMTYPE_INT16 = 0x02,
+    PARAMTYPE_UINT16 = 0x02,
+    PARAMTYPE_INT32 = 0x04,
+    PARAMTYPE_UINT32 = 0x04,
+    PARAMTYPE_FLOAT = 0x05,
+    PARAMTYPE_DOUBLE = 0x08,
+
+    PARAMTYPE_INVALID = 0xFF
+} param_type_t;
+
 typedef enum cmd_type
 {
     CMD_TYPE_PINFO = 0x01, /** < command peripheral info **/
@@ -76,6 +93,7 @@ typedef struct periph_cmd
     uint32_t param_id;
     pcmd_type_t pcmd_type;
     uint32_t data;
+    param_type_t ptype;
 } periph_cmd_t;
 
 typedef struct direct_cmd
@@ -88,13 +106,13 @@ typedef struct command_request
 {
     cmd_type_t cmd_type;
     uint32_t cmd_uid;
-    union cmd_data
+    union
     {
         periph_info_t lcmd_data;
         sys_info_t icmd_data;
         periph_cmd_t pcmd_data;
         direct_cmd_t dcmd_data;
-    };
+    } cmd_data;
     uint32_t auth; /** < reserved **/
 } cmd_request_t;
 
@@ -102,13 +120,13 @@ typedef struct command_response
 {
     rsp_type_t rsp_type;
     uint32_t rsp_uid;
-    union rsp_data
+    union
     {
         rsp_err_t ersp_data;
         rsp_data_t drsp_data;
         rsp_stream_t srsp_data;
         uint32_t reserved;
-    };
+    } rsp_data;
     uint32_t auth; /** < reserved **/
 } cmd_rsp_t;
 
