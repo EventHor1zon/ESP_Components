@@ -38,6 +38,10 @@
  *                   - simple get/set interface?    
  ***/
 
+/**  TESTING: incomming command from api manger **/
+
+const char *incommingCommand = "{\"command_type: 1\",\n\"command_id\" : 4,\n\"command_value\" : 2,}";
+
 /****** Function Prototypes ***********/
 
 /************ ISR *********************/
@@ -51,6 +55,10 @@ static uint8_t peripheral_num = 0;
 /****** Global Data *******************/
 
 /****** Global Functions *************/
+
+esp_err_t pm_process_incoming_request(command_request_t *command)
+{
+}
 
 esp_err_t peripheral_manager_init()
 {
@@ -78,6 +86,8 @@ esp_err_t peripheral_manager_init()
     bmeP->param_len = bm_param_len;
     bmeP->peripheral_id = (uint32_t)(bmeP->ptype << 16) | (uint32_t)(bmeP->stype << 8) | (uint32_t)peripheral_num;
 
-    
+    peripherals[peripheral_num] = bmeP;
+    peripheral_num++;
+
     return initStatus;
 }
