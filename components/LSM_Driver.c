@@ -28,12 +28,12 @@
 
 /************ ISR *********************/
 
-void ISR_int1
+gpio_isr_t ISR_int1()
 {
     return;
 }
 
-void ISR_int2
+gpio_isr_t ISR_int2()
 {
     return;
 }
@@ -64,7 +64,7 @@ esp_err_t LSM_init(LSM_initData_t *initData)
         ESP_LOGE("LSM Driver", "Error - NULL ptr to init data");
         initStatus = ESP_ERR_INVALID_ARG;
     }
-    else if ((initData->commMode = LSM_DEVICE_COMM_MODE_SPI && initData->commsChannel == 0) || initData->commsChannel > 2)
+    else if ((initData->commMode == LSM_DEVICE_COMM_MODE_SPI && initData->commsChannel == 0) || initData->commsChannel > 2)
     {
         ESP_LOGE("LSM Driver", "Error - invalid comms channel");
         initStatus = ESP_ERR_INVALID_ARG;
@@ -94,6 +94,14 @@ esp_err_t LSM_init(LSM_initData_t *initData)
             else
             {
                 device->commMode = LSM_DEVICE_COMM_MODE_I2C;
+                if (initData->addrPinState)
+                {
+                    device->devAddr = LSM_I2C_ADDR;
+                }
+                else
+                {
+                    device->devAddr = LSM_I2C_ADDR + 1;
+                }
             }
         }
 
@@ -152,7 +160,7 @@ esp_err_t LSM_init(LSM_initData_t *initData)
         if (initStatus == ESP_OK && initData->assignFifoBuffer)
         {
             size_t dmaMem = heap_caps_get_free_size(MALLOC_CAP_DMA);
-            if (dmaMem < 8000)
+            if (dmaMem < LSM_FIFO_BUFFER_MEM_LEN)
             {
                 ESP_LOGE("LSM Driver", "Error: insufficient DMA cap mem. Only %d bytes available", dmaMem);
                 initStatus = ESP_ERR_NO_MEM;
@@ -164,7 +172,16 @@ esp_err_t LSM_init(LSM_initData_t *initData)
                 {
                     device->fifoBuffer = fifoMem;
                 }
+                else
+                {
+                    initStatus = ESP_ERR_NO_MEM;
+                }
             }
+        }
+
+        if (initStatus == ESP_OK)
+        {
+            /** initialise device settings **/
         }
     }
 
@@ -190,30 +207,29 @@ esp_err_t LSM_deInit(LSM_DeviceSettings_t *dev)
     return ESP_OK;
 }
 
-esp_err_t LSM_setFIFOmode(LSM_FIFOMode_t mode)
+esp_err_t LSM_setFIFOmode(LSM_DeviceSettings_t *dev, LSM_FIFOMode_t mode)
 {
+    uint8_t regvalue = 0, writevalue = 0;
     esp_err_t status = ESP_OK;
-    switch (mode)
+    if (mode == LSM_FIFO_MODE_BYPASS || /** because several reserved values, have to do this the long way... **/
+        mode == LSM_FIFO_MODE_FIFO ||
+        mode == LSM_FIFO_MODE_CONT_TO_FIFO ||
+        mode == LSM_FIFO_MODE_BYPASS_TO_FIFO ||
+        mode == LSM_FIFO_MODE_CONTINUOUS)
     {
-    case LSM_FIFO_MODE_BYPASS:
-        status = genericI2CwriteToAddress();
-        break;
-    case LSM_FIFO_MODE_FIFO:
-        status = genericI2CwriteToAddress();
-        break;
-    case LSM_FIFO_MODE_CONT_TO_FIFO:
-        status = genericI2CwriteToAddress();
-        break;
-    case LSM_FIFO_MODE_BYPASS_TO_FIFO:
-        status = genericI2CwriteToAddress();
-        break;
-    case LSM_FIFO_MODE_CONTINUOUS:
-        status = genericI2CwriteToAddress();
-        break;
-    default:
-        ESP_LOGE("LSM Driver", "Error - invalid Fifo mode");
+        writevalue = mode;
+    }
+    else
+    {
         status = ESP_ERR_INVALID_ARG;
-        break;
+    }
+
+    if (status == ESP_OK)
+    {
+        status = genericI2CReadFromAddress(dev->commsChannel, dev->devAddr, LSM_FIFO_CTRL5_REG, 1, regvalue);
+        regvalue &= (0b11111000); /** clear low 3 bits **/
+        regvalue |= writevalue;   /** set mode **/
+        status = genericI2CwriteToAddress(dev->commsChannel, dev->devAddr, LSM_FIFO_CTRL5_REG, 1, writevalue);
     }
 
     return status;
@@ -251,7 +267,7 @@ esp_err_t LSM_setFIFOpackets(LSM_DeviceSettings_t *device, LSM_FifoPktCfg_t conf
 
     uint8_t regAddr = 0, regValue = 0, shift = 0;
 
-    switch (fifoPacket)
+    switch (pktType)
     {
     case LSM_PKT1_GYRO:
         regAddr = LSM_FIFO_CTRL3_REG;
@@ -273,31 +289,51 @@ esp_err_t LSM_setFIFOpackets(LSM_DeviceSettings_t *device, LSM_FifoPktCfg_t conf
 
     if (status == ESP_OK)
     {
-        status = genericI2CReadFromAddress(device->commChannel, (uint8_t)LSM_I2C_ADDR, regAddr, 1, &regValue);
+        status = genericI2CReadFromAddress(device->commsChannel, (uint8_t)LSM_I2C_ADDR, regAddr, 1, &regValue);
     }
     if (status == ESP_OK)
     {
         uint8_t txByte = (regValue | (config << shift));
-        status = genericI2CwriteToAddress(device->commChannel, (uint8_t)LSM_I2C_ADDR, regAddr, 1, &txByte);
+        status = genericI2CwriteToAddress(device->commsChannel, (uint8_t)LSM_I2C_ADDR, regAddr, 1, &txByte);
     }
 
     return status;
 }
-esp_err_t LSM_configInt(LSM_DeviceSettings_t *device, uint8_t intNum)
+
+esp_err_t LSM_configInt(LSM_DeviceSettings_t *device, uint8_t intNum, LSM_interrupt_t intr)
 {
     esp_err_t status = ESP_OK;
-    if (intNum == 1 && device->i1Pin > 0)
+    uint8_t writeval = 0, regval = 0;
+
+    if (intr >= LSM_INT_TYPE_END)
     {
+        status = ESP_ERR_INVALID_ARG;
+    }
+    else if (intNum == 1 && device->i1Pin > 0)
+    {
+        writeval = (intr == LSM_INT_TYPE_CLEAR) ? 0 : (1 << (intr - 1));
+        status = genericI2CReadFromAddress(device->commsChannel, device->devAddr, LSM_INT1_CTRL_REG, 1, &regval);
+        writeval = (writeval == 0) ? 0 : writeval | regval;
+        status = genericI2CwriteToAddress(device->commsChannel, device->devAddr, LSM_INT1_CTRL_REG, 1, &writeval);
     }
     else if (intNum == 2 && device->i2Pin > 0)
     {
+        writeval = (intr == LSM_INT_TYPE_CLEAR) ? 0 : (1 << (intr - 1));
+        status = genericI2CReadFromAddress(device->commsChannel, device->devAddr, LSM_INT2_CTRL_REG, 1, &regval);
+        writeval = (writeval == 0) ? 0 : writeval | regval;
+        status = genericI2CwriteToAddress(device->commsChannel, device->devAddr, LSM_INT2_CTRL_REG, 1, &writeval);
     }
     else
     {
+        ESP_LOGE("LSM_DRIVER", "Error: Pin not configured!");
+        status = ESP_ERR_NOT_FOUND;
     }
 
     return status;
 }
 
 esp_err_t LSM_readFifoBlock(LSM_DeviceSettings_t *device, uint16_t length);
-esp_err_t LSM_readWhoAmI(LSM_DeviceSettings_t *device);
+
+esp_err_t LSM_readWhoAmI(LSM_DeviceSettings_t *device)
+{
+}

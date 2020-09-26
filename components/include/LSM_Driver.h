@@ -217,6 +217,8 @@
 #define LSM_FUNCSRC_IRONCALC_STATUS_BIT (1 << 1)
 #define LSM_FUNCSRC_SENSHUB_COMM_STATUS_BIT (1)
 
+#define LSM_FIFO_BUFFER_MEM_LEN 4096 * 2
+
 /** TODO: MORE TAP STUFF... **/
 /** TODO: WAKEUP EVENTS **/
 
@@ -253,6 +255,7 @@ typedef enum LSM_FIFOMode
     LSM_FIFO_MODE_CONT_TO_FIFO = 3,   /** < both fifo & cont, changes depending on event trigger */
     LSM_FIFO_MODE_BYPASS_TO_FIFO = 4, /** < same as above but with bypass */
     LSM_FIFO_MODE_CONTINUOUS = 6,     /** < continuously updates fifo dumping older data */
+    LSM_FIFO_MODE_END = 7
 } LSM_FIFOMode_t;
 
 typedef enum LSM_FIFOodr
@@ -292,10 +295,22 @@ typedef enum LSM_PktType
 
 /**  ISR control 1 **/
 
-// typedef enum LSM_ISR1Mode
-// {
-
-// } LSM_ISR1Mode_t;
+typedef enum LSM_interrupt
+{
+    LSM_INT_TYPE_CLEAR = 0,
+    LSM_INT_TYPE_ACC_RDY = 1,
+    LSM_INT_TYPE_GYR_RDY = 2,
+    LSM_INT_TYPE_TMP_RDY = 3,
+    LSM_INT_TYPE_BOOTSTAT = 3,
+    LSM_INT_TYPE_FIFO_THR = 4,
+    LSM_INT_TYPE_FIFO_OVR = 5,
+    LSM_INT_TYPE_FIFOFULL = 6,
+    LSM_INT_TYPE_STEPOVR = 7,
+    LSM_INT_TYPE_SIGMOTION = 7,
+    LSM_INT_TYPE_STEPDELTA = 8,
+    LSM_INT_TYPE_STEPBASIC = 8,
+    LSM_INT_TYPE_END = 9
+} LSM_interrupt_t;
 
 /** ctrl1 accel */
 typedef enum LSM_AccelODR
@@ -403,6 +418,7 @@ typedef struct LSM_initData
     gpio_num_t int1Pin;   /** < gpio pin for int 1 - 0 if unused */
     gpio_num_t int2Pin;   /** < gpio pin for int 2 - 0 if unused */
     uint8_t commsChannel; /** < comms channel for i2c or spi */
+    uint8_t addrPinState;
     LSM_DeviceCommMode_t commMode;
     LSM_OperatingMode_t opMode;
     LSM_AccelODR_t accelRate;
@@ -419,17 +435,18 @@ typedef struct LSM_initData
 typedef struct LSM_DeviceSettings
 {
     uint16_t dtPin;
-    uint16_t clkPin; /** TODO: Need these pins? **/
-    uint16_t i1Pin;
-    uint16_t i2Pin;
-    bool int1En;
-    bool int2En;
-    uint8_t int1Function;
-    uint8_t int2Function;
-    LSM_DeviceCommMode_t commMode;
-    uint8_t commChannel; /** < the i2c or spi channel being used */
-    void *commsHandle;   /** < can be used to hold a device handle */
-    void *fifoBuffer;
+    uint16_t clkPin;               /** TODO: Need these pins? **/
+    uint16_t i1Pin;                /** < gpio interrupt pin 1 **/
+    uint16_t i2Pin;                /** < gpio interrupt pin 2 **/
+    bool int1En;                   /** <enabled interrupt 1 **/
+    bool int2En;                   /** <enabled interrupt 2 **/
+    uint8_t int1Function;          /** < interrupt function **/
+    uint8_t int2Function;          /** < interrupt function **/
+    LSM_DeviceCommMode_t commMode; /** <comms mode **/
+    uint8_t commsChannel;          /** < the i2c or spi channel being used */
+    uint8_t devAddr;
+    void *commsHandle; /** < can be used to hold a device handle */
+    void *fifoBuffer;  /** < ptr to fifo buffer memory **/
 
 } LSM_DeviceSettings_t;
 
@@ -458,8 +475,7 @@ esp_err_t LSM_setFIFOmode(LSM_FIFOMode_t mode);
 esp_err_t LSM_setFIFOwatermark(uint16_t watermark);
 esp_err_t LSM_getFIFOCount(uint16_t *count);
 esp_err_t LSM_setFIFOpackets(LSM_FifoPktCfg_t config, uint8_t fifoPacket);
-esp_err_t LSM_configInt(LSM_DeviceSettings_t *device, uint8_t intNum);
-
+esp_err_t LSM_configInt(LSM_DeviceSettings_t *device, uint8_t intNum, LSM_interrupt_t intr);
 esp_err_t LSM_readFifoBlock(LSM_DeviceSettings_t *device, uint16_t length);
 esp_err_t LSM_readWhoAmI(LSM_DeviceSettings_t *device);
 
