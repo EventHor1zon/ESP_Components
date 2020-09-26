@@ -17,6 +17,7 @@
 /********* Includes ********************/
 
 #include <stdint.h>
+#include "driver/gpio.h"
 #include "esp_err.h"
 #include "esp_log.h"
 
@@ -27,6 +28,8 @@
 #define LSM_I2C_SA_HIGH (1)
 #define LSM_I2C_SA_LOW (0)
 #define LSM_WHOAMI 0x69
+
+#define LSM_FIFO_BUFFER_MEM_LEN 8000
 
 #define LSM_FUNC_CFG_REG 0x01
 #define LSM_SNES_SYNC_REG 0x04
@@ -246,7 +249,7 @@ typedef enum LSM_AccelPowerMode
     LSM_ACCELPWR_LOWPWR,
     LSM_ACCELPWR_NORMAL,
     LSM_ACCELPWR_HPMODE
-} LSM_GyroPwrMode_t;
+} LSM_AccelPwrMode_t;
 
 typedef enum LSM_FIFOMode
 {
@@ -460,7 +463,7 @@ typedef struct LSM_DeviceSettings
  *  \param LSM_initData_t initData 
  *  \return ESP_OK or error
  */
-esp_err_t LSM_init(LSM_initData_t initData);
+esp_err_t LSM_init(LSM_initData_t *initData);
 
 /** 
  *  LSM_deinit() 

@@ -20,4 +20,5 @@
 /******** Function Definitions *********/
 
 void showmem(uint8_t *ptr, uint16_t len);
+void printByteBits(uint8_t data);
 #endif /* UTILITIES_H */

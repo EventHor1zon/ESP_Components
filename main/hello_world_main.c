@@ -16,6 +16,9 @@
 #include "esp_spi_flash.h"
 #include "../inc/main.h"
 #include "WS2812_Driver.h"
+#include "BME280_Driver.h"
+#include "LSM_Driver.h"
+#include "genericCommsDriver.h"
 
 void app_main(void)
 {
@@ -37,14 +40,43 @@ void app_main(void)
 
     printf("Free heap: %d\n", esp_get_free_heap_size());
 
-    printf("Starting LEDSs\n");
-    uint16_t numLeds = 6;
-    gpio_num_t pin = GPIO_NUM_5;
-    WS2812_init(1, &numLeds, &pin);
+    // printf("Starting LEDSs\n");
+    // uint16_t numLeds = 6;
+    // gpio_num_t pin = GPIO_NUM_5;
+    // WS2812_init(1, &numLeds, &pin);
+
+    // uint8_t whoami = 0;
+    // esp_err_t status = genericI2CReadFromAddress(0, LSM_I2C_ADDR, LSM_WHOAMI_REG, 1, &whoami);
+
+    // printf("Read from device whoami = %08x", whoami);
+    uint8_t i2cChannel = 1;
+    genericI2Cinit(17, 16, 200000, i2cChannel);
+    bm_initData_t id = {0};
+    id.addressPinState = 0;
+    id.devType = BME_280_DEVICE;
+    id.i2cChannel = i2cChannel;
+    id.sampleMode = BM_FORCE_MODE;
+    id.sampleType = BM_MODE_TEMP_PRESSURE_HUMIDITY;
+
+    bm_controlData_t *bmHandle = bm280_init(&id);
 
     while (1)
     {
-        ESP_LOGI(MAIN_TAG, "ping");
-        vTaskDelay(2000);
+
+        // printf("Whoami = %02x\r\n", whoami);
+        vTaskDelay(1000);
+        // esp_err_t st = bm280_getDeviceID(bmHandle, &whoami);
+        // printf("st = %02x\r\n", st);
+        // genericI2CReadFromAddress(1, 0x76, 0xD0, 1, &whoami);
+        // ESP_LOGI("MAIN_TAG", "ping");
+        // vTaskDelay(2000);
+        // bm280_updateMeasurements(bmHandle);
+        // float temp = 0, pressure = 0, hum = 0;
+        // bm280_getTemperature(bmHandle, &temp);
+        // bm280_getPressure(bmHandle, &pressure);
+        // bm280_getHumidity(bmHandle, &hum);
+        // printf("Temp:\t\t%f", temp);
+        // printf("Pressure: \t\t%f", pressure);
+        // printf("Humidity:\t\t %f", hum);
     }
 }

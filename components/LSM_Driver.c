@@ -129,7 +129,7 @@ esp_err_t LSM_init(LSM_initData_t *initData)
             if (initStatus == ESP_OK)
             {
                 initStatus = gpio_install_isr_service(ESP_INTR_FLAG_LOWMED);
-                if (initStatus = ESP_ERR_INVALID_STATE)
+                if (initStatus == ESP_ERR_INVALID_STATE)
                 {
                     /** driver already initialised, don't freak out */
                     initStatus = ESP_OK;
@@ -282,6 +282,7 @@ esp_err_t LSM_setFIFOpackets(LSM_DeviceSettings_t *device, LSM_FifoPktCfg_t conf
         break;
     case LSM_PKT4_STEP_OR_TEMP:
         regAddr = LSM_FIFO_CTRL4_REG;
+        break;
     default:
         status = ESP_ERR_INVALID_ARG;
         break;

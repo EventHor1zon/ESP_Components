@@ -10,7 +10,7 @@
 
 /********* Includes ********************/
 
-#include "./WS2812_Driver.h"
+#include "WS2812_Driver.h"
 
 /********* Definitions *****************/
 
@@ -35,7 +35,7 @@ typedef void (*EffectFunction)(void);
  *  \param      colour - 32 bit colour XBGR format 
  * 
 */
-void ledEffects_nightrider(StrandData_t *strand, int fade_len, uint32_t colour);
+void ledEffects_nightrider(void *strand, int fade_len, uint32_t colour);
 
 /** 
  *  \brief fade_color - reduces the value of an 8-bit colour 
@@ -47,5 +47,5 @@ void ledEffects_nightrider(StrandData_t *strand, int fade_len, uint32_t colour);
  *  \return  the adjusted colour value
 */
 uint8_t fade_color(uint8_t colour, uint8_t steps, uint8_t step_no);
-
+void *ledEffectInit(void *arg);
 #endif /* LEDEFFECTS_H */
