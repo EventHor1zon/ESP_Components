@@ -18,6 +18,7 @@
 
 /********* Definitions *****************/
 
+#define GENERIC_I2C_COMMS_SHORTWAIT_MS 10
 #define GENERIC_I2C_COMMS_TIMEOUT_MS 100
 /********** Types **********************/
 

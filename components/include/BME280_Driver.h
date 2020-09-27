@@ -103,7 +103,6 @@
 #define BM_CTRL_MODE_FORCED 1
 
 #define BM_STATUS_UPDATE_MASK 0x01
-#define BM_STATUS_MEASURE_MASK 0b00010000
 
 #define BM_DRIVER_I2C_TRX_TIMEOUT 100
 
@@ -120,9 +119,9 @@
 #define BM_DEFAULT_TEMP_CTRL 0x01
 #define BM_DEFAULT_T_STDBY (1 << 5)
 
-const int wait_sample_fin = 10;
-const int wait_new_sample = 50;
-const int wait_idle = 1000;
+const int wait_sample_fin;
+const int wait_new_sample;
+const int wait_idle;
 
 /********** Types **********************/
 
