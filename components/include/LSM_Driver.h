@@ -20,6 +20,8 @@
 #include "driver/gpio.h"
 #include "esp_err.h"
 #include "esp_log.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 /********* Definitions *****************/
 
@@ -464,13 +466,6 @@ typedef struct LSM_DeviceMeasures
     float calibAccelX; /** < in mG's **/
     float calibAccelY; /** < in mG's **/
     float calibAccelZ; /** < in mG's **/
-    float calibGyroX;
-    float calibGyroY;
-    float calibGyroZ;
-
-    float calibAccelX; /** < in mG's **/
-    float calibAccelY; /** < in mG's **/
-    float calibAccelZ; /** < in mG's **/
 
     uint8_t rawGyro[6];
     uint8_t rawAccel[6];
@@ -500,7 +495,7 @@ typedef struct LSM_DriverSettings
     uint8_t devAddr;                   /** < the device i2c address **/
     void *commsHandle;                 /** < can be used to hold a device handle */
     void *fifoBuffer;                  /** < ptr to fifo buffer memory **/
-
+    TaskHandle_t taskHandle;           /** < handle to the task **/
 } LSM_DriverSettings_t;
 
 /******** Function Definitions *********/
@@ -513,7 +508,7 @@ typedef struct LSM_DriverSettings
  *  \param LSM_initData_t initData 
  *  \return ESP_OK or error
  */
-esp_err_t LSM_init(LSM_initData_t *initData);
+LSM_DriverSettings_t *LSM_init(LSM_initData_t *initData);
 
 /** 
  *  LSM_deinit() 
@@ -536,12 +531,16 @@ esp_err_t LSM_getAccelX(LSM_DriverSettings_t *dev, float *x);
 esp_err_t LSM_getAccelY(LSM_DriverSettings_t *dev, float *y);
 esp_err_t LSM_getAccelZ(LSM_DriverSettings_t *dev, float *z);
 
+esp_err_t LSM_setOpMode(LSM_DriverSettings_t *dev, LSM_OperatingMode_t *mode);
+esp_err_t LSM_setAccelODRMode(LSM_DriverSettings_t *dev, LSM_AccelODR_t mode);
+esp_err_t LSM_setGyroODRMode(LSM_DriverSettings_t *dev, LSM_GyroODR_t mode);
+
 esp_err_t LSM_setFIFOmode(LSM_DriverSettings_t *dev, LSM_FIFOMode_t mode);
 esp_err_t LSM_setFIFOwatermark(uint16_t watermark);
 esp_err_t LSM_getFIFOCount(uint16_t *count);
 esp_err_t LSM_setFIFOpackets(LSM_DriverSettings_t *device, LSM_PktType_t pktType);
 esp_err_t LSM_configInt(LSM_DriverSettings_t *device, uint8_t intNum, LSM_interrupt_t intr);
 esp_err_t LSM_readFifoBlock(LSM_DriverSettings_t *device, uint16_t length);
-esp_err_t LSM_readWhoAmI(LSM_DriverSettings_t *device);
-
+esp_err_t LSM_getWhoAmI(LSM_DriverSettings_t *device, uint8_t *whoami);
+esp_err_t getReg(uint8_t reg);
 #endif /* LSM_DRIVER_H */

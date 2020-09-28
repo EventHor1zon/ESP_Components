@@ -122,5 +122,9 @@ esp_err_t genericI2Cinit(int16_t dataPin, int16_t clockPin, uint32_t clockSpeed,
             .master.clk_speed = clockSpeed};
         status = i2c_param_config(busNum, &i2cConf);
     }
+    if (status == ESP_OK)
+    {
+        ESP_LOGI("GenericI2C Init", "I2C driver started on bus %d", busNum);
+    }
     return status;
 }

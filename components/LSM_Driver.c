@@ -63,9 +63,9 @@ static void LSM_processAccel(LSM_DriverSettings_t *dev)
         break;
     }
 
-    dev->measurements.calibAccelX = ((uint16_t)dev->measurements.rawAccel[1] << 8) | ((uint16_t)dev->measurements.rawAccel[0]) * factor;
-    dev->measurements.calibAccelY = ((uint16_t)dev->measurements.rawAccel[3] << 8) | ((uint16_t)dev->measurements.rawAccel[2]) * factor;
-    dev->measurements.calibAccelZ = ((uint16_t)dev->measurements.rawAccel[5] << 8) | ((uint16_t)dev->measurements.rawAccel[4]) * factor;
+    dev->measurements.calibAccelX = ((uint16_t)(dev->measurements.rawAccel[1] << 8) | (uint16_t)(dev->measurements.rawAccel[0])) * factor;
+    dev->measurements.calibAccelY = ((uint16_t)(dev->measurements.rawAccel[3] << 8) | (uint16_t)(dev->measurements.rawAccel[2])) * factor;
+    dev->measurements.calibAccelZ = ((uint16_t)(dev->measurements.rawAccel[5] << 8) | (uint16_t)(dev->measurements.rawAccel[4])) * factor;
 }
 
 static void LSM_processGyro(LSM_DriverSettings_t *dev)
@@ -115,11 +115,68 @@ static esp_err_t LSM_getFIFOpktCount(LSM_DriverSettings_t *dev, uint16_t *count)
     return status;
 }
 
+static esp_err_t LSM_waitSampleReady(LSM_DriverSettings_t *dev, uint8_t mask)
+{
+
+    uint8_t regVal = 0;
+    if (!(regVal & (mask)))
+    {
+        uint8_t wait = 1;
+        while (wait)
+        {
+            vTaskDelay(pdMS_TO_TICKS(GENERIC_I2C_COMMS_SHORTWAIT_MS));
+            regVal = genericI2CReadFromAddress(dev->commsChannel, dev->devAddr, LSM_STATUS_REG, 1, &regVal);
+            if (regVal & LSM_STATUS_ACCEL_AVAIL_BIT)
+            {
+                wait = 0;
+            }
+        }
+    }
+    return ESP_OK;
+}
+
+void LSMDriverTask(void *args)
+{
+
+    LSM_DriverSettings_t *dev = (LSM_DriverSettings_t *)args;
+
+    while (1)
+    {
+        //printf("in task\n");
+        LSM_sampleLatest(dev);
+        printf("Gyro: %f\t|%f\t|%f\t|%d|%d|%d\n", dev->measurements.calibGyroX, dev->measurements.calibGyroY, dev->measurements.calibGyroZ, dev->measurements.rawGyro[0], dev->measurements.rawGyro[2], dev->measurements.rawGyro[4]);
+        printf("Accl: %f\t|%f\t|%f\n", dev->measurements.calibAccelX, dev->measurements.calibAccelY, dev->measurements.calibAccelZ);
+        vTaskDelay(100);
+    }
+}
+
 /****** Global Data *******************/
+
+esp_err_t
+getReg(uint8_t reg)
+{
+    uint8_t val = 0;
+    esp_err_t status = genericI2CReadFromAddress(1, LSM_I2C_ADDR, reg, 1, &val);
+
+    printf("Register 0x%02x contents: ", reg);
+    for (int i = 0; i < 8; i++)
+    {
+        if (val & (1 << i))
+        {
+            printf("1 ");
+        }
+        else
+        {
+            printf("0 ");
+        }
+    }
+    printf(" - \n");
+    return status;
+}
 
 /****** Global Functions *************/
 
-esp_err_t LSM_init(LSM_initData_t *initData)
+LSM_DriverSettings_t *LSM_init(LSM_initData_t *initData)
 {
 
     esp_err_t initStatus = ESP_OK;
@@ -156,17 +213,23 @@ esp_err_t LSM_init(LSM_initData_t *initData)
                 /** TODO: setup spi  **/
                 return ESP_ERR_NOT_SUPPORTED;
             }
-            else
+            else if (initData->commMode == LSM_DEVICE_COMM_MODE_I2C)
             {
                 device->commMode = LSM_DEVICE_COMM_MODE_I2C;
+                device->commsChannel = initData->commsChannel;
+
                 if (initData->addrPinState)
-                {
-                    device->devAddr = LSM_I2C_ADDR;
-                }
-                else
                 {
                     device->devAddr = LSM_I2C_ADDR + 1;
                 }
+                else
+                {
+                    device->devAddr = LSM_I2C_ADDR;
+                }
+            }
+            else
+            {
+                initStatus = ESP_ERR_INVALID_ARG;
             }
         }
 
@@ -182,21 +245,23 @@ esp_err_t LSM_init(LSM_initData_t *initData)
             {
                 gpioMask |= (1ULL << initData->int2Pin);
             }
+
             gpio_config_t gpioInit = {0};
-            gpioInit.intr_type = GPIO_INTR_LOW_LEVEL;
+            gpioInit.intr_type = GPIO_INTR_NEGEDGE;
             gpioInit.mode = GPIO_MODE_INPUT;
             gpioInit.pin_bit_mask = gpioMask;
             gpioInit.pull_up_en = GPIO_PULLUP_ENABLE;
             gpioInit.pull_down_en = GPIO_PULLDOWN_DISABLE;
 
-            initStatus = gpio_config(&gpioInit);
+            ESP_ERROR_CHECK(gpio_config(&gpioInit));
 
             if (initStatus == ESP_OK)
             {
-                initStatus = gpio_install_isr_service(ESP_INTR_FLAG_LOWMED);
+                ESP_ERROR_CHECK(gpio_install_isr_service(ESP_INTR_FLAG_LEVEL1));
                 if (initStatus == ESP_ERR_INVALID_STATE)
                 {
                     /** driver already initialised, don't freak out */
+                    ESP_LOGI("LSM_Driver", "Cannot install gpio isr service");
                     initStatus = ESP_OK;
                 }
 
@@ -204,11 +269,15 @@ esp_err_t LSM_init(LSM_initData_t *initData)
                 {
                     if (initData->int1Pin)
                     {
-                        gpio_isr_handler_add(initData->int1Pin, ISR_int1, NULL);
+                        ESP_ERROR_CHECK(gpio_isr_handler_add(initData->int1Pin, ISR_int1, NULL));
+                        device->i1Pin = initData->int1Pin;
+                        device->int1En = 1;
                     }
                     if (initData->int2Pin)
                     {
-                        gpio_isr_handler_add(initData->int2Pin, ISR_int2, NULL);
+                        ESP_ERROR_CHECK(gpio_isr_handler_add(initData->int2Pin, ISR_int2, NULL));
+                        device->i2Pin = initData->int2Pin;
+                        device->int2En = 1;
                     }
                 }
                 else
@@ -236,6 +305,7 @@ esp_err_t LSM_init(LSM_initData_t *initData)
                 if (fifoMem != NULL)
                 {
                     device->fifoBuffer = fifoMem;
+                    ESP_LOGI("LSM_Driver", "FIFO Buffer initialised at %p", fifoMem);
                 }
                 else
                 {
@@ -244,15 +314,52 @@ esp_err_t LSM_init(LSM_initData_t *initData)
             }
         }
 
+        /** device settings - start these all at default values (unless specified in initData) **/
+        device->settings.accelAA = 0;
+        device->settings.accelRate = initData->accelRate;
+        device->settings.accelScale = LSM_ACCSCALE_2G;
+        device->settings.accelDec = 1;
+        device->settings.accelAA = 0;
+
+        device->settings.gyroDec = 1;
+        device->settings.gyroPwr = LSM_GYROPWR_NORMAL;
+        device->settings.gyroRate = initData->gyroRate;
+        device->settings.gyroScale = LSM_GYRO_SCALE_250DPS;
+        device->settings.highPass = 0;
+
+        device->settings.opMode = initData->opMode;
+        device->settings.int1 = 0;
+        device->settings.int2 = 0;
+        device->settings.fifoMode = LSM_FIFO_MODE_BYPASS;
+        device->settings.fifoODR = LSM_FIFO_ODR_DISABLED;
+        device->settings.fifoPktLen = 0;
+
         if (initStatus == ESP_OK)
         {
             /** initialise device settings **/
+            ESP_LOGI("LSM_Driver", "Setting Data rates");
+            LSM_setOpMode(device, &initData->opMode);
             LSM_setAccelODRMode(device, initData->accelRate);
             LSM_setGyroODRMode(device, initData->gyroRate);
         }
+
+        if (initStatus == ESP_OK)
+        {
+            TaskHandle_t taskHandle;
+            if (xTaskCreate(LSMDriverTask, "LSMDriverTask", 5012, (void *)device, 3, NULL) == pdFALSE)
+            {
+                ESP_LOGE("LSM_Driver", "Error creating control task!");
+                initStatus = ESP_ERR_INVALID_RESPONSE;
+            }
+            // device->taskHandle = taskHandle;
+        }
     }
 
-    return initStatus;
+    if (initStatus == ESP_OK)
+    {
+        ESP_LOGI("LSM_Driver", "Succesfully started driver!");
+    }
+    return device;
 }
 
 esp_err_t LSM_deInit(LSM_DriverSettings_t *dev)
@@ -279,16 +386,16 @@ esp_err_t LSM_setOpMode(LSM_DriverSettings_t *dev, LSM_OperatingMode_t *mode)
     /** enable all axis for eac dev **/
     if (*mode == LSM_OPMODE_ACCEL_ONLY)
     {
-        writeVals[0] = ((((LSM_CTRL9_ACCEL_Z_EN_BIT) | (LSM_CTRL9_ACCEL_Y_EN_BIT) | (LSM_CTRL9_ACCEL_X_EN_BIT)) << 3) | (regVals[0] & 0b111)));
+        writeVals[0] = ((LSM_CTRL9_ACCEL_Z_EN_BIT) | (LSM_CTRL9_ACCEL_Y_EN_BIT) | (LSM_CTRL9_ACCEL_X_EN_BIT) | (regVals[0] & 0b111));
+    }
+    else if (*mode == LSM_OPMODE_GYRO_ONLY)
+    {
+        writeVals[1] = ((LSM_CTRL10_GYRO_Z_EN_BIT) | (LSM_CTRL10_GYRO_Y_EN_BIT) | (LSM_CTRL10_GYRO_X_EN_BIT) | (regVals[1] & 0b111));
     }
     else if (*mode == LSM_OPMODE_GYRO_ACCEL)
     {
-        writeVals[1] = ((((LSM_CTRL10_GYRO_Z_EN_BIT) | (LSM_CTRL10_GYRO_Y_EN_BIT) | (LSM_CTRL10_GYRO_X_EN_BIT)) << 3) | (regVals[1] & 0b111));
-    }
-    else if (*mode == LSM_OPMODE_GYRO_ACCEL)
-    {
-        writeVals[0] = ((((LSM_CTRL9_ACCEL_Z_EN_BIT) | (LSM_CTRL9_ACCEL_Y_EN_BIT) | (LSM_CTRL9_ACCEL_X_EN_BIT)) << 3) | (regVals[0] & 0b111)));
-        writeVals[1] = ((((LSM_CTRL10_GYRO_Z_EN_BIT) | (LSM_CTRL10_GYRO_Y_EN_BIT) | (LSM_CTRL10_GYRO_X_EN_BIT)) << 3) | (regVals[1] & 0b111));
+        writeVals[0] = ((LSM_CTRL9_ACCEL_Z_EN_BIT) | (LSM_CTRL9_ACCEL_Y_EN_BIT) | (LSM_CTRL9_ACCEL_X_EN_BIT) | (regVals[0] & 0b111));
+        writeVals[1] = ((LSM_CTRL10_GYRO_Z_EN_BIT) | (LSM_CTRL10_GYRO_Y_EN_BIT) | (LSM_CTRL10_GYRO_X_EN_BIT) | (regVals[1] & 0b111));
     }
     else
     {
@@ -299,6 +406,8 @@ esp_err_t LSM_setOpMode(LSM_DriverSettings_t *dev, LSM_OperatingMode_t *mode)
     {
         status = genericI2CwriteToAddress(dev->commsChannel, dev->devAddr, LSM_CTRL9_XL_REG, 2, writeVals);
     }
+
+    ESP_LOGI("LSM_Driver", "Set opmode to %02x", *mode);
 
     return status;
 }
@@ -317,16 +426,19 @@ esp_err_t LSM_setAccelODRMode(LSM_DriverSettings_t *dev, LSM_AccelODR_t mode)
         /** get axis enabled status */
         status = genericI2CReadFromAddress(dev->commsChannel, dev->devAddr, LSM_CTRL9_XL_REG, 1, &accelEn);
         /** if no axis are active and mode > LSM_ACCELPWR_OFF turn on axis **/
-        if (!(accelEn) && mode > LSM_ACCODR_PWR_OFF)
+
+        if ((accelEn == 0) && mode > LSM_ACCODR_PWR_OFF)
         {
             accelEn |= ((LSM_CTRL9_ACCEL_Z_EN_BIT) | (LSM_CTRL9_ACCEL_Y_EN_BIT) | (LSM_CTRL9_ACCEL_X_EN_BIT));
-            status = genericI2CwriteToAddress(dev->commsChannel, dev->devAddr, LSM_CTRL9_XL_REG, 1, &accelEn);
+            ESP_LOGI("LSM_Driver", "Writing %02x to Accel ctrl reg", accelEn);
+            status = genericI2CwriteToAddress(1, LSM_I2C_ADDR, LSM_CTRL9_XL_REG, 1, &accelEn);
         }
         /** get register value, clear mode & set new **/
         status = genericI2CReadFromAddress(dev->commsChannel, dev->devAddr, LSM_CTRL1_XL_REG, 1, &regVal);
         regVal &= 0b1111;
         regVal |= (mode << 4);
         status = genericI2CwriteToAddress(dev->commsChannel, dev->devAddr, LSM_CTRL1_XL_REG, 1, &regVal);
+        ESP_LOGI("LSM_Driver", "Set ACCEL CTRL1 to %02x", regVal);
     }
     return status;
 }
@@ -355,6 +467,7 @@ esp_err_t LSM_setGyroODRMode(LSM_DriverSettings_t *dev, LSM_GyroODR_t mode)
         regVal &= 0b1111;
         regVal |= (mode << 4);
         status = genericI2CwriteToAddress(dev->commsChannel, dev->devAddr, LSM_CTRL2_G_REG, 1, &regVal);
+        ESP_LOGI("LSM_Driver", "Set Gyro CTRL2 to %02x", regVal);
     }
     return status;
 }
@@ -401,54 +514,19 @@ esp_err_t LSM_sampleLatest(LSM_DriverSettings_t *dev)
     switch (dev->settings.opMode)
     {
     case LSM_OPMODE_ACCEL_ONLY:
-        if (!(regVal & LSM_STATUS_ACCEL_AVAIL_BIT))
-        {
-            wait = 1;
-            while (wait)
-            {
-                vTaskDelay(pdMS_TO_TICKS(GENERIC_I2C_COMMS_SHORTWAIT_MS));
-                regVal = genericI2CReadFromAddress(dev->commsChannel, dev->devAddr, LSM_STATUS_REG, 1, &regVal);
-                if (regVal & LSM_STATUS_ACCEL_AVAIL_BIT)
-                {
-                    wait = 0;
-                }
-            }
-        }
+
         status = genericI2CReadFromAddress(dev->commsChannel, dev->devAddr, LSM_ACCELX_LSB_REG, 6, dev->measurements.rawAccel);
         LSM_processAccel(dev);
         break;
 
     case LSM_OPMODE_GYRO_ONLY:
-        if (!(regVal & LSM_STATUS_GYRO_AVAIL_BIT))
-        {
-            wait = 1;
-            while (wait)
-            {
-                vTaskDelay(pdMS_TO_TICKS(GENERIC_I2C_COMMS_SHORTWAIT_MS));
-                regVal = genericI2CReadFromAddress(dev->commsChannel, dev->devAddr, LSM_STATUS_REG, 1, &regVal);
-                if (regVal & LSM_STATUS_GYRO_AVAIL_BIT)
-                {
-                    wait = 0;
-                }
-            }
-        }
+
         status = genericI2CReadFromAddress(dev->commsChannel, dev->devAddr, LSM_GYROX_LSB_REG, 6, dev->measurements.rawGyro);
         LSM_processGyro(dev);
+        break;
 
     case LSM_OPMODE_GYRO_ACCEL:
-        if (!(regVal & (LSM_STATUS_ACCEL_AVAIL_BIT & LSM_STATUS_GYRO_AVAIL_BIT)))
-        {
-            wait = 1;
-            while (wait)
-            {
-                vTaskDelay(pdMS_TO_TICKS(GENERIC_I2C_COMMS_SHORTWAIT_MS));
-                regVal = genericI2CReadFromAddress(dev->commsChannel, dev->devAddr, LSM_STATUS_REG, 1, &regVal);
-                if (regVal & (LSM_STATUS_ACCEL_AVAIL_BIT & LSM_STATUS_GYRO_AVAIL_BIT))
-                {
-                    wait = 0; /** wait until both gyro and accel data available **/
-                }
-            }
-        }
+
         status = genericI2CReadFromAddress(dev->commsChannel, dev->devAddr, LSM_GYROX_LSB_REG, 12, dev->measurements.rawGyro);
         LSM_processAccel(dev);
         LSM_processGyro(dev);
@@ -456,6 +534,8 @@ esp_err_t LSM_sampleLatest(LSM_DriverSettings_t *dev)
     default:
         break;
     }
+
+    return status;
 }
 
 esp_err_t LSM_getGyroX(LSM_DriverSettings_t *dev, float *x)
