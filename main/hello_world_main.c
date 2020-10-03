@@ -40,33 +40,6 @@ void app_main(void)
 
     printf("Free heap: %d\n", esp_get_free_heap_size());
 
-    // printf("Starting LEDSs\n");
-    // uint16_t numLeds = 6;
-    // gpio_num_t pin = GPIO_NUM_5;
-    // WS2812_init(1, &numLeds, &pin);
-
-    // uint8_t whoami = 0;
-    // esp_err_t status = genericI2CReadFromAddress(0, LSM_I2C_ADDR, LSM_WHOAMI_REG, 1, &whoami);
-
-    // printf("Read from device whoami = %08x", whoami);
-    uint8_t i2cChannel = 1;
-    genericI2Cinit(17, 16, 200000, i2cChannel);
-
-    LSM_initData_t init = {0};
-    init.int1Pin = GPIO_NUM_14;
-    init.int2Pin = GPIO_NUM_12;
-    init.accelRate = LSM_ACCODR_104_HZ;
-    init.gyroRate = LSM_GYRO_ODR_104_HZ;
-    init.commMode = LSM_DEVICE_COMM_MODE_I2C;
-    init.commsChannel = 1;
-    init.opMode = LSM_OPMODE_GYRO_ACCEL;
-    init.assignFifoBuffer = 1;
-    init.addrPinState = 0;
-
-    LSM_DriverSettings_t *handle = LSM_init(&init);
-
-    uint8_t who = 0, blank = 3, a = 0;
-
     while (1)
     {
         vTaskDelay(100);

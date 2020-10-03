@@ -376,11 +376,12 @@ LSM_DriverSettings_t *LSM_init(LSM_initData_t *initData)
         if (initStatus == ESP_OK)
         {
             TaskHandle_t taskHandle;
-            if (xTaskCreate(LSMDriverTask, "LSMDriverTask", 5012, (void *)device, 3, NULL) == pdFALSE)
+            if (xTaskCreate(LSMDriverTask, "LSMDriverTask", 5012, (void *)device, 3, &taskHandle) == pdFALSE)
             {
                 ESP_LOGE("LSM_Driver", "Error creating control task!");
                 initStatus = ESP_ERR_INVALID_RESPONSE;
             }
+
             device->taskHandle = taskHandle;
         }
     }
@@ -621,7 +622,7 @@ esp_err_t LSM_getFIFOmode(LSM_DriverSettings_t *dev, uint8_t *mode)
     return status;
 }
 
-esp_err_t LSM_setFIFOwatermark(uint16_t watermark)
+esp_err_t LSM_setFIFOwatermark(LSM_DriverSettings_t *dev, uint16_t *watermark)
 {
     esp_err_t status = ESP_OK;
     /** TODO: this **/

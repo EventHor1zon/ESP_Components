@@ -596,14 +596,14 @@ esp_err_t LSM_setFIFOmode(LSM_DriverSettings_t *dev, LSM_FIFOMode_t mode);
  *  \param  x   - pointer to value 
  *  \return ESP_OK or error
  **/
-esp_err_t LSM_setFIFOwatermark(LSM_DriverSettings_t *dev, uint16_t watermark);
+esp_err_t LSM_setFIFOwatermark(LSM_DriverSettings_t *dev, uint16_t *watermark);
 
 /** \brief  setFIFOpackets - set the fifo packet type
  *  \param  dev - pointer to device struct 
  *  \param  pktType - pointer to packet type. Should be an OR'd value of enum LSM_PktType_t 
  *  \return ESP_OK or error
  **/
-esp_err_t LSM_setFIFOpackets(LSM_DriverSettings_t *dev, LSM_PktType_t *pktType);
+esp_err_t LSM_setFIFOpackets(LSM_DriverSettings_t *dev, LSM_PktType_t pktType);
 
 /** \brief  configInt - set the fifo packet type
  *  \param  dev - pointer to device struct 
