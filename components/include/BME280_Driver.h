@@ -119,10 +119,6 @@
 #define BM_DEFAULT_TEMP_CTRL 0x01
 #define BM_DEFAULT_T_STDBY (1 << 5)
 
-const int wait_sample_fin;
-const int wait_new_sample;
-const int wait_idle;
-
 /********** Types **********************/
 
 typedef enum bm_devTypes

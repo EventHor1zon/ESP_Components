@@ -66,7 +66,6 @@ void app_main(void)
     LSM_DriverSettings_t *handle = LSM_init(&init);
 
     uint8_t who = 0, blank = 3, a = 0;
-    LSM_getWhoAmI(handle, &who);
 
     while (1)
     {
