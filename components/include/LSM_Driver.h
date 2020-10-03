@@ -221,6 +221,7 @@
 #define LSM_FUNCSRC_SENSHUB_COMM_STATUS_BIT (1)
 
 #define LSM_FIFO_BUFFER_MEM_LEN 4096 * 2
+#define LSM_DRIVER_SAMPLE_WAIT_READTRIES 200
 
 /** TODO: MORE TAP STUFF... **/
 /** TODO: WAKEUP EVENTS **/
@@ -417,8 +418,6 @@ typedef enum LSM_DeviceCommMode
  */
 typedef struct LSM_initData
 {
-    uint16_t dataPin;     /** < gpio pin for the data line */
-    uint16_t clockPin;    /** < gpio pin for the clock line */
     gpio_num_t int1Pin;   /** < gpio pin for int 1 - 0 if unused */
     gpio_num_t int2Pin;   /** < gpio pin for int 2 - 0 if unused */
     uint8_t commsChannel; /** < comms channel for i2c or spi */
@@ -459,7 +458,7 @@ typedef struct LSM_deviceSettings
 
 typedef struct LSM_DeviceMeasures
 {
-    float calibGyroX;
+    float calibGyroX; /** < in mDegrees/s **/
     float calibGyroY;
     float calibGyroZ;
 
@@ -480,8 +479,6 @@ typedef struct LSM_DeviceMeasures
 */
 typedef struct LSM_DriverSettings
 {
-    uint16_t dtPin;
-    uint16_t clkPin;                   /** TODO: Need these pins? **/
     uint16_t i1Pin;                    /** < gpio interrupt pin 1 **/
     uint16_t i2Pin;                    /** < gpio interrupt pin 2 **/
     bool int1En;                       /** < enabled interrupt 1 **/
@@ -523,24 +520,104 @@ esp_err_t LSM_deInit();
  * **/
 esp_err_t LSM_sampleLatest(LSM_DriverSettings_t *dev);
 
+/** \brief  getGyroX - returns most recent gyro X axis value
+ *  \param  dev - pointer to device struct 
+ *  \param  x   - pointer to value place
+ *  \return ESP_OK or error
+ **/
 esp_err_t LSM_getGyroX(LSM_DriverSettings_t *dev, float *x);
+
+/** \brief  getGyroY - returns most recent gyro Y axis value
+ *  \param  dev - pointer to device struct 
+ *  \param  y   - pointer to value place
+ *  \return ESP_OK or error
+ **/
 esp_err_t LSM_getGyroY(LSM_DriverSettings_t *dev, float *y);
+
+/** \brief  getGyroZ - returns most recent gyro z axis value
+ *  \param  dev - pointer to device struct 
+ *  \param  z   - pointer to value place
+ *  \return ESP_OK or error
+ **/
 esp_err_t LSM_getGyroZ(LSM_DriverSettings_t *dev, float *z);
 
+/** \brief  getAccelX - returns most recent accel X axis value
+ *  \param  dev - pointer to device struct 
+ *  \param  x   - pointer to value place
+ *  \return ESP_OK or error
+ **/
 esp_err_t LSM_getAccelX(LSM_DriverSettings_t *dev, float *x);
+
+/** \brief  getAccelY - returns most recent accel Y axis value
+ *  \param  dev - pointer to device struct 
+ *  \param  y   - pointer to value place
+ *  \return ESP_OK or error
+ **/
 esp_err_t LSM_getAccelY(LSM_DriverSettings_t *dev, float *y);
+
+/** \brief  getAccelZ - returns most recent accel Z axis value
+ *  \param  dev - pointer to device struct 
+ *  \param  x   - pointer to value place
+ *  \return ESP_OK or error
+ **/
 esp_err_t LSM_getAccelZ(LSM_DriverSettings_t *dev, float *z);
 
+/** \brief  setOpMode - set the operating mode
+ *  \param  dev - pointer to device struct 
+ *  \param  mode  - pointer to mode value
+ *  \return ESP_OK or error
+ **/
 esp_err_t LSM_setOpMode(LSM_DriverSettings_t *dev, LSM_OperatingMode_t *mode);
+
+/** \brief  setAccelODRMode - set the accel data rate
+ *  \param  dev - pointer to device struct 
+ *  \param  mode - pointer to value 
+ *  \return ESP_OK or error
+ **/
 esp_err_t LSM_setAccelODRMode(LSM_DriverSettings_t *dev, LSM_AccelODR_t mode);
+
+/** \brief  setGyroODRMode - set the gyro output data rate
+ *  \param  dev - pointer to device struct 
+ *  \param  mode   - pointer to value 
+ *  \return ESP_OK or error
+ **/
 esp_err_t LSM_setGyroODRMode(LSM_DriverSettings_t *dev, LSM_GyroODR_t mode);
 
+/** \brief  setFifoMode - set the fifo mode 
+ *                      - only bypass/standard currently supported
+ *  \param  dev - pointer to device struct 
+ *  \param  mode   - pointer to value 
+ *  \return ESP_OK or error
+ **/
 esp_err_t LSM_setFIFOmode(LSM_DriverSettings_t *dev, LSM_FIFOMode_t mode);
-esp_err_t LSM_setFIFOwatermark(uint16_t watermark);
-esp_err_t LSM_getFIFOCount(uint16_t *count);
-esp_err_t LSM_setFIFOpackets(LSM_DriverSettings_t *device, LSM_PktType_t pktType);
+
+/** \brief  setFIFOwatermark - set the fifo watermark
+ *  \param  dev - pointer to device struct 
+ *  \param  x   - pointer to value 
+ *  \return ESP_OK or error
+ **/
+esp_err_t LSM_setFIFOwatermark(LSM_DriverSettings_t *dev, uint16_t watermark);
+
+/** \brief  setFIFOpackets - set the fifo packet type
+ *  \param  dev - pointer to device struct 
+ *  \param  pktType - pointer to packet type. Should be an OR'd value of enum LSM_PktType_t 
+ *  \return ESP_OK or error
+ **/
+esp_err_t LSM_setFIFOpackets(LSM_DriverSettings_t *dev, LSM_PktType_t *pktType);
+
+/** \brief  configInt - set the fifo packet type
+ *  \param  dev - pointer to device struct 
+ *  \param intNum - interrupt num (1 or 2)
+ *  \param  intr - interrupt type (one of LSM_interrupt_t)
+ *  \return ESP_OK or error
+ **/
 esp_err_t LSM_configInt(LSM_DriverSettings_t *device, uint8_t intNum, LSM_interrupt_t intr);
+
+/** \brief  readFifoBlock - read fifo packet data into buffer
+ *  \param  dev - pointer to device struct 
+ *  \param  length - length of data to read
+ *  \return ESP_OK or error
+ **/
 esp_err_t LSM_readFifoBlock(LSM_DriverSettings_t *device, uint16_t length);
-esp_err_t LSM_getWhoAmI(LSM_DriverSettings_t *device, uint8_t *whoami);
-esp_err_t getReg(uint8_t reg);
+
 #endif /* LSM_DRIVER_H */
