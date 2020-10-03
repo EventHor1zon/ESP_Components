@@ -39,6 +39,10 @@ const int wait_sample_fin = 10;
 const int wait_new_sample = 50;
 const int wait_idle = 1000;
 const char *BM_DRIVER_TAG = "[BM280 DRIVER]";
+
+const int wait_sample_fin = 10;
+const int wait_new_sample = 50;
+const int wait_idle = 1000;
 /****** Private Functions *************/
 
 /** Calibration Functions :  The following calibration fucntions are adapted from the Bosch BME280 Data sheet **/
@@ -359,6 +363,7 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
         vTaskDelay(pdMS_TO_TICKS(wait_new_sample));
 
         /** check sample finished **/
+        uint8_t reg = 0;
         if (genericI2CReadFromAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_DEV_STATUS, 1, &reg) & BM_STATUS_MEASURE_MASK)
         {
             while (genericI2CReadFromAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_DEV_STATUS, 1, &reg) & BM_STATUS_MEASURE_MASK)
