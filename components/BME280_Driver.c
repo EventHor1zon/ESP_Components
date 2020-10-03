@@ -35,7 +35,9 @@ static esp_err_t bm280_getDeviceStatus(bm_controlData_t *bmCtrl);
 /****** Global Data *******************/
 
 // #define DEBUG 1
-
+const int wait_sample_fin = 10;
+const int wait_new_sample = 50;
+const int wait_idle = 1000;
 const char *BM_DRIVER_TAG = "[BM280 DRIVER]";
 
 const int wait_sample_fin = 10;
@@ -345,6 +347,7 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
 
     esp_err_t trxStatus = ESP_OK;
     uint8_t forcedMeasure = bmCtrl->sampleMask | BM_CTRL_MODE_FORCED;
+    uint8_t reg = 0;
     uint8_t rxBuffer[BM_MEASURE_READ_LEN] = {0};
 
     if (bmCtrl->devSettings.sampleMode == BM_FORCE_MODE)

@@ -58,7 +58,7 @@ static uint8_t peripheral_num = 0;
 
 /****** Global Functions *************/
 
-peripheral_t *get_peripheral_from_id(uint32_t periph_id)
+static peripheral_t *get_peripheral_from_id(uint32_t periph_id)
 {
     peripheral_t *periph = NULL;
 
@@ -78,7 +78,7 @@ peripheral_t *get_peripheral_from_id(uint32_t periph_id)
     return periph;
 }
 
-parameter_t *get_parameter_from_id(peripheral_t *periph, uint32_t param_id)
+static parameter_t *get_parameter_from_id(peripheral_t *periph, uint32_t param_id)
 {
     parameter_t *param = NULL;
 
