@@ -20,6 +20,8 @@
 #include "driver/gpio.h"
 #include "esp_err.h"
 #include "esp_log.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 /********* Definitions *****************/
 
@@ -28,8 +30,6 @@
 #define LSM_I2C_SA_HIGH (1)
 #define LSM_I2C_SA_LOW (0)
 #define LSM_WHOAMI 0x69
-
-#define LSM_FIFO_BUFFER_MEM_LEN 8000
 
 #define LSM_FUNC_CFG_REG 0x01
 #define LSM_SNES_SYNC_REG 0x04
@@ -220,6 +220,9 @@
 #define LSM_FUNCSRC_IRONCALC_STATUS_BIT (1 << 1)
 #define LSM_FUNCSRC_SENSHUB_COMM_STATUS_BIT (1)
 
+#define LSM_FIFO_BUFFER_MEM_LEN 4096 * 2
+#define LSM_DRIVER_SAMPLE_WAIT_READTRIES 200
+
 /** TODO: MORE TAP STUFF... **/
 /** TODO: WAKEUP EVENTS **/
 
@@ -256,6 +259,7 @@ typedef enum LSM_FIFOMode
     LSM_FIFO_MODE_CONT_TO_FIFO = 3,   /** < both fifo & cont, changes depending on event trigger */
     LSM_FIFO_MODE_BYPASS_TO_FIFO = 4, /** < same as above but with bypass */
     LSM_FIFO_MODE_CONTINUOUS = 6,     /** < continuously updates fifo dumping older data */
+    LSM_FIFO_MODE_END = 7
 } LSM_FIFOMode_t;
 
 typedef enum LSM_FIFOodr
@@ -285,20 +289,33 @@ typedef enum LSM_FifoPktCfg
     LSM_FIFO_32_DECM,
 } LSM_FifoPktCfg_t;
 
+/** make pkttypes binary so user can OR them **/
 typedef enum LSM_PktType
 {
-    LSM_PKT1_GYRO,
-    LSM_PKT2_ACCL,
-    LSM_PKT3_SENSHUB,
-    LSM_PKT4_STEP_OR_TEMP
+    LSM_PKT1_GYRO = 1,
+    LSM_PKT2_ACCL = 2,
+    LSM_PKT3_SENSHUB = 4,
+    LSM_PKT4_STEP_OR_TEMP = 8
 } LSM_PktType_t;
 
 /**  ISR control 1 **/
 
-// typedef enum LSM_ISR1Mode
-// {
-
-// } LSM_ISR1Mode_t;
+typedef enum LSM_interrupt
+{
+    LSM_INT_TYPE_CLEAR = 0,
+    LSM_INT_TYPE_ACC_RDY = 1,
+    LSM_INT_TYPE_GYR_RDY = 2,
+    LSM_INT_TYPE_TMP_RDY = 3,
+    LSM_INT_TYPE_BOOTSTAT = 3,
+    LSM_INT_TYPE_FIFO_THR = 4,
+    LSM_INT_TYPE_FIFO_OVR = 5,
+    LSM_INT_TYPE_FIFOFULL = 6,
+    LSM_INT_TYPE_STEPOVR = 7,
+    LSM_INT_TYPE_SIGMOTION = 7,
+    LSM_INT_TYPE_STEPDELTA = 8,
+    LSM_INT_TYPE_STEPBASIC = 8,
+    LSM_INT_TYPE_END = 9
+} LSM_interrupt_t;
 
 /** ctrl1 accel */
 typedef enum LSM_AccelODR
@@ -401,11 +418,10 @@ typedef enum LSM_DeviceCommMode
  */
 typedef struct LSM_initData
 {
-    uint16_t dataPin;     /** < gpio pin for the data line */
-    uint16_t clockPin;    /** < gpio pin for the clock line */
     gpio_num_t int1Pin;   /** < gpio pin for int 1 - 0 if unused */
     gpio_num_t int2Pin;   /** < gpio pin for int 2 - 0 if unused */
     uint8_t commsChannel; /** < comms channel for i2c or spi */
+    uint8_t addrPinState;
     LSM_DeviceCommMode_t commMode;
     LSM_OperatingMode_t opMode;
     LSM_AccelODR_t accelRate;
@@ -413,28 +429,71 @@ typedef struct LSM_initData
     bool assignFifoBuffer; /** < assign an 8Kb dma-cap buffer for burst fifo reads **/
 } LSM_initData_t;
 
+typedef struct LSM_deviceSettings
+{
+    LSM_OperatingMode_t opMode;
+    LSM_HighpassSlopeSettings_t highPass;
+
+    LSM_AccelScale_t accelScale;
+    LSM_AccelODR_t accelRate;
+    LSM_AccelPwrMode_t accelPwr; /** obsolete? **/
+    LSM_AccelAntiAliasBW_t accelAA;
+    LSM_FifoPktCfg_t accelDec;
+
+    LSM_GyroScale_t gyroScale;
+    LSM_GyroODR_t gyroRate;
+    LSM_GyroPwrMode_t gyroPwr; /** obsolete ? **/
+    LSM_GyroHighpassCutoff_t GHPcutoff;
+    LSM_FifoPktCfg_t gyroDec;
+
+    LSM_interrupt_t int1;
+    LSM_interrupt_t int2;
+
+    LSM_FIFOMode_t fifoMode;
+    LSM_FIFOodr_t fifoODR;
+
+    uint8_t fifoPktLen;
+
+} LSM_DeviceSettings_t;
+
+typedef struct LSM_DeviceMeasures
+{
+    float calibGyroX; /** < in mDegrees/s **/
+    float calibGyroY;
+    float calibGyroZ;
+
+    float calibAccelX; /** < in mG's **/
+    float calibAccelY; /** < in mG's **/
+    float calibAccelZ; /** < in mG's **/
+
+    uint8_t rawGyro[6];
+    uint8_t rawAccel[6];
+
+} LSM_DeviceMeasures_t;
+
 /**
- *  LSM_DeviceSettings_t - a settings struct for the device
+ *  LSM_DriverSettings_t - a settings struct for the device
  *  keep track of various things..
  * 
  * 
 */
-typedef struct LSM_DeviceSettings
+typedef struct LSM_DriverSettings
 {
-    uint16_t dtPin;
-    uint16_t clkPin; /** TODO: Need these pins? **/
-    uint16_t i1Pin;
-    uint16_t i2Pin;
-    bool int1En;
-    bool int2En;
-    uint8_t int1Function;
-    uint8_t int2Function;
-    LSM_DeviceCommMode_t commMode;
-    uint8_t commChannel; /** < the i2c or spi channel being used */
-    void *commsHandle;   /** < can be used to hold a device handle */
-    void *fifoBuffer;
-
-} LSM_DeviceSettings_t;
+    uint16_t i1Pin;                    /** < gpio interrupt pin 1 **/
+    uint16_t i2Pin;                    /** < gpio interrupt pin 2 **/
+    bool int1En;                       /** < enabled interrupt 1 **/
+    bool int2En;                       /** < enabled interrupt 2 **/
+    uint8_t int1Function;              /** < interrupt function **/
+    uint8_t int2Function;              /** < interrupt function **/
+    LSM_DeviceCommMode_t commMode;     /** < comms mode **/
+    LSM_DeviceSettings_t settings;     /** < a holder for device settings **/
+    LSM_DeviceMeasures_t measurements; /** < the device's latest measurtements **/
+    uint8_t commsChannel;              /** < the i2c or spi channel being used */
+    uint8_t devAddr;                   /** < the device i2c address **/
+    void *commsHandle;                 /** < can be used to hold a device handle */
+    void *fifoBuffer;                  /** < ptr to fifo buffer memory **/
+    TaskHandle_t taskHandle;           /** < handle to the task **/
+} LSM_DriverSettings_t;
 
 /******** Function Definitions *********/
 
@@ -446,7 +505,7 @@ typedef struct LSM_DeviceSettings
  *  \param LSM_initData_t initData 
  *  \return ESP_OK or error
  */
-esp_err_t LSM_init(LSM_initData_t *initData);
+LSM_DriverSettings_t *LSM_init(LSM_initData_t *initData);
 
 /** 
  *  LSM_deinit() 
@@ -454,16 +513,111 @@ esp_err_t LSM_init(LSM_initData_t *initData);
  *  
  *  \return ESP_OK or error
 */
-
 esp_err_t LSM_deInit();
 
-esp_err_t LSM_setFIFOmode(LSM_FIFOMode_t mode);
-esp_err_t LSM_setFIFOwatermark(uint16_t watermark);
-esp_err_t LSM_getFIFOCount(uint16_t *count);
-esp_err_t LSM_setFIFOpackets(LSM_DeviceSettings_t *device, LSM_FifoPktCfg_t config, LSM_PktType_t fifoPacket);
-esp_err_t LSM_configInt(LSM_DeviceSettings_t *device, uint8_t intNum);
+/** \brief: samples latest measurements. Waits status 
+ * 
+ * **/
+esp_err_t LSM_sampleLatest(LSM_DriverSettings_t *dev);
 
-esp_err_t LSM_readFifoBlock(LSM_DeviceSettings_t *device, uint16_t length);
-esp_err_t LSM_readWhoAmI(LSM_DeviceSettings_t *device);
+/** \brief  getGyroX - returns most recent gyro X axis value
+ *  \param  dev - pointer to device struct 
+ *  \param  x   - pointer to value place
+ *  \return ESP_OK or error
+ **/
+esp_err_t LSM_getGyroX(LSM_DriverSettings_t *dev, float *x);
+
+/** \brief  getGyroY - returns most recent gyro Y axis value
+ *  \param  dev - pointer to device struct 
+ *  \param  y   - pointer to value place
+ *  \return ESP_OK or error
+ **/
+esp_err_t LSM_getGyroY(LSM_DriverSettings_t *dev, float *y);
+
+/** \brief  getGyroZ - returns most recent gyro z axis value
+ *  \param  dev - pointer to device struct 
+ *  \param  z   - pointer to value place
+ *  \return ESP_OK or error
+ **/
+esp_err_t LSM_getGyroZ(LSM_DriverSettings_t *dev, float *z);
+
+/** \brief  getAccelX - returns most recent accel X axis value
+ *  \param  dev - pointer to device struct 
+ *  \param  x   - pointer to value place
+ *  \return ESP_OK or error
+ **/
+esp_err_t LSM_getAccelX(LSM_DriverSettings_t *dev, float *x);
+
+/** \brief  getAccelY - returns most recent accel Y axis value
+ *  \param  dev - pointer to device struct 
+ *  \param  y   - pointer to value place
+ *  \return ESP_OK or error
+ **/
+esp_err_t LSM_getAccelY(LSM_DriverSettings_t *dev, float *y);
+
+/** \brief  getAccelZ - returns most recent accel Z axis value
+ *  \param  dev - pointer to device struct 
+ *  \param  x   - pointer to value place
+ *  \return ESP_OK or error
+ **/
+esp_err_t LSM_getAccelZ(LSM_DriverSettings_t *dev, float *z);
+
+/** \brief  setOpMode - set the operating mode
+ *  \param  dev - pointer to device struct 
+ *  \param  mode  - pointer to mode value
+ *  \return ESP_OK or error
+ **/
+esp_err_t LSM_setOpMode(LSM_DriverSettings_t *dev, LSM_OperatingMode_t *mode);
+
+/** \brief  setAccelODRMode - set the accel data rate
+ *  \param  dev - pointer to device struct 
+ *  \param  mode - pointer to value 
+ *  \return ESP_OK or error
+ **/
+esp_err_t LSM_setAccelODRMode(LSM_DriverSettings_t *dev, LSM_AccelODR_t mode);
+
+/** \brief  setGyroODRMode - set the gyro output data rate
+ *  \param  dev - pointer to device struct 
+ *  \param  mode   - pointer to value 
+ *  \return ESP_OK or error
+ **/
+esp_err_t LSM_setGyroODRMode(LSM_DriverSettings_t *dev, LSM_GyroODR_t mode);
+
+/** \brief  setFifoMode - set the fifo mode 
+ *                      - only bypass/standard currently supported
+ *  \param  dev - pointer to device struct 
+ *  \param  mode   - pointer to value 
+ *  \return ESP_OK or error
+ **/
+esp_err_t LSM_setFIFOmode(LSM_DriverSettings_t *dev, LSM_FIFOMode_t mode);
+
+/** \brief  setFIFOwatermark - set the fifo watermark
+ *  \param  dev - pointer to device struct 
+ *  \param  x   - pointer to value 
+ *  \return ESP_OK or error
+ **/
+esp_err_t LSM_setFIFOwatermark(LSM_DriverSettings_t *dev, uint16_t watermark);
+
+/** \brief  setFIFOpackets - set the fifo packet type
+ *  \param  dev - pointer to device struct 
+ *  \param  pktType - pointer to packet type. Should be an OR'd value of enum LSM_PktType_t 
+ *  \return ESP_OK or error
+ **/
+esp_err_t LSM_setFIFOpackets(LSM_DriverSettings_t *dev, LSM_PktType_t *pktType);
+
+/** \brief  configInt - set the fifo packet type
+ *  \param  dev - pointer to device struct 
+ *  \param intNum - interrupt num (1 or 2)
+ *  \param  intr - interrupt type (one of LSM_interrupt_t)
+ *  \return ESP_OK or error
+ **/
+esp_err_t LSM_configInt(LSM_DriverSettings_t *device, uint8_t intNum, LSM_interrupt_t intr);
+
+/** \brief  readFifoBlock - read fifo packet data into buffer
+ *  \param  dev - pointer to device struct 
+ *  \param  length - length of data to read
+ *  \return ESP_OK or error
+ **/
+esp_err_t LSM_readFifoBlock(LSM_DriverSettings_t *device, uint16_t length);
 
 #endif /* LSM_DRIVER_H */

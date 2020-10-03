@@ -51,35 +51,33 @@ void app_main(void)
     // printf("Read from device whoami = %08x", whoami);
     uint8_t i2cChannel = 1;
     genericI2Cinit(17, 16, 200000, i2cChannel);
-    bm_initData_t id = {0};
-    id.addressPinState = 0;
-    id.devType = BME_280_DEVICE;
-    id.i2cChannel = i2cChannel;
-    id.sampleMode = BM_FORCE_MODE;
-    id.sampleType = BM_MODE_TEMP_PRESSURE_HUMIDITY;
 
+<<<<<<< HEAD
     bm_controlData_t *bmHandle = bm280_init(&id);
     uint8_t whoami = 0;
     uint8_t cal = 0;
     uint8_t set = 0;
     uint8_t other = 0;
+=======
+    LSM_initData_t init = {0};
+    init.int1Pin = GPIO_NUM_14;
+    init.int2Pin = GPIO_NUM_12;
+    init.accelRate = LSM_ACCODR_104_HZ;
+    init.gyroRate = LSM_GYRO_ODR_104_HZ;
+    init.commMode = LSM_DEVICE_COMM_MODE_I2C;
+    init.commsChannel = 1;
+    init.opMode = LSM_OPMODE_GYRO_ACCEL;
+    init.assignFifoBuffer = 1;
+    init.addrPinState = 0;
+
+    LSM_DriverSettings_t *handle = LSM_init(&init);
+
+    uint8_t who = 0, blank = 3, a = 0;
+    LSM_getWhoAmI(handle, &who);
+
+>>>>>>> master
     while (1)
     {
-
-        // printf("Whoami = %02x\r\n", whoami);
-        vTaskDelay(1000);
-        // esp_err_t st = bm280_getDeviceID(bmHandle, &whoami);
-        // printf("st = %02x\r\n", st);
-        // genericI2CReadFromAddress(1, 0x76, 0xD0, 1, &whoami);
-        // ESP_LOGI("MAIN_TAG", "ping");
-        // vTaskDelay(2000);
-        // bm280_updateMeasurements(bmHandle);
-        // float temp = 0, pressure = 0, hum = 0;
-        // bm280_getTemperature(bmHandle, &temp);
-        // bm280_getPressure(bmHandle, &pressure);
-        // bm280_getHumidity(bmHandle, &hum);
-        // printf("Temp:\t\t%f", temp);
-        // printf("Pressure: \t\t%f", pressure);
-        // printf("Humidity:\t\t %f", hum);
+        vTaskDelay(100);
     }
 }
