@@ -40,9 +40,6 @@ const int wait_new_sample = 50;
 const int wait_idle = 1000;
 const char *BM_DRIVER_TAG = "[BM280 DRIVER]";
 
-const int wait_sample_fin = 10;
-const int wait_new_sample = 50;
-const int wait_idle = 1000;
 /****** Private Functions *************/
 
 /** Calibration Functions :  The following calibration fucntions are adapted from the Bosch BME280 Data sheet **/
