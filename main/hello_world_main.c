@@ -40,6 +40,13 @@ void app_main(void)
 
     printf("Free heap: %d\n", esp_get_free_heap_size());
 
+    uint16_t numleds = 12;
+    gpio_num_t d = GPIO_NUM_16;
+    if (WS2812_init(1, &numleds, &d) != ESP_OK)
+    {
+        ESP_LOGE("MAIN", "Error in setting up driver");
+    }
+
     while (1)
     {
         vTaskDelay(100);
