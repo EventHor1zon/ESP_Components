@@ -91,6 +91,9 @@ typedef enum pcmd_type
 **/
 typedef struct periph_info
 {
+    uint8_t paramNums; /** < number of parameters **/
+    uint32_t reserved;
+    uint32_t periph_type;
     uint32_t periph_id;
 } periph_info_t;
 

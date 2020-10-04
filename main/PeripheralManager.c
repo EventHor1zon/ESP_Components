@@ -59,6 +59,22 @@ static uint8_t peripheral_num = 0;
 
 /****** Global Functions *************/
 
+static peripheral_t *get_peripheral_from_index(uint8_t index)
+{
+
+    peripheral_t *p = NULL;
+    if (index > peripheral_num)
+    {
+        return p;
+    }
+    else
+    {
+        p = peripherals[index];
+    }
+
+    return p;
+}
+
 static peripheral_t *get_peripheral_from_id(uint32_t periph_id)
 {
     peripheral_t *periph = NULL;
@@ -156,6 +172,11 @@ void pm_craft_data_response(uint32_t uid, parameter_t *param_data, uint32_t data
     rsp->rsp_data.drsp_data.type = param_data->valueType;
 }
 
+// void pm_craft_prminfo_response(uint32_t uid, uint32_t pid, cmd_rsp_t *rsp)
+// {
+//     rsp->
+// }
+
 void pm_craft_pinfo_num_response(uint32_t uid, uint8_t num, cmd_rsp_t *rsp)
 {
     rsp->rsp_data.drsp_data.data = num;
@@ -165,11 +186,11 @@ void pm_craft_pinfo_num_response(uint32_t uid, uint8_t num, cmd_rsp_t *rsp)
     rsp->rsp_type = RSP_TYPE_DATA;
 }
 
-void pm_craft_pinfo_response(uint32_t uid, peripheral_t *p, cmd_rsp_t *rsp)
-{
-    rsp->rsp_type = RSP_TYPE_DATA;
-    rsp->rsp_uid = uid;
-}
+// void pm_craft_pinfo_response(uint32_t uid, peripheral_t *p, cmd_rsp_t *rsp)
+// {
+//     rsp->rsp_type = RSP_TYPE_DATA;
+//     rsp->rsp_uid = uid;
+// }
 
 esp_err_t pm_execute_direct_cmd()
 {
@@ -204,7 +225,7 @@ cmd_rsp_t pm_process_incoming_request(cmd_request_t *request)
             }
             else
             {
-                pm_craft_pinfo_response();
+                //pm_craft_pinfo_response();
             }
         }
     }
