@@ -43,6 +43,7 @@
 /**  TESTING: incomming command from api manger **/
 
 const char *incommingCommand = "{\"command_type: 1\",\n\"command_id\" : 4,\n\"command_value\" : 2,}";
+const char *PM_TAG = "PERIPHERAL_MANAGER";
 
 /****** Function Prototypes ***********/
 
@@ -94,7 +95,7 @@ static parameter_t *get_parameter_from_id(peripheral_t *periph, uint32_t param_i
     return param;
 }
 
-action_t *get_action_from_id(peripheral_t *periph, uint32_t action_id)
+static action_t *get_action_from_id(peripheral_t *periph, uint32_t action_id)
 {
     action_t *act = NULL;
     for (int i = 0; i < periph->actions_len; i++)
@@ -106,6 +107,26 @@ action_t *get_action_from_id(peripheral_t *periph, uint32_t action_id)
         }
     }
     return act;
+}
+
+static void pmTask(void *args)
+{
+
+    cmd_request_t incomming = {0};
+    cmd_rsp_t outgoing = {0};
+
+    while (1)
+    {
+
+        while (commandq == NULL)
+        {
+            vTaskDelay(1000);
+        }
+
+        xQueueReceive(commandq, &incomming, portMAX_DELAY);
+        outgoing = pm_process_incoming_request(&incomming);
+        xQueueSendToBack(respondq, &outgoing, PM_QUEUE_SEND_TIMEOUT);
+    }
 }
 
 void pm_craft_error_response(uint8_t error_code, char *err_msg, uint32_t uid, cmd_rsp_t *rsp)
@@ -135,6 +156,21 @@ void pm_craft_data_response(uint32_t uid, parameter_t *param_data, uint32_t data
     rsp->rsp_data.drsp_data.type = param_data->valueType;
 }
 
+void pm_craft_pinfo_num_response(uint32_t uid, uint8_t num, cmd_rsp_t *rsp)
+{
+    rsp->rsp_data.drsp_data.data = num;
+    rsp->rsp_data.drsp_data.param_id = 0;
+    rsp->rsp_data.drsp_data.type = 0;
+    rsp->rsp_uid = uid;
+    rsp->rsp_type = RSP_TYPE_DATA;
+}
+
+void pm_craft_pinfo_response(uint32_t uid, peripheral_t *p, cmd_rsp_t *rsp)
+{
+    rsp->rsp_type = RSP_TYPE_DATA;
+    rsp->rsp_uid = uid;
+}
+
 esp_err_t pm_execute_direct_cmd()
 {
     return ESP_OK;
@@ -150,7 +186,27 @@ cmd_rsp_t pm_process_incoming_request(cmd_request_t *request)
 
     if (request->cmd_type == CMD_TYPE_PINFO)
     {
-        //pm_craft_pinfo_response();
+
+        periph_info_t pinfo = request->cmd_data.lcmd_data;
+        peripheral_t *periph;
+
+        if (pinfo.periph_id == PM_PIFO_NUM_TYPE)
+        {
+            pm_craft_pinfo_num_response(request->cmd_uid, peripheral_num, &response);
+        }
+        else
+        {
+            periph = get_peripheral_from_id(pinfo.periph_id);
+            if (periph == NULL)
+            {
+
+                pm_craft_error_response(0, "Invalid Peripheral ID", request->cmd_uid, &response);
+            }
+            else
+            {
+                pm_craft_pinfo_response();
+            }
+        }
     }
     else if (request->cmd_type == CMD_TYPE_SINFO)
     {
@@ -314,6 +370,21 @@ esp_err_t peripheral_manager_init()
 
     peripherals[peripheral_num] = bmeP;
     peripheral_num++;
+
+    respondq = NULL;
+    respondq = xQueueCreate(PM_MAX_QUEUE_LEN, sizeof(cmd_rsp_t));
+
+    if (respondq == NULL)
+    {
+        ESP_LOGE(PM_TAG, "Error creating response queue");
+        initStatus = ESP_ERR_NO_MEM;
+    }
+
+    if (xTaskCreate(pmTask, "pmTask", 5012, NULL, 2, NULL) != pdTRUE)
+    {
+        ESP_LOGE(PM_TAG, "Error creating control task");
+        initStatus = ESP_ERR_NO_MEM;
+    }
 
     return initStatus;
 }

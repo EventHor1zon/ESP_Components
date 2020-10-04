@@ -16,7 +16,10 @@
 #include "driver/i2c.h"
 /********* Definitions *****************/
 
-#define PM_MAX_PERIPHERALS 30
+#define PM_MAX_PERIPHERALS 10
+#define PM_MAX_QUEUE_LEN 10
+#define PM_QUEUE_SEND_TIMEOUT 1000
+#define PM_PIFO_NUM_TYPE 0xFF
 
 #define PM_ERR_INVALID_ID 0x80
 #define PM_ERR_INVALID_ARG 0x81
@@ -86,6 +89,12 @@ typedef struct peripheral
     uint8_t actions_len;
     uint32_t peripheral_id;
 } peripheral_t;
+
+typedef struct peripheral_summary
+{
+    peripheral_t *peripherals;
+    uint8_t perip_num;
+} peripheral_summary_t;
 
 /********** Types **********************/
 

@@ -14,6 +14,13 @@
 
 /********* Definitions *****************/
 
+#define CMD_API_ERR_MAX_LEN 64
+
+QueueHandle_t commandq; /** < Handle for the main command queue **/
+QueueHandle_t respondq; /** < Handle for the main respond queue **/
+
+/********** Types **********************/
+
 /** \brief parameter value enum
  *          is also size of value in bytes
  * **/
@@ -54,7 +61,7 @@ typedef enum rsp_type
 typedef struct rsp_err
 {
     uint32_t error_code;
-    char err_message[64];
+    char err_message[CMD_API_ERR_MAX_LEN];
 } rsp_err_t;
 
 typedef struct rsp_data
@@ -62,6 +69,7 @@ typedef struct rsp_data
     uint32_t param_id;
     uint8_t type;
     uint32_t data;
+    char name[16];
 } rsp_data_t;
 
 typedef struct rsp_stream
@@ -77,6 +85,10 @@ typedef enum pcmd_type
     PCMD_TYPE_ACT
 } pcmd_type_t;
 
+/** If the periph_id = 0xFF, returns number of peripherals
+ *                           currently active
+ *  else
+**/
 typedef struct periph_info
 {
     uint32_t periph_id;
@@ -104,15 +116,15 @@ typedef struct direct_cmd
 
 typedef struct command_request
 {
-    cmd_type_t cmd_type;
-    uint32_t cmd_uid;
+    cmd_type_t cmd_type; /** < command type (one of cmd_type_t) **/
+    uint32_t cmd_uid;    /** < command unique id **/
     union
     {
         periph_info_t lcmd_data;
         sys_info_t icmd_data;
         periph_cmd_t pcmd_data;
         direct_cmd_t dcmd_data;
-    } cmd_data;
+    } cmd_data;    /** < the command data **/
     uint32_t auth; /** < reserved **/
 } cmd_request_t;
 
@@ -129,8 +141,6 @@ typedef struct command_response
     } rsp_data;
     uint32_t auth; /** < reserved **/
 } cmd_rsp_t;
-
-/********** Types **********************/
 
 /******** Function Definitions *********/
 
