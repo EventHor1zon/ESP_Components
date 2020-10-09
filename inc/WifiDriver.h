@@ -1,16 +1,14 @@
 /****************************************
-* \file     apaManager.h
-* \brief    header for the api manager driver 
-* \date     Aug 2020    
-* \author   RJAM
+* \file
+* \brief
+* \date
+* \author
 ****************************************/
 
-#ifndef APA_MANAGER_H
-#define APA_MANAGER_H
+#ifndef WIFI_DRIVER_H
+#define WIFI_DRIVER_H
 
 /********* Includes ********************/
-
-#include "http_server.h"
 
 /********* Definitions *****************/
 
@@ -18,4 +16,6 @@
 
 /******** Function Definitions *********/
 
-#endif /* APA_MANAGER_H */
+void wifi_init_sta(void);
+
+#endif /* WIFI_DRIVER_H */

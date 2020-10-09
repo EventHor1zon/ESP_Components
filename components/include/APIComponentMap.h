@@ -13,7 +13,7 @@
 
 #include "BME280_Driver.h"
 #include "../../inc/CommandAPI.h"
-#include <stdint.h>
+#include "esp_types.h"
 #include "esp_err.h"
 
 /********* Definitions *****************/
