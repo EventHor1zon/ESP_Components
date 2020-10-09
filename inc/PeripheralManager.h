@@ -1,6 +1,14 @@
 /****************************************
 * \file     PeripheralManager.h
 * \brief    Header file for the Peripheral manager.c
+*
+*   PeripheralManager is one of the main components of ESP_Home system
+*   It acts as a bridge btween the connected peripherals and the API manager
+*   It creates the main command queue and the control task is blocked waiting for 
+*   an incomming command from the API manager
+*
+*
+*
 * \date     Sept 2020
 * \author   RJAM
 ****************************************/
@@ -11,7 +19,7 @@
 /********* Includes ********************/
 #include <stdint.h>
 #include "esp_err.h"
-#include "../components/include/APIComponentMap.h"
+#include "APIComponentMap.h"
 
 #include "driver/i2c.h"
 /********* Definitions *****************/
@@ -99,5 +107,19 @@ typedef struct peripheral_summary
 /********** Types **********************/
 
 /******** Function Definitions *********/
+
+/** peripheral_manager_init()
+ *  
+ *  initialises the peripheral manager
+ * 
+ *  \return ESP_OK or error 
+ **/
+esp_err_t peripheral_manager_init(void);
+
+/** pm_process_incoming_request
+ * 
+ * 
+ **/
+cmd_rsp_t pm_process_incoming_request(cmd_request_t *request);
 
 #endif /* PERIPHERAL_MANAGER_H */

@@ -15,10 +15,18 @@
 #include "esp_log.h"
 #include "esp_spi_flash.h"
 #include "../inc/main.h"
+#include "../inc/WifiDriver.h"
+#include "../inc/APIManager.h"
+#include "../inc/PeripheralManager.h"
 #include "WS2812_Driver.h"
 #include "BME280_Driver.h"
 #include "LSM_Driver.h"
 #include "genericCommsDriver.h"
+
+#include "nvs_flash.h"
+
+#include "lwip/err.h"
+#include "lwip/sys.h"
 
 void app_main(void)
 {
@@ -39,6 +47,19 @@ void app_main(void)
            (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
 
     printf("Free heap: %d\n", esp_get_free_heap_size());
+
+    esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
+    {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ret = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(ret);
+
+    ESP_LOGI("MAIN", "ESP_WIFI_MODE_STA");
+    wifi_init_sta();
+    api_manager_init();
+    peripheral_manager_init();
 
     while (1)
     {

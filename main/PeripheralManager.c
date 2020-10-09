@@ -20,7 +20,6 @@
 #include "../inc/CommandAPI.h"
 
 #include "BME280_Driver.h"
-#include "../components/include/APIComponentMap.h"
 
 /**
  *      The plan - 

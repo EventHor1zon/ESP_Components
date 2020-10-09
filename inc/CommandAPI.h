@@ -11,6 +11,8 @@
 /********* Includes ********************/
 
 #include "esp_types.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
 
 /********* Definitions *****************/
 
@@ -26,6 +28,7 @@ QueueHandle_t respondq; /** < Handle for the main respond queue **/
  * **/
 typedef enum param_type
 {
+    PARAMTYPE_NONE = 0x00,
     PARAMTYPE_INT8 = 0x01,
     PARAMTYPE_UINT8 = 0x01,
     PARAMTYPE_INT16 = 0x02,
@@ -41,6 +44,7 @@ typedef enum param_type
 typedef enum cmd_type
 {
     CMD_TYPE_PINFO = 0x01, /** < command peripheral info **/
+    CMD_TYPE_PRMINFO,      /** < command parameter type **/
     CMD_TYPE_SINFO,        /** < command system info **/
     CMD_TYPE_PCMD,         /** < peripheral command **/
     CMD_TYPE_DIRECT,       /** < system command **/
@@ -85,23 +89,35 @@ typedef enum pcmd_type
     PCMD_TYPE_ACT
 } pcmd_type_t;
 
-/** If the periph_id = 0xFF, returns number of peripherals
- *                           currently active
- *  else
+/** Peripheral info packet 
+ *      - contains jsonable info for the api manager to send out
+ *      - enumerate once per peripheral
 **/
 typedef struct periph_info
 {
+    char name[16];
     uint8_t paramNums; /** < number of parameters **/
-    uint32_t reserved;
     uint32_t periph_type;
     uint32_t periph_id;
 } periph_info_t;
 
-typedef struct sys_info
+/** Param info packet 
+ *      - contains jsonable info for api manager to dispatch
+ *      - for type string, max can be used for max length
+ *      - for base_type == action, zero both paramtype and max
+ **/
+typedef struct param_info
 {
-    uint32_t sys_id;
-} sys_info_t;
+    char prm_name[16];
+    pcmd_type_t base_type;
+    param_type_t param_type;
+    uint32_t max;
+} param_info_t;
 
+/** Peripheral command packet
+ *      - contains info for a peripheral command
+ *      - if pcmd_type == action, data and ptype can be 0
+ **/
 typedef struct periph_cmd
 {
     uint32_t periph_id;
@@ -111,12 +127,6 @@ typedef struct periph_cmd
     param_type_t ptype;
 } periph_cmd_t;
 
-typedef struct direct_cmd
-{
-    uint32_t dcmd_id;
-    uint32_t data;
-} direct_cmd_t;
-
 typedef struct command_request
 {
     cmd_type_t cmd_type; /** < command type (one of cmd_type_t) **/
@@ -124,9 +134,7 @@ typedef struct command_request
     union
     {
         periph_info_t lcmd_data;
-        sys_info_t icmd_data;
         periph_cmd_t pcmd_data;
-        direct_cmd_t dcmd_data;
     } cmd_data;    /** < the command data **/
     uint32_t auth; /** < reserved **/
 } cmd_request_t;
