@@ -16,8 +16,6 @@
 #include "esp_spi_flash.h"
 #include "../inc/main.h"
 #include "../inc/WifiDriver.h"
-#include "../inc/APIManager.h"
-#include "../inc/PeripheralManager.h"
 #include "WS2812_Driver.h"
 #include "BME280_Driver.h"
 #include "LSM_Driver.h"
@@ -58,8 +56,6 @@ void app_main(void)
 
     ESP_LOGI("MAIN", "ESP_WIFI_MODE_STA");
     wifi_init_sta();
-    api_manager_init();
-    peripheral_manager_init();
 
     while (1)
     {
