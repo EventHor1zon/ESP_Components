@@ -7,6 +7,7 @@ set(srcs
     "genericCommsDriver.c"
     "Utilities.c"
     "LSM_Driver.c"
+    "SystemInterface.c"
     )
 
 set(includes "include")

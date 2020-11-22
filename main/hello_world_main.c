@@ -20,6 +20,7 @@
 #include "BME280_Driver.h"
 #include "LSM_Driver.h"
 #include "genericCommsDriver.h"
+#include "SystemInterface.h"
 
 #include "nvs_flash.h"
 
@@ -55,10 +56,12 @@ void app_main(void)
     ESP_ERROR_CHECK(ret);
 
     ESP_LOGI("MAIN", "ESP_WIFI_MODE_STA");
-    wifi_init_sta();
+    //wifi_init_sta();
 
     while (1)
     {
-        vTaskDelay(100);
+
+        dump_system_info();
+        vTaskDelay(1000);
     }
 }
