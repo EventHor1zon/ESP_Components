@@ -100,5 +100,5 @@ esp_err_t sys_get_total_memory(uint16_t *val)
     mem_cap_iram = heap_caps_get_total_size(MALLOC_CAP_IRAM_8BIT);
     mem_spi_ram = heap_caps_get_total_size(MALLOC_CAP_SPIRAM);
 
-    mem_total = mem_dma + mem_8bit + mem_cap_iram + mem
+    return status;
 }
