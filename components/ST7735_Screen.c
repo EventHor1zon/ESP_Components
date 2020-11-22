@@ -33,8 +33,9 @@
 
 /****** Global Functions *************/
 
-esp_err_t init_screen(uint8_t spi_bus, gpio_num_t cs)
+screen_handle_t *init_screen(uint8_t spi_bus, gpio_num_t cs)
 {
+    screen_handle_t *handle;
 
     spi_device_interface_config_t dev_cfg = {0};
     spi_device_handle_t *handle;
@@ -48,17 +49,29 @@ esp_err_t init_screen(uint8_t spi_bus, gpio_num_t cs)
     dev_cfg.flags = (SPI_DEVICE_3WIRE);
 
     spi_bus_add_device(spi_bus, &dev_cfg, handle);
+
+    handle = (screen_handle_t *)heap_caps_calloc(1, sizeof(screen_handle_t), MALLOC_CAP_8BIT);
 }
 
-esp_err_t screen_write(screen_transaction_t *trx)
+esp_err_t screen_write(screen_handle_t *screen, screen_transaction_t *trx)
+{
+    spi_transaction_t transaction = {0};
+
+    transaction.cmd = trx->mode;
+    transaction.length = trx->s_len;
+    transaction.tx_buffer = trx->send;
+
+    esp_err_t status = spi_device_polling_transmit(screen->devhandle, &transaction);
+
+    return status;
+}
+
+esp_err_t screen_readwrite(screen_handle_t *screen, screen_transaction_t *trx)
 {
     spi_transaction_t transaction = {0};
     transaction.cmd = trx->mode;
-    transaction.length = (trx->s_len > trx->r_len) ? trx->s_len : trx->r_len;
+    transaction.length = trx->mode;
     transaction.rxlength = trx->r_len;
     transaction.rx_buffer = trx->recv;
     transaction.tx_buffer = trx->send;
-
-    esp_err_t status = spi_device_polling_transmit(trx->devhandle, &transaction);
-    return status;
 }
