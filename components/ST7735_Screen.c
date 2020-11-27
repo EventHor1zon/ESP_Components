@@ -35,10 +35,9 @@
 
 screen_handle_t *init_screen(uint8_t spi_bus, gpio_num_t cs)
 {
-    screen_handle_t *handle;
-
+    screen_handle_t *screen;
     spi_device_interface_config_t dev_cfg = {0};
-    spi_device_handle_t *handle;
+    spi_device_handle_t handle;
 
     dev_cfg.command_bits = 1;
     dev_cfg.address_bits = 0;
@@ -48,9 +47,11 @@ screen_handle_t *init_screen(uint8_t spi_bus, gpio_num_t cs)
     dev_cfg.queue_size = 1;
     dev_cfg.flags = (SPI_DEVICE_3WIRE);
 
-    spi_bus_add_device(spi_bus, &dev_cfg, handle);
+    spi_bus_add_device(spi_bus, &dev_cfg, &handle);
 
     handle = (screen_handle_t *)heap_caps_calloc(1, sizeof(screen_handle_t), MALLOC_CAP_8BIT);
+
+    return handle;
 }
 
 esp_err_t screen_write(screen_handle_t *screen, screen_transaction_t *trx)
@@ -74,4 +75,8 @@ esp_err_t screen_readwrite(screen_handle_t *screen, screen_transaction_t *trx)
     transaction.rxlength = trx->r_len;
     transaction.rx_buffer = trx->recv;
     transaction.tx_buffer = trx->send;
+
+    esp_err_t status = ESP_OK;
+
+    return status;
 }
