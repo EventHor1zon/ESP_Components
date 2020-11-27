@@ -168,152 +168,150 @@ cmd_rsp_t pm_process_incoming_request(cmd_request_t *request)
         }
         else
         {
-            // GET //
-            if (pcmd.pcmd_type == PCMD_TYPE_GET)
+            parameter_t *param = get_parameter_from_id(periph, pcmd.param_id);
+            if (param == NULL)
             {
-                parameter_t *param = get_parameter_from_id(periph, pcmd.param_id);
-                if (param == NULL)
+                pm_craft_error_response(PM_ERR_INVALID_ID, "Invalid Param ID", request->cmd_uid, &response);
+            }
+            // GET //
+            else
+            {
+                if (pcmd.pcmd_type == PCMD_TYPE_GET)
                 {
-                    pm_craft_error_response(PM_ERR_INVALID_ID, "Invalid Param ID", request->cmd_uid, &response);
+
+                    if (param->get == NULL)
+                    {
+                        pm_craft_error_response(PM_ERR_INVALID_CMD, "Param not gettable", request->cmd_uid, &response);
+                    }
+                    else
+                    {
+                        uint32_t data = 0;
+                        cmd_status = param->get(periph->handle, &data);
+                        if (cmd_status != ESP_OK)
+                        {
+                            pm_craft_error_response(cmd_status, "Get Error", request->cmd_uid, &response);
+                        }
+                        else
+                        {
+                            pm_craft_data_response(param->param_id, param, data, &response);
+                        }
+                    }
                 }
-                else if (param->get == NULL)
+                // SET //
+                else if (pcmd.pcmd_type == PCMD_TYPE_SET)
                 {
-                    pm_craft_error_response(PM_ERR_INVALID_CMD, "Param not gettable", request->cmd_uid, &response);
-                }
-                else
-                {
-                    uint32_t data = 0;
-                    cmd_status = param->get(periph->handle, &data);
+                    if (param->set == NULL)
+                    {
+                        pm_craft_error_response(PM_ERR_INVALID_CMD, "Param not settable", request->cmd_uid, &response);
+                    }
+                    else
+                    {
+                        if (pcmd.ptype == PARAMTYPE_UINT8)
+                        {
+                            uint8_t data8 = (uint8_t)pcmd.data;
+                            cmd_status = param->set(periph->handle, &data8);
+                        }
+                        else if (pcmd.ptype == PARAMTYPE_UINT16)
+                        {
+
+                            uint16_t data16 = (uint16_t)pcmd.data;
+                            cmd_status = param->set(periph->handle, &data16);
+                        }
+                        else if (pcmd.ptype == PARAMTYPE_UINT32)
+                        {
+                            uint32_t data32 = pcmd.data;
+                            cmd_status = param->set(periph->handle, &data32);
+                        }
+                        else if (pcmd.ptype == PARAMTYPE_FLOAT)
+                        {
+                            float dataF = (float)pcmd.data;
+                            cmd_status = param->set(periph->handle, &dataF);
+                        }
+                        else
+                        {
+                        }
+                    }
+
                     if (cmd_status != ESP_OK)
                     {
                         pm_craft_error_response(cmd_status, "Get Error", request->cmd_uid, &response);
                     }
                     else
                     {
-                        pm_craft_data_response(param->param_id, param, data, &response);
+                        pm_craft_ok_response(param->param_id, &response);
                     }
                 }
-            }
-            // SET //
-            else if (pcmd.pcmd_type == PCMD_TYPE_SET)
-            {
-                parameter_t *param = get_parameter_from_id(periph, pcmd.param_id);
-                if (param == NULL)
-                {
-                    pm_craft_error_response(PM_ERR_INVALID_ID, "Invalid Param ID", request->cmd_uid, &response);
-                }
-                else if (param->set == NULL)
-                {
-                    pm_craft_error_response(PM_ERR_INVALID_CMD, "Param not settable", request->cmd_uid, &response);
-                }
-                else
-                {
-                    if (pcmd.ptype == PARAMTYPE_UINT8)
-                    {
-                        uint8_t data8 = (uint8_t)pcmd.data;
-                        cmd_status = param->set(periph->handle, &data8);
-                    }
-                    else if (pcmd.ptype == PARAMTYPE_UINT16)
-                    {
 
-                        uint16_t data16 = (uint16_t)pcmd.data;
-                        cmd_status = param->set(periph->handle, &data16);
-                    }
-                    else if (pcmd.ptype == PARAMTYPE_UINT32)
+                // ACTION //
+                else if (pcmd.pcmd_type == PCMD_TYPE_ACT)
+                {
+                    /** Get the action **/
+                    action_t *act = get_action_from_id(periph, pcmd.param_id);
+                    if (act == NULL)
                     {
-                        uint32_t data32 = pcmd.data;
-                        cmd_status = param->set(periph->handle, &data32);
-                    }
-                    else if (pcmd.ptype == PARAMTYPE_FLOAT)
-                    {
-                        float dataF = (float)pcmd.data;
-                        cmd_status = param->set(periph->handle, &dataF);
+                        pm_craft_error_response(PM_ERR_INVALID_ID, "Invalid action ID", request->cmd_uid, &response);
                     }
                     else
                     {
+                        /** run the command **/
+                        cmd_status = act->action(periph->handle);
+                        if (cmd_status != ESP_OK)
+                        {
+                            pm_craft_error_response(cmd_status, "Action Error", request->cmd_uid, &response);
+                        }
+                        else
+                        {
+                            pm_craft_ok_response(act->action_id, &response);
+                        }
                     }
-                }
-
-                if (cmd_status != ESP_OK)
-                {
-                    pm_craft_error_response(cmd_status, "Get Error", request->cmd_uid, &response);
                 }
                 else
                 {
-                    pm_craft_ok_response(param->param_id, &response);
+                    pm_craft_error_response(PM_ERR_INVALID_TYPE, "Action Error", request->cmd_uid, &response);
                 }
-            }
-
-            // ACTION //
-            else if (pcmd.pcmd_type == PCMD_TYPE_ACT)
-            {
-                /** Get the action **/
-                action_t *act = get_action_from_id(periph, pcmd.param_id);
-                if (act == NULL)
-                {
-                    pm_craft_error_response(PM_ERR_INVALID_ID, "Invalid action ID", request->cmd_uid, &response);
-                }
-                else
-                {
-                    /** run the command **/
-                    cmd_status = act->action(periph->handle);
-                    if (cmd_status != ESP_OK)
-                    {
-                        pm_craft_error_response(cmd_status, "Action Error", request->cmd_uid, &response);
-                    }
-                    else
-                    {
-                        pm_craft_ok_response(act->action_id, &response);
-                    }
-                }
-            }
-            else
-            {
-                pm_craft_error_response(PM_ERR_INVALID_TYPE, "Action Error", request->cmd_uid, &response);
             }
         }
+        else if (request->cmd_type == CMD_TYPE_DIRECT)
+        {
+            //status = pm_execute_direct_cmd();
+            //pm_craft_dcmd_response();
+        }
+        else
+        {
+            pm_craft_error_response(PM_ERR_INVALID_CMD, "Invalid Command type", request->cmd_uid, &response);
+        }
+
+        return response;
     }
-    else if (request->cmd_type == CMD_TYPE_DIRECT)
+
+    esp_err_t peripheral_manager_init()
     {
-        //status = pm_execute_direct_cmd();
-        //pm_craft_dcmd_response();
+        esp_err_t initStatus = ESP_OK;
+
+        /** peripheral init code goes here **/
+        /** use a random peripheral to check process **/
+
+        bm_initData_t bme = {0};
+        bme.devType = BME_280_DEVICE;
+        bme.addressPinState = 0;
+        bme.sampleMode = BM_FORCE_MODE;
+        bme.sampleType = BM_MODE_TEMP_PRESSURE_HUMIDITY;
+        bme.i2cChannel = PM_I2C_BUS_PRIMARY;
+
+        bm_controlData_t *bmHandle = bm280_init(&bme);
+
+        peripheral_t *bmeP = heap_caps_calloc(1, sizeof(peripheral_t), MALLOC_CAP_DEFAULT);
+        bmeP->handle = bmHandle;
+        bmeP->ptype = PTYPE_ENVIRO_SENSOR;
+        bmeP->stype = STYPE_ENVIRO_SENSOR_BME_290;
+        bmeP->actions = bm_action_mappings;
+        bmeP->actions_len = bm_action_len;
+        bmeP->params = bm_param_mappings;
+        bmeP->param_len = bm_param_len;
+        bmeP->peripheral_id = (uint32_t)(bmeP->ptype << 16) | (uint32_t)(bmeP->stype << 8) | (uint32_t)peripheral_num;
+
+        peripherals[peripheral_num] = bmeP;
+        peripheral_num++;
+
+        return initStatus;
     }
-    else
-    {
-        pm_craft_error_response(PM_ERR_INVALID_CMD, "Invalid Command type", request->cmd_uid, &response);
-    }
-
-    return response;
-}
-
-esp_err_t peripheral_manager_init()
-{
-    esp_err_t initStatus = ESP_OK;
-
-    /** peripheral init code goes here **/
-    /** use a random peripheral to check process **/
-
-    bm_initData_t bme = {0};
-    bme.devType = BME_280_DEVICE;
-    bme.addressPinState = 0;
-    bme.sampleMode = BM_FORCE_MODE;
-    bme.sampleType = BM_MODE_TEMP_PRESSURE_HUMIDITY;
-    bme.i2cChannel = PM_I2C_BUS_PRIMARY;
-
-    bm_controlData_t *bmHandle = bm280_init(&bme);
-
-    peripheral_t *bmeP = heap_caps_calloc(1, sizeof(peripheral_t), MALLOC_CAP_DEFAULT);
-    bmeP->handle = bmHandle;
-    bmeP->ptype = PTYPE_ENVIRO_SENSOR;
-    bmeP->stype = STYPE_ENVIRO_SENSOR_BME_290;
-    bmeP->actions = bm_action_mappings;
-    bmeP->actions_len = bm_action_len;
-    bmeP->params = bm_param_mappings;
-    bmeP->param_len = bm_param_len;
-    bmeP->peripheral_id = (uint32_t)(bmeP->ptype << 16) | (uint32_t)(bmeP->stype << 8) | (uint32_t)peripheral_num;
-
-    peripherals[peripheral_num] = bmeP;
-    peripheral_num++;
-
-    return initStatus;
-}
