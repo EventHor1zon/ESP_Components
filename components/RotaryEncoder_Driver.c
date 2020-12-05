@@ -93,7 +93,7 @@ static void IRAM_ATTR RE_DataInterrupt(void *args)
         }
 
         /** start the debounce timer **/
-        xTimerStartFromISR(reControl.debounceTimer, pdHigherPrioWoken);
+        xTimerStartFromISR(reControl.debounceTimer, &pdHigherPrioWoken);
         reControl.debounceState = 1;
     }
 
