@@ -342,6 +342,7 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
     esp_err_t trxStatus = ESP_OK;
     uint8_t forcedMeasure = bmCtrl->sampleMask | BM_CTRL_MODE_FORCED;
     uint8_t rxBuffer[BM_MEASURE_READ_LEN] = {0};
+    uint8_t reg = 0;
 
     if (bmCtrl->devSettings.sampleMode == BM_FORCE_MODE)
     {
@@ -360,7 +361,7 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
         {
             while (genericI2CReadFromAddress(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_DEV_STATUS, 1, &reg) & BM_STATUS_MEASURE_MASK)
             {
-                vTaskDelay(pd_MS_TO_TICKS(wait_sample_fin));
+                vTaskDelay(pdMS_TO_TICKS(wait_sample_fin));
             }
         }
     }
