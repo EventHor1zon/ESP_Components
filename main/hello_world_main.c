@@ -31,37 +31,49 @@ void app_main(void)
 {
     printf("Hello world!\n");
 
-    /* Print chip information */
-    esp_chip_info_t chip_info;
-    esp_chip_info(&chip_info);
-    printf("This is %s chip with %d CPU cores, WiFi%s%s, ",
-           CONFIG_IDF_TARGET,
-           chip_info.cores,
-           (chip_info.features & CHIP_FEATURE_BT) ? "/BT" : "",
-           (chip_info.features & CHIP_FEATURE_BLE) ? "/BLE" : "");
+    // /* Print chip information */
+    // esp_chip_info_t chip_info;
+    // esp_chip_info(&chip_info);
+    // printf("This is %s chip with %d CPU cores, WiFi%s%s, ",
+    //        CONFIG_IDF_TARGET,
+    //        chip_info.cores,
+    //        (chip_info.features & CHIP_FEATURE_BT) ? "/BT" : "",
+    //        (chip_info.features & CHIP_FEATURE_BLE) ? "/BLE" : "");
 
-    printf("silicon revision %d, ", chip_info.revision);
+    // printf("silicon revision %d, ", chip_info.revision);
 
-    printf("%dMB %s flash\n", spi_flash_get_chip_size() / (1024 * 1024),
-           (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
+    // printf("%dMB %s flash\n", spi_flash_get_chip_size() / (1024 * 1024),
+    //        (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
 
-    printf("Free heap: %d\n", esp_get_free_heap_size());
+    // printf("Free heap: %d\n", esp_get_free_heap_size());
 
-    esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
-    {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        ret = nvs_flash_init();
-    }
-    ESP_ERROR_CHECK(ret);
+    // esp_err_t ret = nvs_flash_init();
+    // if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
+    // {
+    //     ESP_ERROR_CHECK(nvs_flash_erase());
+    //     ret = nvs_flash_init();
+    // }
+    // ESP_ERROR_CHECK(ret);
 
-    ESP_LOGI("MAIN", "ESP_WIFI_MODE_STA");
+    // ESP_LOGI("MAIN", "ESP_WIFI_MODE_STA");
     //wifi_init_sta();
+
+    genericI2Cinit(17, 16, 100000, 0);
+
+    bm_initData_t ini;
+    ini.addressPinState = 0;
+    ini.devType = 1;
+    ini.i2cChannel = 0;
+    ini.sampleMode = BM_NORMAL_MODE;
+    ini.sampleType = BM_MODE_TEMP_PRESSURE_HUMIDITY;
+    
+    bm_controlData_t *handle = bm280_init(&ini);
 
     while (1)
     {
 
-        dump_system_info();
+        
+        //dump_system_info();
         vTaskDelay(1000);
     }
 }

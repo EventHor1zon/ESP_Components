@@ -47,5 +47,7 @@ void ledEffects_nightrider(void *strand, int fade_len, uint32_t colour);
  *  \return  the adjusted colour value
 */
 uint8_t fade_color(uint8_t colour, uint8_t steps, uint8_t step_no);
+
+
 void *ledEffectInit(void *arg);
 #endif /* LEDEFFECTS_H */

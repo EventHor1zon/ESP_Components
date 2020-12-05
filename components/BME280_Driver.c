@@ -274,7 +274,6 @@ static esp_err_t bm280_InitDeviceSettings(bm_controlData_t *bmCtrl)
         ESP_LOGE(BM_DRIVER_TAG, "Error - incorrect sample mode type selected");
         break;
     }
-
     switch (sampleType)
     {
     case BM_MODE_TEMP:
@@ -314,7 +313,6 @@ static esp_err_t bm280_InitDeviceSettings(bm_controlData_t *bmCtrl)
         bmCtrl->devSettings.sampleMode = sampleMode;
         bmCtrl->devSettings.sampleType = sampleType;
     }
-
     return trxStatus;
 }
 
@@ -346,7 +344,6 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
     uint8_t forcedMeasure = bmCtrl->sampleMask | BM_CTRL_MODE_FORCED;
     uint8_t reg = 0;
     uint8_t rxBuffer[BM_MEASURE_READ_LEN] = {0};
-    uint8_t reg = 0;
 
     if (bmCtrl->devSettings.sampleMode == BM_FORCE_MODE)
     {
@@ -701,6 +698,7 @@ bm_controlData_t *bm280_init(bm_initData_t *initData)
         bmCtrl->devSettings.humidOS = 0;
         bmCtrl->devSettings.tempOS = 0;
         bmCtrl->devSettings.pressOS = 0;
+        bmCtrl->initData = initData;
 
         bmCtrl->i2cChannel = initData->i2cChannel;
 
