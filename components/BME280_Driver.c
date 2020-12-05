@@ -346,6 +346,7 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
     uint8_t forcedMeasure = bmCtrl->sampleMask | BM_CTRL_MODE_FORCED;
     uint8_t reg = 0;
     uint8_t rxBuffer[BM_MEASURE_READ_LEN] = {0};
+    uint8_t reg = 0;
 
     if (bmCtrl->devSettings.sampleMode == BM_FORCE_MODE)
     {
