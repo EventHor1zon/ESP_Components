@@ -69,7 +69,7 @@ typedef struct action
 parameter_t bm_param_mappings[bm_param_len] = {
     {"Sample Interval", 0, &bm280_getSampleInterval, &bm280_setSampleInterval, PARAMTYPE_UINT8, 7},
     {"Filter Setting", 1, &bm280_getFilterSetting, &bm280_setFilterSetting, PARAMTYPE_UINT8, 4},
-    {"Device ID", 2, bm280_getDeviceID, NULL, PARAMTYPE_UINT8, 0},
+    {"Device ID", 2, &bm280_getDeviceID, NULL, PARAMTYPE_UINT8, 0},
     {"Temperature", 3, &bm280_getTemperature, NULL, PARAMTYPE_FLOAT, 0},
     {"Pressure", 4, &bm280_getPressure, NULL, PARAMTYPE_FLOAT, 0},
     {"Humidity", 5, &bm280_getHumidity, NULL, PARAMTYPE_FLOAT, 0},
