@@ -141,17 +141,17 @@ esp_err_t WS2812_deinit(void);
  * \brief - control task for the driver 
 */
 
-/** \brief  WS2812_setAllLedColour(uint8_t strandNum)
- * 
- *          want externally callable functions to be simple to use, not require
- *          a strand pointer, like static functions. Using allStrands, essentially the
- *          same
- *  \param  strandNum   - strand number (indexed 0-6) to operate on 
- * 
- *  \param  colour       - strand colour, 32-bit int XBGR order
- * 
- *  \return esp_ok or error 
- **/
-esp_err_t WS2812_setAllLedColour(StrandData_t *strand, uint32_t colour);
+// /** \brief  WS2812_setAllLedColour(uint8_t strandNum)
+//  * 
+//  *          want externally callable functions to be simple to use, not require
+//  *          a strand pointer, like static functions. Using allStrands, essentially the
+//  *          same
+//  *  \param  strandNum   - strand number (indexed 0-6) to operate on 
+//  * 
+//  *  \param  colour       - strand colour, 32-bit int XBGR order
+//  * 
+//  *  \return esp_ok or error 
+//  **/
+// esp_err_t WS2812_setAllLedColour(StrandData_t *strand, uint32_t colour);
 
 #endif /* FREESP_WS2812_H */

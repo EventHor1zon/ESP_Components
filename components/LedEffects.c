@@ -34,6 +34,9 @@ uint8_t numTimers = 0;
 
 /****** Private Functions *************/
 
+/** single colour **/
+
+
  /** 
  *  \brief fade_color - reduces the value of an 8-bit colour 
  * 
@@ -76,8 +79,8 @@ ledEffectData_t *ledEffectInit(StrandData_t *strand)
         effectData->LedEffectData_t = 0;
         effectData->refresh_t = 1000;
         effectData->effect = LED_EFFECT_SINGLE_COLOUR;
-        effectData->colour = 0;
-        effectData->func = NULL;
+        effectData->colour = 0x00001100;
+        effectData->func = &all_single_colour;
     }
     else
     {
@@ -91,6 +94,7 @@ ledEffectData_t *ledEffectInit(StrandData_t *strand)
      **/
 
     numTimers++;
+    ESP_LOGI("LEDFX", "LEDFX struct initialised!");
     return effectData;
 }
 
@@ -99,12 +103,8 @@ ledEffectData_t *ledEffectInit(StrandData_t *strand)
  * 
  */
 
-/**  \brief     A basic night-rider style effect with optional fade 
- *      
- *  \param      strand - a pointer to a led control strand
- *  \param      fade_len - length of fade trail
- *  \param      colour - 32 bit colour XBGR format 
- * 
+/**  \brief     A basic night-rider style effect with optional fade    
+ *   \param      strand - a pointer to a led control strand
 */
 void ledEffects_nightrider(StrandData_t *strand)
 {
@@ -124,8 +124,9 @@ void ledEffects_nightrider(StrandData_t *strand)
         fade_len = 0;
     }
 
-    // TODO: replace these with MACROS
+    /** TODO: replace these with MACROS **/
     uint16_t data_length = strand->strandMemLength;
+    /** TODO: RGB ORDER! **/
     uint8_t r = colour;
     uint8_t g = ((colour) >> 8);
     uint8_t b = ((colour) >> 16);
@@ -213,3 +214,30 @@ void ledEffects_nightrider(StrandData_t *strand)
     strand->updateLeds = 1;
 }
 
+
+void all_single_colour(StrandData_t *strand) {
+
+    ESP_LOGI(APA_TAG, "In animation");
+    uint8_t r, g, b;
+    uint8_t *ptr = (uint8_t *)strand->strandMem;
+
+    r = (uint8_t)strand->fxData->colour;
+    g = (uint8_t)(strand->fxData->colour >> 8);
+    b = (uint8_t)(strand->fxData->colour >> 16);
+
+    for (uint8_t offset = 0; offset < (strand->strandMemLength / strand->bytes_per_pixel); offset++)
+    {
+        if(strand->ledType == LEDTYPE_APA102) {
+            *ptr = (APA_CTRL_BRT_MASK | strand->fxData->brightness);
+            ptr++;
+        }
+        *ptr = r;
+        ptr++;
+        *ptr = g;
+        ptr++;
+        *ptr = b;
+        ptr++;
+    }
+
+    strand->updateLeds = 1;
+}

@@ -23,9 +23,15 @@
 #include "freertos/task.h"
 #include "freertos/timers.h"
 #include "freertos/semphr.h"
+#include "freertos/FreeRTOSConfig.h"
 
 /****** Function Prototypes ***********/
 static int send_frame_polling(StrandData_t *strand);
+
+static void apaControlTask(void *args);
+
+TaskHandle_t taskHandle = 0;
+
 // static esp_err_t send_32bit_frame(spi_device_handle_t spi, uint32_t *data);
 /************ ISR *********************/
 
@@ -38,22 +44,10 @@ static int send_frame_polling(StrandData_t *strand);
 **/
 void timerExpiredCallback(TimerHandle_t timer)
 {
-    // StrandData_t *strand = NULL;
-
-    // /** find the right strand from the timerHandle **/
-    // for (uint8_t i = 0; i < ledControl.numStrands; i++)
-    // {
-    //     if (timer == allStrands[i]->refreshTimer)
-    //     {
-    //         strand = allStrands[i];
-    //     }
-    // }
-
-    // if (strand != NULL)
-    // {
-    //     strand->updateLeds = 1;
-    // }
-
+    /** unblock the task to run the next animation **/
+    ESP_LOGI(APA_TAG, "Attempting to notify task");
+    xTaskNotifyGive(taskHandle);
+    xTimerReset(timer, APA_SEMTAKE_TIMEOUT);
     return;
 }
 /****** Private Data ******************/
@@ -118,6 +112,108 @@ static esp_err_t apaWriteLeds(StrandData_t *strand)
     }
 
     return txStatus;
+}
+
+
+static esp_err_t send_frame_polling(StrandData_t *strand)
+{
+    ESP_LOGI("SPI_SETUP", "[+] Sending init data");
+
+    esp_err_t txStatus = ESP_OK;
+
+    spi_transaction_t tx = {0};
+    uint16_t length = (sizeof(uint32_t) * 8);
+    bool got_sem = false;
+
+    tx.length = 32;
+    tx.flags = SPI_TRANS_USE_TXDATA;
+    tx.addr = 0;
+    tx.cmd = 0;
+    tx.rxlength = 0;
+    tx.rx_buffer = NULL;
+    tx.user = NULL;
+
+
+    txStatus = spi_device_polling_transmit(strand->ledSPIHandle, &tx);
+
+    if (txStatus != ESP_OK)
+    {
+        ESP_LOGE("SPI_TX", "Error in sending start frame %u", txStatus);
+    }
+
+    tx.length = 32;
+    tx.flags = 0;
+    for (int i = 0; i < strand->numLeds; i++)
+    {
+        tx.tx_buffer = (void *)&init_frame[i];
+        txStatus = spi_device_polling_transmit(strand->ledSPIHandle, &tx);
+        if (txStatus != ESP_OK)
+        {
+            ESP_LOGE("SPI_TX", "Error in sending data frame number %d [%u]", i, txStatus);
+        }
+    }
+
+    tx.length = sizeof(uint32_t) * 8;
+    tx.flags = SPI_TRANS_USE_TXDATA;
+    tx.tx_data[0] = 0xFF;
+    tx.tx_data[1] = 0xFF;
+    tx.tx_data[2] = 0xFF;
+    tx.tx_data[3] = 0xFF;
+
+    for (int i = 0; i < 3; i++)
+    {
+        txStatus = spi_device_polling_transmit(strand->ledSPIHandle, &tx);
+    }
+    if (txStatus != ESP_OK)
+    {
+        ESP_LOGE("SPI_TX", "Error in sending end frame %u", txStatus);
+    }
+
+
+    return txStatus;
+}
+
+static void apaControlTask(void *args) {
+
+
+    StrandData_t *strand = (StrandData_t *)args;
+
+
+    while(1) {
+
+        if(strand->updateLeds) {
+            if(xSemaphoreTake(strand->memSemphr, APA_SEMTAKE_TIMEOUT) != pdTRUE) {
+                ESP_LOGE(APA_TAG, "Failed to get LED semaphore");
+            } else {
+                if(send_frame_polling(strand) != ESP_OK) {
+                    ESP_LOGE(APA_TAG, "Failed to write to leds");                
+                }
+                if( xSemaphoreGive(strand->memSemphr) != pdTRUE) {
+                    ESP_LOGE(APA_TAG, "error giving sem");
+                }
+            }
+        }
+        else {
+            ESP_LOGI(APA_TAG, "Not updating");
+        }
+
+        if(xTimerGetPeriod(strand->refreshTimer) != strand->fxData->refresh_t) {
+            xTimerChangePeriod(strand->refreshTimer, strand->fxData->refresh_t, APA_SEMTAKE_TIMEOUT);
+        }
+        xTimerStart(strand->refreshTimer, portMAX_DELAY);
+        ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(10000));
+        
+        ESP_LOGI(APA_TAG, "Calling animation...");
+        if(xSemaphoreTake(strand->memSemphr, pdMS_TO_TICKS(1000)) != pdTRUE) {
+            ESP_LOGE(APA_TAG, "Failed to get mem semaphore");
+        }
+        else
+        {
+            strand->fxData->func((void *)strand);
+            xSemaphoreGive(strand->memSemphr);
+        }
+        vTaskDelay(10);
+    }
 }
 
 /****** Global Data *******************/
@@ -207,8 +303,9 @@ StrandData_t *APA102_init(apa102_init_t *init_data)
 
         if (init_status == ESP_OK)
         {
+            SemaphoreHandle_t ledSemaphore = NULL;
             TimerHandle_t refreshTimer = xTimerCreate("refreshTimer", UINT16_MAX, pdTRUE, APA_TIMER_ID, timerExpiredCallback);
-            SemaphoreHandle_t ledSemaphore = xSemaphoreCreateMutex();
+            ledSemaphore = xSemaphoreCreateMutex();
 
             if (refreshTimer != NULL && ledSemaphore != NULL)
             {
@@ -219,6 +316,14 @@ StrandData_t *APA102_init(apa102_init_t *init_data)
             {
                 ESP_LOGE(APA_TAG, "Error in setting up timer/semaphore");
                 init_status = ESP_ERR_NOT_FOUND;
+                }
+        }
+
+        if(init_status == ESP_OK) {
+            ESP_LOGI(APA_TAG, "Starting the control task");
+            if(xTaskCreate(apaControlTask, "apaControlTask", 2048, (void *)strand, 3, &taskHandle) != pdTRUE) {
+                ESP_LOGE(APA_TAG, "Error creating task");
+                init_status = ESP_ERR_NO_MEM;
             }
         }
     }
@@ -245,76 +350,6 @@ StrandData_t *APA102_init(apa102_init_t *init_data)
     return strand;
 }
 
-#ifdef DEBUG_MODE
-static int send_frame_polling(StrandData_t *strand)
-{
-    ESP_LOGI("SPI_SETUP", "[+] Sending init data");
-
-    esp_err_t txStatus = ESP_OK;
-
-    spi_transaction_t tx = {0};
-    uint16_t length = (sizeof(uint32_t) * 8);
-    bool got_sem = false;
-
-    tx.length = 32;
-    tx.flags = SPI_TRANS_USE_TXDATA;
-    tx.addr = 0;
-    tx.cmd = 0;
-    tx.rxlength = 0;
-    tx.rx_buffer = NULL;
-    tx.user = NULL;
-
-    if(xSemaphoreTake(strand->memSemphr, APA_SEMTAKE_TIMEOUT) != pdTRUE) {
-        ESP_LOGE(APA_TAG, "Error, failed to take Semaphore");
-        txStatus = ESP_ERR_INVALID_STATE;
-    } 
-    else
-    {
-
-        txStatus = spi_device_polling_transmit(strand->ledSPIHandle, &tx);
-
-        if (txStatus != ESP_OK)
-        {
-            ESP_LOGE("SPI_TX", "Error in sending start frame %u", txStatus);
-        }
-
-        tx.length = 32;
-        tx.flags = 0;
-        for (int i = 0; i < strand->numLeds; i++)
-        {
-            tx.tx_buffer = (void *)&init_frame[i];
-            txStatus = spi_device_polling_transmit(strand->ledSPIHandle, &tx);
-            if (txStatus != ESP_OK)
-            {
-                ESP_LOGE("SPI_TX", "Error in sending data frame number %d [%u]", i, txStatus);
-            }
-        }
-
-        tx.length = sizeof(uint32_t) * 8;
-        tx.flags = SPI_TRANS_USE_TXDATA;
-        tx.tx_data[0] = 0xFF;
-        tx.tx_data[1] = 0xFF;
-        tx.tx_data[2] = 0xFF;
-        tx.tx_data[3] = 0xFF;
-
-        for (int i = 0; i < 3; i++)
-        {
-            txStatus = spi_device_polling_transmit(strand->ledSPIHandle, &tx);
-        }
-        if (txStatus != ESP_OK)
-        {
-            ESP_LOGE("SPI_TX", "Error in sending end frame %u", txStatus);
-        }
-
-        if(got_sem) {
-            xSemaphoreGive(strand->memSemphr);
-            got_sem = false;
-        }
-
-        return txStatus;
-    }
-}
-#endif
 
 uint8_t apa102_ctrl_generate_brt_segment(uint8_t bright)
 {

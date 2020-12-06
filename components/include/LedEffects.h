@@ -19,8 +19,7 @@
 
 #define LEDFX_MAX_TIMERS 12 
 
-
-typedef void (*EffectFunction)(void);
+typedef void (*EffectFunction)(void *);
 
 // typedef struct ledFx
 // {
@@ -66,7 +65,7 @@ typedef struct ledEffectData
     ledEffect_t effect;       /** < the current effect in enumeration */
     EffectFunction func;      /** < a pointer to the LedEffects function */
     uint32_t colour;          /** < colour - colour */
-    uint16_t refresh_t;       /** < refresh time in ms */
+    uint16_t refresh_t;       /** < refresh time in ms - 0 for no refresh */
     bool updateEffect;        /** < led effect has been changed - adjust parameters */
     uint8_t brightness;       /** < led brigthness  */
     uint32_t LedEffectData_t; /** < struct for holding led effect variables if needed */
@@ -104,5 +103,13 @@ ledEffectData_t *ledEffectInit(StrandData_t *strand);
  *  \param      strand - a pointer to a led control strand
 */
 void ledEffects_nightrider(StrandData_t *strand);
+
+/** \brief: set all leds to colour
+ *  \param: strand pointer
+ **/
+void all_single_colour(StrandData_t *strand);
+
+
+
 
 #endif /* LEDEFFECTS_H */

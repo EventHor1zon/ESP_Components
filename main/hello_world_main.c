@@ -42,7 +42,16 @@ void app_main(void)
     uint16_t numLeds = 16;
     // gpio_num_t pin = GPIO_NUM_5;
     // WS2812_init(1, &numLeds, &pin);
-    esp_err_t status = APA102_init(numLeds, 32, 33, 2, 1);
+
+
+    apa102_init_t ini = {0};
+    ini.clock_pin = 32;
+    ini.data_pin = 33;
+    ini.numleds = 16;
+    ini.spi_bus = 2;
+    ini.init_spi = 1;
+
+    StrandData_t *handle = APA102_init(&ini);
 
     while (1)
     {
