@@ -241,8 +241,12 @@ esp_err_t apa_getMode(StrandData_t *strand, uint32_t *var) {
 
 esp_err_t apa_setMode(StrandData_t *strand, uint8_t  *mode) {
     esp_err_t status = ESP_OK;
-    strand->fxData->effect = mode;
-    strand->updateLeds = true;
+    if(*mode > LEDFX_NUM_EFFECTS) {
+        status = ESP_ERR_INVALID_ARG;
+    } else {
+        strand->fxData->effect = *mode;
+        ledFx_updateMode(strand);
+    }
     return status;
 }
 

@@ -18,6 +18,7 @@
 /********* Definitions *****************/
 
 #define LEDFX_MAX_TIMERS 12 
+#define LEDFX_NUM_EFFECTS 2
 
 typedef void (*EffectFunction)(void *);
 
@@ -33,10 +34,10 @@ typedef enum ledEffect
 {
     LED_EFFECT_OFF,
     LED_EFFECT_SINGLE_COLOUR,
-    LED_EFFECT_SLOW_FADE,
-    LED_EFFECT_RAINBOW,
     LED_EFFECT_NIGHTRIDER,
-    LED_EFFECT_COLOUR_FADE,
+    // LED_EFFECT_SLOW_FADE,
+    // LED_EFFECT_RAINBOW,
+    // LED_EFFECT_COLOUR_FADE,
 
     LED_EFFECT_NO_EFFECT = 0xFF
 } ledEffect_t;
@@ -110,6 +111,6 @@ void ledEffects_nightrider(StrandData_t *strand);
 void all_single_colour(StrandData_t *strand);
 
 
-
+void ledFx_updateMode(StrandData_t *strand);
 
 #endif /* LEDEFFECTS_H */

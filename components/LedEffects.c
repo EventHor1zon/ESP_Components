@@ -102,8 +102,28 @@ ledEffectData_t *ledEffectInit(StrandData_t *strand)
 
 
 /**
- * 
+ *  update led funciton pointer
  */
+void ledFx_updateMode(StrandData_t *strand) {
+    if(strand->fxData->effect == LED_EFFECT_OFF) {
+        strand->fxData->colour = 0x00000000;
+        strand->fxData->func = &all_single_colour;
+        strand->updateLeds = true;    
+    }
+    else if (strand->fxData->effect == LED_EFFECT_SINGLE_COLOUR) {
+        strand->fxData->func = &all_single_colour; 
+        strand->updateLeds = true;
+    }
+    else if (strand->fxData->effect == LED_EFFECT_NIGHTRIDER) {
+        strand->fxData->func = &ledEffects_nightrider;
+        strand->updateLeds = true;
+
+    }
+    else {
+        ESP_LOGE("LFX", "Unknown mode");
+    }
+    return;
+}
 
 /**  \brief     A basic night-rider style effect with optional fade    
  *   \param      strand - a pointer to a led control strand
