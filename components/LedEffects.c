@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "WS2812_Driver.h"
+#include "APA102_Driver.h"
 #include "LedEffects.h"
 
 #include "esp_log.h"
@@ -19,15 +20,41 @@
 
 /****** Function Prototypes ***********/
 
+static uint8_t fade_color(uint8_t colour, uint8_t steps, uint8_t step_no);
+
 /****** Global Data *******************/
 
 uint8_t numTimers = 0;
+
+
 
 /************ ISR *********************/
 
 /****** Private Data ******************/
 
 /****** Private Functions *************/
+
+ /** 
+ *  \brief fade_color - reduces the value of an 8-bit colour 
+ * 
+ *  \param colour - 8-bit colour value
+ *  \param steps  - number of steps to dim
+ *  \param step_no - the current step niumber
+ * 
+ *  \return  the adjusted colour value
+*/
+static uint8_t fade_color(uint8_t colour, uint8_t steps, uint8_t step_no)
+{
+
+    if (step_no >= steps)
+    {
+        return 0;
+    }
+    int steps_remaining = steps - step_no;
+    int difference = colour / (2 * steps_remaining);
+    uint8_t faded = colour - difference;
+    return faded;
+}
 
 /****** Global Functions *************/
 
@@ -42,11 +69,6 @@ ledEffectData_t *ledEffectInit(StrandData_t *strand)
     esp_err_t initStatus = ESP_OK;
     uint16_t spaceRequired = sizeof(ledEffectData_t);
     ledEffectData_t *effectData = NULL;
-
-    if (numTimers > LEDFX_MAX_TIMERS)
-    {
-        initStatus = ESP_ERR_NOT_FOUND;
-    }
 
     effectData = heap_caps_calloc(1, spaceRequired, MALLOC_CAP_8BIT);
     if (effectData != NULL)
@@ -72,6 +94,11 @@ ledEffectData_t *ledEffectInit(StrandData_t *strand)
     return effectData;
 }
 
+
+/**
+ * 
+ */
+
 /**  \brief     A basic night-rider style effect with optional fade 
  *      
  *  \param      strand - a pointer to a led control strand
@@ -79,11 +106,17 @@ ledEffectData_t *ledEffectInit(StrandData_t *strand)
  *  \param      colour - 32 bit colour XBGR format 
  * 
 */
-void ledEffects_nightrider(StrandData_t *strand, int fade_len, uint32_t colour)
+void ledEffects_nightrider(StrandData_t *strand)
 {
 
-    static bool direction = 1;
-    static int16_t led_pos = 0;
+    ledEffectData_t *fx = strand->fxData;
+    if(fx == NULL) {
+        return;
+    }
+    int fade_len = fx->var1;
+    bool direction = fx->var5;
+    uint32_t colour = fx->colour;
+    int16_t led_pos = fx->var2;
     uint16_t numLeds = strand->numLeds;
 
     if (fade_len > numLeds)
@@ -99,11 +132,15 @@ void ledEffects_nightrider(StrandData_t *strand, int fade_len, uint32_t colour)
 
     memset((void *)strand->strandMem, 0, data_length);
 
-    int pixel_offset = led_pos * WS2812_BYTES_PER_PIXEL;
+    int pixel_offset = led_pos * strand->bytes_per_pixel; 
 
     /* write colour data to led_pos */
     uint8_t *addr = (uint8_t *)strand->strandMem + pixel_offset;
 
+    if(strand->ledType == LEDTYPE_APA102) {
+        *addr = (APA_CTRL_BRT_MASK | fx->brightness);
+        addr++;
+    }
     *addr = r;
     addr++;
     *addr = g;
@@ -118,7 +155,11 @@ void ledEffects_nightrider(StrandData_t *strand, int fade_len, uint32_t colour)
             /* as long as not mapping past number of posible leds & not longer than fade len */
             for (int i = 0; (i < fade_len) || (i < led_pos); i++)
             {
-                uint8_t *addr = (uint8_t *)strand->strandMem + pixel_offset - ((i + 1) * 3);
+                uint8_t *addr = (uint8_t *)strand->strandMem + pixel_offset - ((i + 1) * strand->bytes_per_pixel);
+                if(strand->ledType == LEDTYPE_APA102) {
+                    *addr = (APA_CTRL_BRT_MASK | fx->brightness);
+                    addr++;
+                }
                 *addr = fade_color(g, fade_len, i);
                 addr++;
                 *addr = fade_color(r, fade_len, i);
@@ -143,7 +184,11 @@ void ledEffects_nightrider(StrandData_t *strand, int fade_len, uint32_t colour)
             /* as long as not mapping past number of posible leds & not longer than fade len */
             for (int i = 0; (i < fade_len) || (i < ((numLeds - 1) - led_pos)); i++)
             {
-                uint8_t *addr = (uint8_t *)strand->strandMem + pixel_offset + ((i + 1) * 3);
+                uint8_t *addr = (uint8_t *)strand->strandMem + pixel_offset + ((i + 1) * strand->bytes_per_pixel);
+                if(strand->ledType == LEDTYPE_APA102) {
+                    *addr = (APA_CTRL_BRT_MASK | fx->brightness);
+                    addr++;
+                }
                 *addr = fade_color(g, fade_len, i);
                 addr++;
                 *addr = fade_color(r, fade_len, i);
@@ -161,27 +206,10 @@ void ledEffects_nightrider(StrandData_t *strand, int fade_len, uint32_t colour)
         }
     }
 
+    /** save variables for next run */
+    fx->var5 = direction;
+    fx->var2 = led_pos;
+
     strand->updateLeds = 1;
 }
 
-/** 
- *  \brief fade_color - reduces the value of an 8-bit colour 
- * 
- *  \param colour - 8-bit colour value
- *  \param steps  - number of steps to dim
- *  \param step_no - the current step niumber
- * 
- *  \return  the adjusted colour value
-*/
-uint8_t fade_color(uint8_t colour, uint8_t steps, uint8_t step_no)
-{
-
-    if (step_no >= steps)
-    {
-        return 0;
-    }
-    int steps_remaining = steps - step_no;
-    int difference = colour / (2 * steps_remaining);
-    uint8_t faded = colour - difference;
-    return faded;
-}

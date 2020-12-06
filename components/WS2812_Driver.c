@@ -174,6 +174,7 @@ static esp_err_t WS2812_transmitLedData(StrandData_t *ledStrand)
     return transmitStatus;
 }
 
+
 #ifdef DRIVER_DEVELOPMENT_MODE
 /** 
  *  make a simple test frame, write b,g,r looping to the LED memory
@@ -207,6 +208,8 @@ static esp_err_t WS2812_loadTestImage(StrandData_t *strand)
 
 /** Driver Init function
  *  initialises driver structures/tasks from init arguments
+ *  TODO: Pass Handle in return INIT!
+ *  TODO: Init_data_t!
  * 
  **/
 esp_err_t WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dataPin)
@@ -246,6 +249,7 @@ esp_err_t WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dataPin
             if (strand != NULL)
             {
                 strand->ledType = LEDTYPE_WS2812B;
+                strand->bytes_per_pixel = WS2812_BYTES_PER_PIXEL;
                 strand->strandIndex = counter;
                 strand->updateLeds = 0;
                 allStrands[counter] = strand;

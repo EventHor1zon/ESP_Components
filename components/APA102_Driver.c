@@ -25,7 +25,7 @@
 #include "freertos/semphr.h"
 
 /****** Function Prototypes ***********/
-static int test_frame_polling(StrandData_t *strand);
+static int send_frame_polling(StrandData_t *strand);
 // static esp_err_t send_32bit_frame(spi_device_handle_t spi, uint32_t *data);
 /************ ISR *********************/
 
@@ -132,25 +132,25 @@ const uint32_t onedata = 0xFFFFFFFF;
 
 // static int test_frame(spi_device_handle_t ledhandle);
 
-esp_err_t APA102_init(uint8_t numleds, int clock_pin, int data_pin, uint8_t spi_bus, bool init_spi)
+StrandData_t *APA102_init(apa102_init_t *init_data)
 {
 
     esp_err_t init_status = ESP_OK;
 
-    if (!(spi_bus == SPI2_HOST || spi_bus == SPI3_HOST))
+    if (!(init_data->spi_bus == SPI2_HOST || init_data->spi_bus == SPI3_HOST))
     {
         ESP_LOGE(APA_TAG, "Error - invalid SPI bus. Please use SPI2_HOST or SPI3_HOST");
         init_status = ESP_ERR_INVALID_ARG;
     }
 
-    if (init_spi && (init_status == ESP_OK))
+    if (init_data->init_spi && (init_status == ESP_OK))
     {
         ESP_LOGI("SPI_SETUP", "[+] Setting up SPI bus");
 
         spi_bus_config_t buscfg = {0};
-        buscfg.mosi_io_num = data_pin;
+        buscfg.mosi_io_num = init_data->data_pin;
         buscfg.miso_io_num = -1;
-        buscfg.sclk_io_num = clock_pin;
+        buscfg.sclk_io_num = init_data->clock_pin;
         buscfg.max_transfer_sz = 512; // led data + up to 10 frames of start & end
         buscfg.quadhd_io_num = -1;
         buscfg.quadwp_io_num = -1;
@@ -183,7 +183,7 @@ esp_err_t APA102_init(uint8_t numleds, int clock_pin, int data_pin, uint8_t spi_
         startFrame = (uint32_t *)heap_caps_calloc(1, sizeof(uint32_t), MALLOC_CAP_DMA);
         endFrame = (uint32_t *)heap_caps_calloc(1, sizeof(uint32_t), MALLOC_CAP_DMA);
         strand = (StrandData_t *)heap_caps_calloc(1, sizeof(StrandData_t), MALLOC_CAP_8BIT);
-        uint32_t *ledMem = (uint32_t *)heap_caps_calloc(1, (numleds * APA_BYTES_PER_PIXEL), MALLOC_CAP_DMA);
+        uint32_t *ledMem = (uint32_t *)heap_caps_calloc(1, (init_data->numleds * APA_BYTES_PER_PIXEL), MALLOC_CAP_DMA);
         ledEffectData_t *lfx = ledEffectInit(strand);
 
         if (strand != NULL && lfx != NULL && ledMem != NULL && startFrame != NULL && endFrame != NULL)
@@ -191,9 +191,10 @@ esp_err_t APA102_init(uint8_t numleds, int clock_pin, int data_pin, uint8_t spi_
             memset(endFrame, 0xFF, sizeof(uint32_t));
 
             strand->ledType = LEDTYPE_APA102;
-            strand->numLeds = numleds;
-            strand->spi_channel_no = spi_bus;
-            strand->strandMemLength = APA_BYTES_PER_PIXEL * numleds;
+            strand->bytes_per_pixel = APA_BYTES_PER_PIXEL;
+            strand->numLeds = init_data->numleds;
+            strand->spi_channel_no = init_data->spi_bus;
+            strand->strandMemLength = APA_BYTES_PER_PIXEL * init_data->numleds;
             strand->strandMem = ledMem;
             strand->fxData = lfx;
             strand->ledSPIHandle = ledSPIHandle;
@@ -227,19 +228,33 @@ esp_err_t APA102_init(uint8_t numleds, int clock_pin, int data_pin, uint8_t spi_
     {
         //test_frame_polling(strand);
         memcpy(strand->strandMem, init_frame, (sizeof(uint32_t) * strand->numLeds));
-        test_frame_polling(strand);
+        send_frame_polling(strand);
     }
 #endif
-    return init_status;
+    
+    if(init_status == ESP_OK) {
+        ESP_LOGI(APA_TAG, "APA strand initialised");
+    } else {
+        ESP_LOGE(APA_TAG, "Error initialising APA strand (%u)", init_status);
+        if(strand != NULL) {
+            heap_caps_free(strand);
+            strand = NULL;
+        }
+    }
+
+    return strand;
 }
 
 #ifdef DEBUG_MODE
-static int test_frame_polling(StrandData_t *strand)
+static int send_frame_polling(StrandData_t *strand)
 {
     ESP_LOGI("SPI_SETUP", "[+] Sending init data");
 
+    esp_err_t txStatus = ESP_OK;
+
     spi_transaction_t tx = {0};
     uint16_t length = (sizeof(uint32_t) * 8);
+    bool got_sem = false;
 
     tx.length = 32;
     tx.flags = SPI_TRANS_USE_TXDATA;
@@ -249,42 +264,55 @@ static int test_frame_polling(StrandData_t *strand)
     tx.rx_buffer = NULL;
     tx.user = NULL;
 
-    esp_err_t txStatus = spi_device_polling_transmit(strand->ledSPIHandle, &tx);
-
-    if (txStatus != ESP_OK)
+    if(xSemaphoreTake(strand->memSemphr, APA_SEMTAKE_TIMEOUT) != pdTRUE) {
+        ESP_LOGE(APA_TAG, "Error, failed to take Semaphore");
+        txStatus = ESP_ERR_INVALID_STATE;
+    } 
+    else
     {
-        ESP_LOGE("SPI_TX", "Error in sending start frame %u", txStatus);
-    }
 
-    tx.length = 32;
-    tx.flags = 0;
-    for (int i = 0; i < strand->numLeds; i++)
-    {
-        tx.tx_buffer = (void *)&init_frame[i];
         txStatus = spi_device_polling_transmit(strand->ledSPIHandle, &tx);
+
         if (txStatus != ESP_OK)
         {
-            ESP_LOGE("SPI_TX", "Error in sending data frame number %d [%u]", i, txStatus);
+            ESP_LOGE("SPI_TX", "Error in sending start frame %u", txStatus);
         }
-    }
 
-    tx.length = sizeof(uint32_t) * 8;
-    tx.flags = SPI_TRANS_USE_TXDATA;
-    tx.tx_data[0] = 0xFF;
-    tx.tx_data[1] = 0xFF;
-    tx.tx_data[2] = 0xFF;
-    tx.tx_data[3] = 0xFF;
+        tx.length = 32;
+        tx.flags = 0;
+        for (int i = 0; i < strand->numLeds; i++)
+        {
+            tx.tx_buffer = (void *)&init_frame[i];
+            txStatus = spi_device_polling_transmit(strand->ledSPIHandle, &tx);
+            if (txStatus != ESP_OK)
+            {
+                ESP_LOGE("SPI_TX", "Error in sending data frame number %d [%u]", i, txStatus);
+            }
+        }
 
-    for (int i = 0; i < 3; i++)
-    {
-        txStatus = spi_device_polling_transmit(strand->ledSPIHandle, &tx);
-    }
-    if (txStatus != ESP_OK)
-    {
-        ESP_LOGE("SPI_TX", "Error in sending end frame %u", txStatus);
-    }
+        tx.length = sizeof(uint32_t) * 8;
+        tx.flags = SPI_TRANS_USE_TXDATA;
+        tx.tx_data[0] = 0xFF;
+        tx.tx_data[1] = 0xFF;
+        tx.tx_data[2] = 0xFF;
+        tx.tx_data[3] = 0xFF;
 
-    return txStatus;
+        for (int i = 0; i < 3; i++)
+        {
+            txStatus = spi_device_polling_transmit(strand->ledSPIHandle, &tx);
+        }
+        if (txStatus != ESP_OK)
+        {
+            ESP_LOGE("SPI_TX", "Error in sending end frame %u", txStatus);
+        }
+
+        if(got_sem) {
+            xSemaphoreGive(strand->memSemphr);
+            got_sem = false;
+        }
+
+        return txStatus;
+    }
 }
 #endif
 
@@ -301,6 +329,8 @@ uint8_t apa102_ctrl_generate_brt_segment(uint8_t bright)
 
     return segment;
 }
+
+
 
 uint32_t apa102_ctrl_generate_led_frame(void *rgb_data, uint8_t brt)
 {

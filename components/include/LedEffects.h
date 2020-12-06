@@ -17,7 +17,8 @@
 #include "driver/spi_master.h"
 /********* Definitions *****************/
 
-#define LEDFX_MAX_TIMERS 12
+#define LEDFX_MAX_TIMERS 12 
+
 
 typedef void (*EffectFunction)(void);
 
@@ -67,7 +68,14 @@ typedef struct ledEffectData
     uint32_t colour;          /** < colour - colour */
     uint16_t refresh_t;       /** < refresh time in ms */
     bool updateEffect;        /** < led effect has been changed - adjust parameters */
+    uint8_t brightness;       /** < led brigthness  */
     uint32_t LedEffectData_t; /** < struct for holding led effect variables if needed */
+    uint16_t var1;            /**< some variables for function use **/
+    uint16_t var2;
+    uint32_t var3;
+    uint32_t var4;
+    bool var5;
+
 } ledEffectData_t;
 
 typedef struct StrandData
@@ -75,6 +83,7 @@ typedef struct StrandData
     ledType_t ledType;                /** < type of LED **/
     uint8_t strandIndex;              /** < index of the current strand  */
     uint8_t updateLeds;               /** < update flag - led mem has changed */
+    uint8_t bytes_per_pixel;          /** < bytes per pixel */  
     uint16_t numLeds;                 /** < num leds in strand           */
     uint16_t strandMemLength;         /** < length of memory    */
     uint32_t *strandMem;              /** < pointer to LED data          */
@@ -93,21 +102,7 @@ ledEffectData_t *ledEffectInit(StrandData_t *strand);
 /**  \brief     A basic night-rider style effect with optional fade 
  *      
  *  \param      strand - a pointer to a led control strand
- *  \param      fade_len - length of fade trail
- *  \param      colour - 32 bit colour XBGR format 
- * 
 */
-void ledEffects_nightrider(StrandData_t *strand, int fade_len, uint32_t colour);
-
-/** 
- *  \brief fade_color - reduces the value of an 8-bit colour 
- * 
- *  \param colour - 8-bit colour value
- *  \param steps  - number of steps to dim
- *  \param step_no - the current step niumber
- * 
- *  \return  the adjusted colour value
-*/
-uint8_t fade_color(uint8_t colour, uint8_t steps, uint8_t step_no);
+void ledEffects_nightrider(StrandData_t *strand);
 
 #endif /* LEDEFFECTS_H */

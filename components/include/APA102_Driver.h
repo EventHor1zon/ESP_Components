@@ -23,7 +23,7 @@
 #define APA_CTRL_MAX_BR 31
 #define APA_CTRL_BRT_MASK 0b11100000
 
-#define APA_SEMTAKE_TIMEOUT 50
+#define APA_SEMTAKE_TIMEOUT 500
 
 /********** Types **********************/
 const char *APA_TAG;
@@ -42,9 +42,18 @@ const char *APA_TAG;
 //     spi_device_handle_t ledSPIHandle; /** < spi device handle **/
 // } apaStrandData_t;
 
+typedef struct apa102_init 
+{
+    uint8_t numleds;
+    uint16_t clock_pin;
+    uint16_t data_pin;
+    uint8_t spi_bus;
+    bool init_spi;
+} apa102_init_t;
+
+
 /******** Function Definitions *********/
 
-esp_err_t
-APA102_init(uint8_t numleds, int clock_pin, int data_pin, uint8_t spi_bus, bool init_spi);
+StrandData_t *APA102_init(apa102_init_t *init_data);
 
 #endif /* APA102_DRIVER_H */
