@@ -8,11 +8,16 @@
 #ifndef APA102_DRIVER_H
 #define APA102_DRIVER_H
 
+#ifdef CONFIG_USE_PERIPH_MANAGER
+#include "CommandAPI.h"
+#endif
+
 /********* Includes ********************/
 
 #include "./LedEffects.h"
 #include "freertos/semphr.h"
 #include "freertos/timers.h"
+
 
 /********* Definitions *****************/
 
@@ -25,22 +30,15 @@
 
 #define APA_SEMTAKE_TIMEOUT 500
 
+//#define CONFIG_USE_PERIPH_MANAGER 0
+
 /********** Types **********************/
 const char *APA_TAG;
 
-// typedef struct apa102StrandData
-// {
-//     uint8_t strandIndex;              /** < index of the current strand  */
-//     uint8_t updateLeds;               /** < update flag - led mem has changed */
-//     uint16_t numLeds;                 /** < num leds in strand           */
-//     uint16_t strandMemLength;         /** < length of memory    */
-//     uint32_t *strandMem;              /** < pointer to LED data          */
-//     ledEffectData_t *fxData;          /** < pointer to led effect data */
-//     SemaphoreHandle_t memSemphr;      /** < sempahore for led data access*/
-//     uint8_t spi_channel_no;           /** < the channel of the SPI peripheral used **/
-//     TimerHandle_t refreshTimer;       /** < handle for the effect refresh timer **/
-//     spi_device_handle_t ledSPIHandle; /** < spi device handle **/
-// } apaStrandData_t;
+#ifdef CONFIG_USE_PERIPH_MANAGER
+#define apa_param_len 5
+const parameter_t apa_param_mappings[apa_param_len];
+#endif 
 
 typedef struct apa102_init 
 {
@@ -53,6 +51,20 @@ typedef struct apa102_init
 
 
 /******** Function Definitions *********/
+
+esp_err_t apa_getNumleds(StrandData_t *strand, uint32_t *var);
+
+esp_err_t apa_getMode(StrandData_t *strand, uint32_t *var);
+
+esp_err_t apa_setMode(StrandData_t *strand, uint8_t *var);
+
+esp_err_t apa_getColour(StrandData_t *strand, uint32_t *var);
+
+esp_err_t apa_setColour(StrandData_t *strand, uint32_t *var);
+
+esp_err_t apa_getBrightness(StrandData_t *strand, uint8_t *var);
+
+esp_err_t apa_setBrightness(StrandData_t *strand, uint8_t *var);
 
 StrandData_t *APA102_init(apa102_init_t *init_data);
 

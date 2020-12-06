@@ -25,7 +25,18 @@
 #include "freertos/semphr.h"
 #include "freertos/FreeRTOSConfig.h"
 
+#ifdef CONFIG_USE_PERIPH_MANAGER
+const parameter_t apa_param_mappings[apa_param_len] = {
+    {"NumLeds", 1, &apa_getNumleds, NULL, PARAMTYPE_UINT32, 0, (GET_FLAG) },
+    {"Mode", 2, &apa_getMode, &apa_setMode, PARAMTYPE_UINT8, LEDFX_NUM_EFFECTS, (GET_FLAG | SET_FLAG) },
+    {"Colour", 3, &apa_getColour, &apa_setMode, PARAMTYPE_UINT32, UINT32_MAX, (GET_FLAG | SET_FLAG ) },
+    {"Brightness", 4, &apa_getBrightness, &apa_setBrightness, PARAMTYPE_UINT8, 31, (GET_FLAG | SET_FLAG )},
+}
+#endif
+
 /****** Function Prototypes ***********/
+static uint8_t apa102_ctrl_generate_brt_segment(uint8_t bright);
+
 static int send_frame_polling(StrandData_t *strand);
 
 static void apaControlTask(void *args);
@@ -78,43 +89,25 @@ static uint32_t init_frame[16] = {
 };
 /****** Private Functions *************/
 
-/** \brief apaWriteLeds(StrandData_t *strand) 
- *          - write the data in led memory to the leds via SPI
- *  \param strand - a pointer to the strand control structure
- * 
- *  \return esp_ok or error
- **/
 
-static esp_err_t apaWriteLeds(StrandData_t *strand)
+
+
+static uint8_t apa102_ctrl_generate_brt_segment(uint8_t bright)
 {
 
-    esp_err_t txStatus = ESP_OK;
-
-    if (xSemaphoreTake(strand->memSemphr, pdMS_TO_TICKS(APA_SEMTAKE_TIMEOUT)))
+    if (bright > APA_CTRL_MAX_BR)
     {
-        spi_transaction_t tx = {0};
-        tx.length = 32;
-        tx.tx_buffer = startFrame;
-        txStatus = spi_device_queue_trans(strand->ledSPIHandle, &tx, pdMS_TO_TICKS(50));
-        tx.length = (8 * strand->numLeds * APA_BYTES_PER_PIXEL);
-        tx.tx_buffer = strand->strandMem;
-        txStatus |= spi_device_queue_trans(strand->ledSPIHandle, &tx, pdMS_TO_TICKS(50));
-        tx.length = 32;
-        tx.tx_buffer = endFrame;
-        txStatus |= spi_device_queue_trans(strand->ledSPIHandle, &tx, pdMS_TO_TICKS(50));
-
-        ESP_LOGI(APA_TAG, "Tx Status: %u", txStatus);
-
-        if (xSemaphoreGive(strand->memSemphr) != pdTRUE)
-        {
-            ESP_LOGE(APA_TAG, "ERROR GIVING SEMAPHORE");
-        }
+        return 0;
     }
 
-    return txStatus;
+    uint8_t segment = (uint8_t)APA_CTRL_BRT_MASK;
+    segment |= bright;
+
+    return segment;
 }
 
 
+/** send a polling transaction **/
 static esp_err_t send_frame_polling(StrandData_t *strand)
 {
     ESP_LOGI("SPI_SETUP", "[+] Sending init data");
@@ -141,11 +134,12 @@ static esp_err_t send_frame_polling(StrandData_t *strand)
         ESP_LOGE("SPI_TX", "Error in sending start frame %u", txStatus);
     }
 
+    /** sending 4 bytes (32 bits) **/
     tx.length = 32;
     tx.flags = 0;
-    for (int i = 0; i < strand->numLeds; i++)
+    for (int i = 0; i < strand->strandMemLength; i+=4)
     {
-        tx.tx_buffer = (void *)&init_frame[i];
+        tx.tx_buffer = (void *)strand->strandMem+i;
         txStatus = spi_device_polling_transmit(strand->ledSPIHandle, &tx);
         if (txStatus != ESP_OK)
         {
@@ -173,6 +167,8 @@ static esp_err_t send_frame_polling(StrandData_t *strand)
     return txStatus;
 }
 
+
+/** Control task **/
 static void apaControlTask(void *args) {
 
 
@@ -227,6 +223,59 @@ const uint32_t onedata = 0xFFFFFFFF;
 /****** Global Functions *************/
 
 // static int test_frame(spi_device_handle_t ledhandle);
+
+
+esp_err_t apa_getNumleds(StrandData_t *strand, uint32_t *var) {
+    esp_err_t status = ESP_OK;
+
+    *var = strand->numLeds;
+
+    return status;
+}
+
+esp_err_t apa_getMode(StrandData_t *strand, uint32_t *var) {
+    esp_err_t status = ESP_OK;
+    *var = strand->fxData->effect;
+    return status;
+}
+
+esp_err_t apa_setMode(StrandData_t *strand, uint8_t  *mode) {
+    esp_err_t status = ESP_OK;
+    strand->fxData->effect = mode;
+    strand->updateLeds = true;
+    return status;
+}
+
+esp_err_t apa_getColour(StrandData_t *strand, uint32_t *var) {
+
+    esp_err_t status = ESP_OK;
+    *var = strand->fxData->colour;
+    return status;
+}
+
+esp_err_t apa_setColour(StrandData_t *strand, uint32_t *var) {
+    esp_err_t status = ESP_OK;
+    strand->fxData->colour = *var;
+    strand->updateLeds = true;
+    return status;
+}
+
+esp_err_t apa_getBrightness(StrandData_t *strand, uint8_t *var) {
+    esp_err_t status = ESP_OK;
+    *var = strand->fxData->brightness;
+    return status;
+}
+
+esp_err_t apa_setBrightness(StrandData_t *strand, uint8_t *var) {
+    esp_err_t status = ESP_OK;
+
+    if(*var > APA_CTRL_MAX_BR) {
+        status = ESP_ERR_INVALID_ARG;
+    } else {
+        strand->fxData->brightness = *var;
+    }
+    return status;
+}
 
 StrandData_t *APA102_init(apa102_init_t *init_data)
 {
@@ -351,19 +400,7 @@ StrandData_t *APA102_init(apa102_init_t *init_data)
 }
 
 
-uint8_t apa102_ctrl_generate_brt_segment(uint8_t bright)
-{
 
-    if (bright > APA_CTRL_MAX_BR)
-    {
-        return 0;
-    }
-
-    uint8_t segment = (uint8_t)APA_CTRL_BRT_MASK;
-    segment |= bright;
-
-    return segment;
-}
 
 
 

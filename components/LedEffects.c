@@ -14,6 +14,7 @@
 #include "WS2812_Driver.h"
 #include "APA102_Driver.h"
 #include "LedEffects.h"
+#include "Utilities.h"
 
 #include "esp_log.h"
 #include "esp_err.h"
@@ -76,6 +77,7 @@ ledEffectData_t *ledEffectInit(StrandData_t *strand)
     effectData = heap_caps_calloc(1, spaceRequired, MALLOC_CAP_8BIT);
     if (effectData != NULL)
     {
+        effectData->brightness = 1;
         effectData->LedEffectData_t = 0;
         effectData->refresh_t = 1000;
         effectData->effect = LED_EFFECT_SINGLE_COLOUR;
@@ -238,6 +240,7 @@ void all_single_colour(StrandData_t *strand) {
         *ptr = b;
         ptr++;
     }
+
 
     strand->updateLeds = 1;
 }
