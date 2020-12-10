@@ -222,6 +222,7 @@
 
 #define LSM_FIFO_BUFFER_MEM_LEN 4096 * 2
 #define LSM_DRIVER_SAMPLE_WAIT_READTRIES 200
+#define LSM_WATERMARK_MAX 4095
 
 /** TODO: MORE TAP STUFF... **/
 /** TODO: WAKEUP EVENTS **/
@@ -451,6 +452,7 @@ typedef struct LSM_deviceSettings
 
     LSM_FIFOMode_t fifoMode;
     LSM_FIFOodr_t fifoODR;
+    uint16_t watermark;
 
     uint8_t fifoPktLen;
 
@@ -574,14 +576,14 @@ esp_err_t LSM_setOpMode(LSM_DriverSettings_t *dev, LSM_OperatingMode_t *mode);
  *  \param  mode - pointer to value 
  *  \return ESP_OK or error
  **/
-esp_err_t LSM_setAccelODRMode(LSM_DriverSettings_t *dev, LSM_AccelODR_t mode);
+esp_err_t LSM_setAccelODRMode(LSM_DriverSettings_t *dev, LSM_AccelODR_t *mode);
 
 /** \brief  setGyroODRMode - set the gyro output data rate
  *  \param  dev - pointer to device struct 
  *  \param  mode   - pointer to value 
  *  \return ESP_OK or error
  **/
-esp_err_t LSM_setGyroODRMode(LSM_DriverSettings_t *dev, LSM_GyroODR_t mode);
+esp_err_t LSM_setGyroODRMode(LSM_DriverSettings_t *dev, LSM_GyroODR_t *mode);
 
 /** \brief  setFifoMode - set the fifo mode 
  *                      - only bypass/standard currently supported
@@ -589,14 +591,14 @@ esp_err_t LSM_setGyroODRMode(LSM_DriverSettings_t *dev, LSM_GyroODR_t mode);
  *  \param  mode   - pointer to value 
  *  \return ESP_OK or error
  **/
-esp_err_t LSM_setFIFOmode(LSM_DriverSettings_t *dev, LSM_FIFOMode_t mode);
+esp_err_t LSM_setFIFOmode(LSM_DriverSettings_t *dev, LSM_FIFOMode_t *mode);
 
 /** \brief  setFIFOwatermark - set the fifo watermark
  *  \param  dev - pointer to device struct 
  *  \param  x   - pointer to value 
  *  \return ESP_OK or error
  **/
-esp_err_t LSM_setFIFOwatermark(LSM_DriverSettings_t *dev, uint16_t watermark);
+esp_err_t LSM_setFIFOwatermark(LSM_DriverSettings_t *dev, uint16_t *watermark);
 
 /** \brief  setFIFOpackets - set the fifo packet type
  *  \param  dev - pointer to device struct 
@@ -618,6 +620,6 @@ esp_err_t LSM_configInt(LSM_DriverSettings_t *device, uint8_t intNum, LSM_interr
  *  \param  length - length of data to read
  *  \return ESP_OK or error
  **/
-esp_err_t LSM_readFifoBlock(LSM_DriverSettings_t *device, uint16_t length);
+esp_err_t LSM_readFifoBlock(LSM_DriverSettings_t *device, uint16_t *length);
 
 #endif /* LSM_DRIVER_H */
