@@ -1,9 +1,10 @@
 /***************************************
-* \file .c
-* \brief
+* \file     HPDL1414_Driver.c
+* \brief    A simple driver for the HPDL1414 
+*           micro led matrix display
 *
-* \date
-* \author
+* \date     Dec 2020
+* \author   RJAM
 ****************************************/
 
 /********* Includes *******************/
@@ -35,14 +36,6 @@ const char *charmap[4][16] = {
 /****** Private Data ******************/
 
 /****** Private Functions *************/
-
-static esp_err_t select_address() {
-
-    esp_err_t status = ESP_OK;
-
-    return status;
-}
-
 
 /** get character location & infer data pin levels **/
 static esp_err_t get_pinset_from_char(char *c, uint8_t *rowmask, uint8_t *colmask) {
