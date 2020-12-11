@@ -8,6 +8,7 @@ set(srcs
     "Utilities.c"
     "LSM_Driver.c"
     "SystemInterface.c"
+    "HPDL1414_Driver.c"
     )
 
 set(includes "include")
