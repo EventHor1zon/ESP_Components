@@ -2,7 +2,8 @@
 * \file     HPDL1414_Driver.c
 * \brief    A simple driver for the HPDL1414 
 *           micro led matrix display
-*
+*           Uses the provided character map to imply 
+*           data pin levels.
 * \date     Dec 2020
 * \author   RJAM
 ****************************************/
@@ -23,17 +24,13 @@
 
 const char *HPDL_TAG = "HPDL Driver";
 
+/** the device character map **/
 const char *charmap[4][16] = {
     {" ", "!", "\"", "#", "$", "%", "&", "'", "<", ">", "*", "+", ",", "-", ".", "/"},
     {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "¬", "|", "{", "=", "}", "?" },
     {"a", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "N" },
     {"P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "[", "\\" "]", "^", "_" },
 };
-
-
-/************ ISR *********************/
-
-/****** Private Data ******************/
 
 /****** Private Functions *************/
 
@@ -197,6 +194,7 @@ hpdl_driver_t *hpdl_init(hpdl_initdata_t *init) {
     return handle;
 }
 
+
 esp_err_t hpdl_set_led(hpdl_driver_t *dev, uint8_t *led) {
     
     esp_err_t status = ESP_OK;
@@ -211,12 +209,14 @@ esp_err_t hpdl_set_led(hpdl_driver_t *dev, uint8_t *led) {
     return status;
 }
 
+
 esp_err_t hpdl_set_char(hpdl_driver_t *dev, uint8_t *c) {
 
     esp_err_t status = set_char_data(dev, (char *)c);
 
     return status;
 }
+
 
 esp_err_t hpdl_set_chars(hpdl_driver_t *dev, uint32_t *var) {
     esp_err_t status = ESP_OK;
