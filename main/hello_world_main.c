@@ -22,6 +22,7 @@
 #include "genericCommsDriver.h"
 #include "SystemInterface.h"
 #include "HPDL1414_Driver.h"
+#include "Max30102_Driver.h"
 
 #include "nvs_flash.h"
 
@@ -59,8 +60,14 @@ void app_main(void)
     // ESP_LOGI("MAIN", "ESP_WIFI_MODE_STA");
     //wifi_init_sta();
 
-    // genericI2Cinit(17, 16, 100000, 0);
+    genericI2Cinit(27, 26, 100000, 1);
 
+    max31_initdata_t ini = {0};
+    ini.i2c_bus = 1;
+    ini.intr_pin = 25;
+    max31_driver_t *h = max31_init(&ini);
+
+    
     // bm_initData_t ini;
     // ini.addressPinState = 0;
     // ini.devType = 1;
@@ -70,37 +77,37 @@ void app_main(void)
     
     // bm_controlData_t *handle = bm280_init(&ini);
 
-    hpdl_initdata_t init = {0};
-    init.write = 26;
-    init.D0 = 15;
-    init.D1 = 16;
-    init.D2 = 17;
-    init.D3 = 18;
-    init.D4 = 25;
-    init.D5 = 19;
-    init.D6 = 32;
-    init.A0 = 14;
-    init.A1 = 27;
+    // HPDL1414_init_t init = {0};
+    // init.write = 26;
+    // init.D0 = 15;
+    // init.D1 = 16;
+    // init.D2 = 17;
+    // init.D3 = 18;
+    // init.D4 = 25;
+    // init.D5 = 19;
+    // init.D6 = 32;
+    // init.A0 = 14;
+    // init.A1 = 27;
 
-    char *a = "F";
-    char *b = "U";
-    char *c = "C";
-    char *d = "K";
+    // char *a = "F";
+    // char *b = "U";
+    // char *c = "C";
+    // char *d = "K";
 
-    uint8_t a0 = 0;
-    uint8_t a1 = 1;
-    uint8_t a2 = 2;
-    uint8_t a3 = 3;
+    // uint8_t a0 = 0;
+    // uint8_t a1 = 1;
+    // uint8_t a2 = 2;
+    // uint8_t a3 = 3;
 
-    hpdl_driver_t *handle = hdpl1414_init(&init);
-    hpdl_set_led(handle, &a0);
-    hpdl_set_char(handle, (uint8_t *)a);
-    hpdl_set_led(handle, &a1);
-    hpdl_set_char(handle, (uint8_t *)b);
-    hpdl_set_led(handle, &a2);
-    hpdl_set_char(handle, (uint8_t *)c);
-    hpdl_set_led(handle, &a3);
-    hpdl_set_char(handle, (uint8_t *)d);
+    // hpdl_driver_t *handle = hdpl1414_init(&init);
+    // hpdl_set_led(handle, &a0);
+    // hpdl_set_char(handle, (uint8_t *)a);
+    // hpdl_set_led(handle, &a1);
+    // hpdl_set_char(handle, (uint8_t *)b);
+    // hpdl_set_led(handle, &a2);
+    // hpdl_set_char(handle, (uint8_t *)c);
+    // hpdl_set_led(handle, &a3);
+    // hpdl_set_char(handle, (uint8_t *)d);
 
     while (1)
     {
