@@ -65,7 +65,7 @@ void app_main(void)
 
     max31_initdata_t ini = {0};
     ini.i2c_bus = 1;
-    ini.intr_pin = 25;
+    ini.intr_pin = 18;
     max31_driver_t *h = max31_init(&ini);
     if(h == NULL) {
         ESP_LOGE("MAIN", "Null handle");
@@ -75,6 +75,7 @@ void app_main(void)
         esp_err_t status = max31_get_device_id(h, &val);
         if(status == ESP_OK) {
             ESP_LOGI("main", "Got device id : %u", val);
+            
         } else {
             ESP_LOGI("main", "rsp : %u", status);
         }
@@ -125,7 +126,6 @@ void app_main(void)
     while (1)
     {
 
-        ESP_LOGI("main", "in main");
         //dump_system_info();
         vTaskDelay(1000);
     }
