@@ -61,6 +61,7 @@ void app_main(void)
 
     // genericI2Cinit(17, 16, 100000, 0);
 
+<<<<<<< HEAD
     // bm_initData_t ini;
     // ini.addressPinState = 0;
     // ini.devType = 1;
@@ -101,6 +102,12 @@ void app_main(void)
     hpdl_set_char(handle, (uint8_t *)c);
     hpdl_set_led(handle, &a3);
     hpdl_set_char(handle, (uint8_t *)d);
+=======
+    printf("Starting LEDSs\n");
+    uint16_t numLeds = 6;
+    gpio_num_t pin = GPIO_NUM_16;
+    WS2812_init(1, &numLeds, &pin);
+>>>>>>> ws2812Driver
 
     while (1)
     {

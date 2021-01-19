@@ -61,17 +61,14 @@ const ws2812b_timing_t ws2812Timings = {
     450,
 };
 
-#ifdef ESP_HOME_API_ENABLE
-
 const peripheralInstruction_t availableCommands[] = {
     /** TODO: replace magic numbers */
-    {WS2812_CMD_INDEX_ENABLE, CMD_TYPE_BOOLEAN, 1, 0},       /** < boolean ON/OFF command */
-    {WS2812_CMD_INDEX_COLOUR, CMD_TYPE_U32INT, 0xFFFFFF, 0}, /** < set Colour */
-    {WS2812_CMD_INDEX_EFFECT, CMD_TYPE_U8INT, 3, 0},         /** < set effect */
-    {WS2812_CMD_INDEX_BRIGHT, CMD_TYPE_U8INT, 10, 0},        /** < set brightness */
+    {"NumLeds", 1, &ws2812_get_numleds, NULL, PARAMTYPE_UINT32, 0, (GET_FLAG)},
+    {"Mode", 2, &ws2812_get_mode, NULL, PARAMTYPE_UINT8, LEDFX_NUM_EFFECTS, (GET_FLAG | SET_FLAG)},
+    {"Colour", 3, &ws2812_get_colour, &apa_set_colour, PARAMTYPE_UINT32, 0xFFFFFF, (GET_FLAG | SET_FLAG) },
+    {"Brightness", 4, &ws2812_get_brightness, &ws2812_set_brightness, PARAMTYPE_UINT8, 5, (GET_FLAG | SET_FLAG)}
 };
 
-#endif
 
 /************ ISR *********************/
 
@@ -162,8 +159,12 @@ void fxCallbackFunction(TimerHandle_t timer)
     return;
 }
 
+<<<<<<< HEAD
 /****** Private Functions *************/
 
+=======
+/*** PRIVATE FUNCTIONS ***/
+>>>>>>> ws2812Driver
 /**
  * Write data from led mem to the RMT data output
  **/
@@ -209,38 +210,52 @@ static esp_err_t WS2812_loadTestImage(StrandData_t *strand)
  *  initialises driver structures/tasks from init arguments
  * 
  **/
-esp_err_t WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dataPin)
+StrandData_t *WS2812_init(ws2812_initdata_t *initdata)
 {
 
     uint16_t counter = 0, totalLeds = 0;
     esp_err_t initStatus = ESP_OK;
 
+    /* set up the rmt driver config */
+    rmt_config_t rmtConfig;
+    rmtConfig.channel = numstrands;
+    rmtConfig.rmt_mode = RMT_MODE_TX;
+    rmtConfig.clk_div = 4;
+    rmtConfig.mem_block_num = 1;
+    rmtConfig.gpio_num = initdata->dataPin; 
+    rmtConfig.tx_config.loop_en = false;
+    rmtConfig.tx_config.carrier_en = false;
+    rmtConfig.tx_config.idle_output_en = true;
+    rmtConfig.tx_config.idle_level = RMT_IDLE_LEVEL_LOW;
+    rmtConfig.tx_config.carrier_level = RMT_CARRIER_LEVEL_LOW;
+
     /* check number of strands */
-    if (numStrands > WS2812_MAX_STRANDS)
+    if (numstrands == WS2812_MAX_STRANDS)
     {
         initStatus = ESP_ERR_INVALID_ARG;
+        ESP_LOGE(WS2812_TAG, "Too many Strands!");
     }
 
-    /* initialise the structures for each strand - place on heap for convenience */
-    if (initStatus == ESP_OK)
+
+    /* assign memory and add the pointer to allStrands */
+    StrandData_t *strand = heap_caps_calloc(1, sizeof(StrandData_t), MALLOC_CAP_8BIT);
+    if (strand != NULL)
     {
+        strand->strandIndex = counter;
+        strand->updateLeds = 0;
+        allStrands[counter] = strand;
+    }
+    else
+    {
+        ESP_LOGE(WS2812_TAG, "Error - insufficient memory for strand data structure");
+        initStatus = ESP_ERR_NO_MEM;
+    }
 
-        /* set up the rmt driver config */
-        rmt_config_t rmtConfig;
-        rmtConfig.channel = 0;
-        rmtConfig.rmt_mode = RMT_MODE_TX;
-        rmtConfig.clk_div = 4;
-        rmtConfig.mem_block_num = 1;
-        rmtConfig.gpio_num = 0; /* change this parameter for each led channel */
-        rmtConfig.tx_config.loop_en = false;
-        rmtConfig.tx_config.carrier_en = false;
-        rmtConfig.tx_config.idle_output_en = true;
-        rmtConfig.tx_config.idle_level = RMT_IDLE_LEVEL_LOW;
-        rmtConfig.tx_config.carrier_level = RMT_CARRIER_LEVEL_LOW;
-
-        /* set up the LED strands */
-        for (counter = 0; counter < numStrands; counter++)
+    /* Error check */
+    if(initStatus == ESP_OK) {
+        if (initdata->numLeds == 0 || initdata->numLeds > WS2812_MAX_STRAND_LEDS)
         {
+<<<<<<< HEAD
             /* assign memory and add the pointer to allStrands */
             StrandData_t *strand = heap_caps_calloc(1, sizeof(StrandData_t), MALLOC_CAP_8BIT);
             if (strand != NULL)
@@ -328,28 +343,85 @@ esp_err_t WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dataPin
                 /* configure & install the RMT driver on the GPIO channel */
                 rmtConfig.gpio_num = dataPin[counter];
                 rmtConfig.channel = (rmt_channel_t)counter;
-
-                ESP_ERROR_CHECK(rmt_config(&rmtConfig));
-                ESP_ERROR_CHECK(rmt_driver_install((rmt_channel_t)counter, 0, 0));
-                ESP_ERROR_CHECK(rmt_translator_init((rmt_channel_t)counter, ws2812_TranslateDataToRMT));
-
-                strand->dataChannel = (rmt_channel_t)counter;
-            }
-
-            /** set up the led effects section **/
-
-            ESP_LOGI(WS2812_TAG, "Success! Strand %u initialised at %p ", counter, strand);
+=======
+            ESP_LOGE(WS2812_TAG, "Error - invalid LED count (min = 1, max = %u, requested = %u)", WS2812_MAX_STRAND_LEDS, initdata->numLeds);
+            initStatus = ESP_ERR_INVALID_ARG;
         }
-
-        /* finish setup of Driver structure */
-
-        ledControl.numStrands = numStrands;
-
-        if (initStatus == ESP_OK)
+        else
         {
-            ESP_LOGI(WS2812_TAG, "Done! %u LED strands added", numStrands);
+            strand->numLeds = initdata->numLeds;
+            totalLeds += initdata->numLeds;
         }
     }
+>>>>>>> ws2812Driver
+
+    if(initStatus == ESP_OK) {
+    /* Init Function - assign LED memory */
+        uint16_t spaceRequired = (WS2812_BYTES_PER_PIXEL * initdata->numLeds);
+        uint8_t *ledMem = heap_caps_calloc(1, spaceRequired, MALLOC_CAP_8BIT);
+
+        if (ledMem != NULL)
+        {
+            strand->strandMem = ledMem;
+            strand->strandMemLength = spaceRequired;
+        }
+        else
+        {
+            ESP_LOGE(WS2812_TAG, "Error - Insufficient heap memory to assign LED pixel data ( %u needed | %u available 8-bit capable )", spaceRequired, heap_caps_get_free_size(MALLOC_CAP_8BIT));
+            initStatus = ESP_ERR_NO_MEM;
+            break;
+        }
+    }
+    /* init Function - create Led Effects structure */
+    if (initStatus == ESP_OK)
+    {
+        ledEffect_t *ledFxData = LedEffectInit(strand);
+        TimerHandle_t fxTimer = xTimerCreate("fxTimer", (TickType_t)UINT32_MAX, pdTRUE, NULL, fxCallbackFunction);
+
+        if (ledFxData == NULL)
+        {
+            ESP_LOGE(WS2812_TAG, "Error in assigning memory for led effects");
+            initStatus = ESP_ERR_NO_MEM;
+            break;
+        }
+        else if (fxTimer == NULL)
+        {
+            ESP_LOGE(WS2812_TAG, "Error in creating led effect timer");
+            initStatus = ESP_ERR_NO_MEM;
+            break;
+        }
+        else
+        {
+            strand->refreshTimer = fxTimer;
+            strand->fxData = ledFxData;
+        }
+    }
+
+    if(initStatus == ESP_OK) {
+    /* Init Function - create Strand Semaphore */
+        SemaphoreHandle_t memSemphr = xSemaphoreCreateMutex();
+        if (memSemphr != NULL)
+        {
+            strand->memSemphr = memSemphr;
+        }
+        else
+        {
+            ESP_LOGE(WS2812_TAG, "Error - Unable to find space for the LED semaphore");
+            initStatus = ESP_FAIL;
+            break;
+        }
+    }
+
+    if (initStatus == ESP_OK)
+    {
+        /* configure & install the RMT driver on the GPIO channel */
+
+        ESP_ERROR_CHECK(rmt_config(&rmtConfig));
+        ESP_ERROR_CHECK(rmt_driver_install((rmt_channel_t)counter, 0, 0));
+        ESP_ERROR_CHECK(rmt_translator_init((rmt_channel_t)counter, ws2812_TranslateDataToRMT));
+
+    }
+
 
     if (initStatus == ESP_OK)
     {
@@ -360,11 +432,38 @@ esp_err_t WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dataPin
         else
         {
             ESP_LOGE(WS2812_TAG, "Error initialising task!");
+            initStatus = ESP_ERR_NO_MEM;
         }
     }
 
+    /** set up the led effects section **/
+    if(initStatus == ESP_OK) {
+        ESP_LOGI(WS2812_TAG, "Success! Strand %u initialised at %p ", counter, strand);
+                /* finish setup of Driver structure */
+        numstrands++;
+        ledControl.numStrands = numstrands;
+    } 
+    else 
+    {
+        /** free any mem claimed **/
+        if(strand != NULL) {
+            if(strand->strandMem != NULL) {
+                heap_caps_free(strand->strandMem);
+            }
+            if(strand->fxData != NULL) {
+                heap_caps_free(strand->fxData);
+            }
+            heap_caps_free(strand);
+        }
+    }
+
+<<<<<<< HEAD
     WS2812_setAllLedColour(allStrands[0], 0x0000ff00);
     return initStatus;
+=======
+
+    return strand;
+>>>>>>> ws2812Driver
 }
 
 /** Driver deinit
@@ -387,9 +486,10 @@ esp_err_t WS2812_deinit()
         {
             free((void *)(allStrands[currentStrand]->strandMem));
         }
+        /* TODO: error check this */
+        vSemaphoreDelete(allStrands[currentStrand]->memSemphr);
     }
-    /* TODO: error check this */
-    vSemaphoreDelete(allStrands[currentStrand]->memSemphr);
+
 
     for (currentStrand = 0; currentStrand < ledControl.numStrands; currentStrand++)
     {
