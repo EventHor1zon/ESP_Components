@@ -38,7 +38,7 @@ void app_main(void)
 
     printf("Starting LEDSs\n");
     uint16_t numLeds = 6;
-    gpio_num_t pin = GPIO_NUM_5;
+    gpio_num_t pin = GPIO_NUM_16;
     WS2812_init(1, &numLeds, &pin);
 
     while (1)
