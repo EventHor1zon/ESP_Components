@@ -147,7 +147,7 @@ static uint8_t testFrame[3][3] = {
  *                      desireable.
  * \return ESP_OK or Error Code
  **/
-esp_err_t WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dataPin);
+StrandData_t *WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dataPin);
 
 /**
  * \brief ws2812_deinit() - deinint the driver

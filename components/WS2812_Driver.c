@@ -209,7 +209,7 @@ static esp_err_t WS2812_loadTestImage(StrandData_t *strand)
  *  initialises driver structures/tasks from init arguments
  * 
  **/
-esp_err_t WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dataPin)
+StrandData_t *WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dataPin)
 {
 
     uint16_t counter = 0, totalLeds = 0;
@@ -364,7 +364,7 @@ esp_err_t WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dataPin
     }
 
     WS2812_setAllLedColour(allStrands[0], 0x0000ff00);
-    return initStatus;
+    return strand;
 }
 
 /** Driver deinit

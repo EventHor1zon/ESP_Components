@@ -15,6 +15,10 @@
 
 /********* Definitions *****************/
 
+/** registers have overlapping addresses as function changes 
+ *  between LoRa / fsk/ook mode  
+ **/
+
 #define SX1276_REGADDR_REGFIFO 0x00
 #define SX1276_REGADDR_OPMODE  0x01
 #define SX1276_REGADDR_BITRATE_MSB 0x02
@@ -396,24 +400,24 @@ typedef enum {
 typedef enum {
     SX1276_SEQ_FROM_START_LOWPOWSEL,
     SX1276_SEQ_FROM_START_RX_STATE,
-    SX1276_SEQ_FROM_START_TX_STATE.
+    SX1276_SEQ_FROM_START_TX_STATE,
     SX1276_SEQ_FROM_START_TX_FIFO_IRQ,
 } seq_from_start_t;
 
 typedef enum {
     SX1276_SEQ_FROM_IDLE_RX_STATE,
-    SX1276_SEQ_FROM_IDLE_TX_STATE.
+    SX1276_SEQ_FROM_IDLE_TX_STATE,
 } seq_from_idle_t;
 
 typedef enum {
     SX1276_SEQ_FROM_TX_RX_STATE,
-    SX1276_SEQ_FROM_TX_TX_STATE.
+    SX1276_SEQ_FROM_TX_TX_STATE,
 } seq_from_tx_t;
 
 typedef enum {
     SX1276_SEQ_FROM_RXRCV_PKTRCVD_PLRDY_IRQ = 0x01,
     SX1276_SEQ_FROM_RXRCV_LOWPOW_SEL_PLRDY_IRQ,
-    SX1276_SEQ_FROM_RXRCV_PKTRCVD_CRCOK.
+    SX1276_SEQ_FROM_RXRCV_PKTRCVD_CRCOK,
     SX1276_SEQ_FROM_RXRCV_SEQOFF_RSSI_IRQ,
     SX1276_SEQ_FROM_RXRCV_SEQOFF_SYNCADDR_IRQ,
     SX1276_SEQ_FROM_RXRCV_SEQOFF_PREAMB_IRQ,
@@ -464,9 +468,20 @@ typedef enum {
 } low_batt_trim_t;
 
 
+
+typedef struct SX1276_Device_Settings
+{
+    
+} sx1276_settings_t;
+
+
+
 typedef struct SX1276_Driver
 {
-    /* data */
+    sx1276_settings_t settings;
+    uint8_t rx_buffer[256];
+    uint8_t tx_buffer[256];
+
 } sx1276_driver_t;
 
 
