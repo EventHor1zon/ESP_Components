@@ -188,7 +188,7 @@ hpdl_driver_t *hpdl_init(hpdl_initdata_t *init) {
 
     if(status == ESP_OK) {
         ESP_LOGI(HPDL_TAG, "Succesfully init the driver!");
-        test(handle);
+        //test(handle);
     }
 
     return handle;

@@ -30,6 +30,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 #include "freertos/task.h"
+#include "include/CommandAPI.h"
 
 /****** Function Prototypes ***********/
 
@@ -61,11 +62,11 @@ const ws2812b_timing_t ws2812Timings = {
     450,
 };
 
-const peripheralInstruction_t availableCommands[] = {
+const peripheral_t availableCommands[] = {
     /** TODO: replace magic numbers */
     {"NumLeds", 1, &ws2812_get_numleds, NULL, PARAMTYPE_UINT32, 0, (GET_FLAG)},
     {"Mode", 2, &ws2812_get_mode, NULL, PARAMTYPE_UINT8, LEDFX_NUM_EFFECTS, (GET_FLAG | SET_FLAG)},
-    {"Colour", 3, &ws2812_get_colour, &apa_set_colour, PARAMTYPE_UINT32, 0xFFFFFF, (GET_FLAG | SET_FLAG) },
+    {"Colour", 3, &ws2812_get_colour, &ws2812_set_colour, PARAMTYPE_UINT32, 0xFFFFFF, (GET_FLAG | SET_FLAG) },
     {"Brightness", 4, &ws2812_get_brightness, &ws2812_set_brightness, PARAMTYPE_UINT8, 5, (GET_FLAG | SET_FLAG)}
 };
 
@@ -159,12 +160,7 @@ void fxCallbackFunction(TimerHandle_t timer)
     return;
 }
 
-<<<<<<< HEAD
-/****** Private Functions *************/
-
-=======
 /*** PRIVATE FUNCTIONS ***/
->>>>>>> ws2812Driver
 /**
  * Write data from led mem to the RMT data output
  **/
@@ -255,95 +251,6 @@ StrandData_t *WS2812_init(ws2812_initdata_t *initdata)
     if(initStatus == ESP_OK) {
         if (initdata->numLeds == 0 || initdata->numLeds > WS2812_MAX_STRAND_LEDS)
         {
-<<<<<<< HEAD
-            /* assign memory and add the pointer to allStrands */
-            StrandData_t *strand = heap_caps_calloc(1, sizeof(StrandData_t), MALLOC_CAP_8BIT);
-            if (strand != NULL)
-            {
-                strand->strandIndex = counter;
-                strand->updateLeds = 0;
-                allStrands[counter] = strand;
-            }
-            else
-            {
-                ESP_LOGE(WS2812_TAG, "Error - insufficient memory for strand data structure");
-                initStatus = ESP_ERR_NO_MEM;
-                break;
-            }
-
-            /* Error check */
-            if (numLeds[counter] == 0 || numLeds[counter] > WS2812_MAX_STRAND_LEDS)
-            {
-                ESP_LOGE(WS2812_TAG, "Error - invalid LED count (min = 1, max = %u, requested = %u)", WS2812_MAX_STRAND_LEDS, numLeds[counter]);
-                initStatus = ESP_ERR_INVALID_ARG;
-                break;
-            }
-            else
-            {
-                strand->numLeds = numLeds[counter];
-                totalLeds += numLeds[counter];
-            }
-
-            /* Init Function - assign LED memory */
-            uint16_t spaceRequired = (WS2812_BYTES_PER_PIXEL * numLeds[counter]);
-            uint8_t *ledMem = heap_caps_calloc(1, spaceRequired, MALLOC_CAP_8BIT);
-
-            if (ledMem != NULL)
-            {
-                strand->strandMem = ledMem;
-                strand->strandMemLength = spaceRequired;
-            }
-            else
-            {
-                ESP_LOGE(WS2812_TAG, "Error - Insufficient heap memory to assign LED pixel data ( %u needed | %u available 8-bit capable )", spaceRequired, heap_caps_get_free_size(MALLOC_CAP_8BIT));
-                initStatus = ESP_ERR_NO_MEM;
-                break;
-            }
-
-            /* init Function - create Led Effects structure */
-            if (initStatus == ESP_OK)
-            {
-                ledEffectData_t *ledFxData = ledEffectInit((void *)strand);
-                TimerHandle_t fxTimer = xTimerCreate("fxTimer", (TickType_t)UINT32_MAX, pdTRUE, NULL, fxCallbackFunction);
-
-                if (ledFxData == NULL)
-                {
-                    ESP_LOGE(WS2812_TAG, "Error in assigning memory for led effects");
-                    initStatus = ESP_ERR_NO_MEM;
-                    break;
-                }
-                else if (fxTimer == NULL)
-                {
-                    ESP_LOGE(WS2812_TAG, "Error in creating led effect timer");
-                    initStatus = ESP_ERR_NO_MEM;
-                    break;
-                }
-                else
-                {
-                    strand->refreshTimer = fxTimer;
-                    strand->fxData = ledFxData;
-                }
-            }
-
-            /* Init Function - create Strand Semaphore */
-            SemaphoreHandle_t memSemphr = xSemaphoreCreateMutex();
-            if (memSemphr != NULL)
-            {
-                strand->memSemphr = memSemphr;
-            }
-            else
-            {
-                ESP_LOGE(WS2812_TAG, "Error - Unable to find space for the LED semaphore");
-                initStatus = ESP_FAIL;
-                break;
-            }
-
-            if (initStatus == ESP_OK)
-            {
-                /* configure & install the RMT driver on the GPIO channel */
-                rmtConfig.gpio_num = dataPin[counter];
-                rmtConfig.channel = (rmt_channel_t)counter;
-=======
             ESP_LOGE(WS2812_TAG, "Error - invalid LED count (min = 1, max = %u, requested = %u)", WS2812_MAX_STRAND_LEDS, initdata->numLeds);
             initStatus = ESP_ERR_INVALID_ARG;
         }
@@ -353,7 +260,6 @@ StrandData_t *WS2812_init(ws2812_initdata_t *initdata)
             totalLeds += initdata->numLeds;
         }
     }
->>>>>>> ws2812Driver
 
     if(initStatus == ESP_OK) {
     /* Init Function - assign LED memory */
@@ -369,7 +275,6 @@ StrandData_t *WS2812_init(ws2812_initdata_t *initdata)
         {
             ESP_LOGE(WS2812_TAG, "Error - Insufficient heap memory to assign LED pixel data ( %u needed | %u available 8-bit capable )", spaceRequired, heap_caps_get_free_size(MALLOC_CAP_8BIT));
             initStatus = ESP_ERR_NO_MEM;
-            break;
         }
     }
     /* init Function - create Led Effects structure */
@@ -382,13 +287,11 @@ StrandData_t *WS2812_init(ws2812_initdata_t *initdata)
         {
             ESP_LOGE(WS2812_TAG, "Error in assigning memory for led effects");
             initStatus = ESP_ERR_NO_MEM;
-            break;
         }
         else if (fxTimer == NULL)
         {
             ESP_LOGE(WS2812_TAG, "Error in creating led effect timer");
             initStatus = ESP_ERR_NO_MEM;
-            break;
         }
         else
         {
@@ -408,7 +311,6 @@ StrandData_t *WS2812_init(ws2812_initdata_t *initdata)
         {
             ESP_LOGE(WS2812_TAG, "Error - Unable to find space for the LED semaphore");
             initStatus = ESP_FAIL;
-            break;
         }
     }
 
@@ -457,13 +359,8 @@ StrandData_t *WS2812_init(ws2812_initdata_t *initdata)
         }
     }
 
-<<<<<<< HEAD
-    WS2812_setAllLedColour(allStrands[0], 0x0000ff00);
-    return initStatus;
-=======
 
     return strand;
->>>>>>> ws2812Driver
 }
 
 /** Driver deinit

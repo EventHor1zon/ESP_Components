@@ -23,7 +23,7 @@
 #include "LedEffects.h"
 
 #ifdef ESP_HOME_API_ENABLE
-#include "FREESP_PeripheralManager.h"
+#include "PeripheralManager.h"
 #endif
 
 /********* Definitions *****************/
@@ -41,12 +41,7 @@
 
 #define DRIVER_DEVELOPMENT_MODE
 
-#ifdef ESP_HOME_API_ENABLE
-#define WS2812_CMD_INDEX_ENABLE 0
-#define WS2812_CMD_INDEX_COLOUR 1
-#define WS2812_CMD_INDEX_EFFECT 2
-#define WS2812_CMD_INDEX_BRIGHT 3
-#endif
+
 
 /********** Types **********************/
 
@@ -108,6 +103,13 @@ typedef struct ws2812Control
     uint8_t numStrands;            /** <number of led strands (max 8) */
     TaskHandle_t driverTaskHandle; /** <handle for the driver main task */
 } ws2812Ctrl_t;
+
+
+typedef struct ws2812_initdata {
+    uint16_t numLeds;
+    gpio_num_t dataPin;
+} ws2812_initdata_t;
+
 
 /********** Constants ******************/
 
@@ -174,5 +176,20 @@ esp_err_t WS2812_deinit(void);
  *  \return esp_ok or error 
  **/
 esp_err_t WS2812_setAllLedColour(StrandData_t *strand, uint32_t colour);
+
+
+
+
+
+esp_err_t ws2812_get_numleds(StrandData_t *strand, uint8_t *data);
+esp_err_t ws2812_get_mode(StrandData_t *strand, uint8_t *data);
+esp_err_t ws2812_get_colour(StrandData_t *strand, uint32_t *data);
+esp_err_t ws2812_get_brightness(StrandData_t *strand, uint8_t *data);
+esp_err_t ws2812_set_colour(StrandData_t *strand, uint32_t *data);
+esp_err_t ws2812_set_brightness(StrandData_t *strand, uint8_t *data);
+
+
+
+
 
 #endif /* FREESP_WS2812_H */
