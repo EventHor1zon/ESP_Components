@@ -61,53 +61,10 @@ void app_main(void)
 
     // genericI2Cinit(17, 16, 100000, 0);
 
-<<<<<<< HEAD
-    // bm_initData_t ini;
-    // ini.addressPinState = 0;
-    // ini.devType = 1;
-    // ini.i2cChannel = 0;
-    // ini.sampleMode = BM_NORMAL_MODE;
-    // ini.sampleType = BM_MODE_TEMP_PRESSURE_HUMIDITY;
-    
-    // bm_controlData_t *handle = bm280_init(&ini);
-
-    hpdl_initdata_t init = {0};
-    init.write = 26;
-    init.D0 = 15;
-    init.D1 = 16;
-    init.D2 = 17;
-    init.D3 = 18;
-    init.D4 = 25;
-    init.D5 = 19;
-    init.D6 = 32;
-    init.A0 = 14;
-    init.A1 = 27;
-
-    char *a = "F";
-    char *b = "U";
-    char *c = "C";
-    char *d = "K";
-
-    uint8_t a0 = 0;
-    uint8_t a1 = 1;
-    uint8_t a2 = 2;
-    uint8_t a3 = 3;
-
-    hpdl_driver_t *handle = hdpl1414_init(&init);
-    hpdl_set_led(handle, &a0);
-    hpdl_set_char(handle, (uint8_t *)a);
-    hpdl_set_led(handle, &a1);
-    hpdl_set_char(handle, (uint8_t *)b);
-    hpdl_set_led(handle, &a2);
-    hpdl_set_char(handle, (uint8_t *)c);
-    hpdl_set_led(handle, &a3);
-    hpdl_set_char(handle, (uint8_t *)d);
-=======
     printf("Starting LEDSs\n");
     uint16_t numLeds = 6;
     gpio_num_t pin = GPIO_NUM_16;
     WS2812_init(1, &numLeds, &pin);
->>>>>>> ws2812Driver
 
     while (1)
     {
