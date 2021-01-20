@@ -13,7 +13,6 @@
 #include "esp_types.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
-#include "esp_http_server.h"
 
 /********* Definitions *****************/
 /** TRY: not sure if this will work... want to have each parameter_t 
@@ -180,7 +179,6 @@ typedef struct rsp_data
 typedef struct command_request
 {
     uint32_t cmd_uid;    /** < command unique id **/
-    httpd_req_t *origin;
     periph_cmd_t pcmd_data;    /** < the command data **/
     
 } cmd_request_t;
@@ -189,7 +187,6 @@ typedef struct command_request
 typedef struct command_response
 {
     uint32_t rsp_uid;
-    httpd_req_t *origin;
     rsp_data_t rsp_data;
 } cmd_rsp_t;
 

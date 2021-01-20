@@ -30,13 +30,16 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 #include "freertos/task.h"
-#include "include/CommandAPI.h"
+#include "CommandAPI.h"
+#include "LedEffects.h"
 
 /****** Function Prototypes ***********/
 
 static void WS2812_driverTask(void *args);
 
 /****** Private Data ******************/
+
+static uint8_t numstrands = 0;
 
 static StrandData_t *allStrands[WS2812_MAX_STRANDS] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
 static ws2812Ctrl_t ledControl = {0};
@@ -62,10 +65,10 @@ const ws2812b_timing_t ws2812Timings = {
     450,
 };
 
-const peripheral_t availableCommands[] = {
+const parameter_t availableCommands[4] = {
     /** TODO: replace magic numbers */
     {"NumLeds", 1, &ws2812_get_numleds, NULL, PARAMTYPE_UINT32, 0, (GET_FLAG)},
-    {"Mode", 2, &ws2812_get_mode, NULL, PARAMTYPE_UINT8, LEDFX_NUM_EFFECTS, (GET_FLAG | SET_FLAG)},
+    {"Mode", 2, &ws2812_get_mode, NULL, PARAMTYPE_UINT8, 4, (GET_FLAG | SET_FLAG)},
     {"Colour", 3, &ws2812_get_colour, &ws2812_set_colour, PARAMTYPE_UINT32, 0xFFFFFF, (GET_FLAG | SET_FLAG) },
     {"Brightness", 4, &ws2812_get_brightness, &ws2812_set_brightness, PARAMTYPE_UINT8, 5, (GET_FLAG | SET_FLAG)}
 };
@@ -192,10 +195,14 @@ static esp_err_t WS2812_loadTestImage(StrandData_t *strand)
         pixelAddr = strand->strandMem + (i * WS2812_BYTES_PER_PIXEL);
         pixelIndex = i % testPixelsLen;
         pixelData = &testFrame[pixelIndex][0];
-        ESP_LOGI(WS2812_TAG, "Writing %u to %p", *pixelData, pixelAddr);
+        ESP_LOGI(WS2812_TAG, "Writing %06x to %p", *pixelData, pixelAddr);
         memcpy(pixelAddr, pixelData, WS2812_BYTES_PER_PIXEL);
     }
 
+    esp_err_t er = WS2812_transmitLedData(strand);
+    if(er != ESP_OK) {
+        ESP_LOGE(WS2812_TAG, "Error in transmit %u", er);
+    }
     return ESP_OK;
 }
 
@@ -209,7 +216,7 @@ static esp_err_t WS2812_loadTestImage(StrandData_t *strand)
 StrandData_t *WS2812_init(ws2812_initdata_t *initdata)
 {
 
-    uint16_t counter = 0, totalLeds = 0;
+    uint16_t totalLeds = 0;
     esp_err_t initStatus = ESP_OK;
 
     /* set up the rmt driver config */
@@ -237,9 +244,9 @@ StrandData_t *WS2812_init(ws2812_initdata_t *initdata)
     StrandData_t *strand = heap_caps_calloc(1, sizeof(StrandData_t), MALLOC_CAP_8BIT);
     if (strand != NULL)
     {
-        strand->strandIndex = counter;
+        strand->strandIndex = numstrands;
         strand->updateLeds = 0;
-        allStrands[counter] = strand;
+        allStrands[numstrands] = strand;
     }
     else
     {
@@ -280,7 +287,7 @@ StrandData_t *WS2812_init(ws2812_initdata_t *initdata)
     /* init Function - create Led Effects structure */
     if (initStatus == ESP_OK)
     {
-        ledEffect_t *ledFxData = LedEffectInit(strand);
+        ledEffect_t *ledFxData = ledEffectInit(strand);
         TimerHandle_t fxTimer = xTimerCreate("fxTimer", (TickType_t)UINT32_MAX, pdTRUE, NULL, fxCallbackFunction);
 
         if (ledFxData == NULL)
@@ -319,8 +326,8 @@ StrandData_t *WS2812_init(ws2812_initdata_t *initdata)
         /* configure & install the RMT driver on the GPIO channel */
 
         ESP_ERROR_CHECK(rmt_config(&rmtConfig));
-        ESP_ERROR_CHECK(rmt_driver_install((rmt_channel_t)counter, 0, 0));
-        ESP_ERROR_CHECK(rmt_translator_init((rmt_channel_t)counter, ws2812_TranslateDataToRMT));
+        ESP_ERROR_CHECK(rmt_driver_install((rmt_channel_t)numstrands, 0, 0));
+        ESP_ERROR_CHECK(rmt_translator_init((rmt_channel_t)numstrands, ws2812_TranslateDataToRMT));
 
     }
 
@@ -340,7 +347,7 @@ StrandData_t *WS2812_init(ws2812_initdata_t *initdata)
 
     /** set up the led effects section **/
     if(initStatus == ESP_OK) {
-        ESP_LOGI(WS2812_TAG, "Success! Strand %u initialised at %p ", counter, strand);
+        ESP_LOGI(WS2812_TAG, "Success! Strand %u initialised at %p ", numstrands, strand);
                 /* finish setup of Driver structure */
         numstrands++;
         ledControl.numStrands = numstrands;
@@ -359,7 +366,7 @@ StrandData_t *WS2812_init(ws2812_initdata_t *initdata)
         }
     }
 
-
+    WS2812_loadTestImage(strand);
     return strand;
 }
 
@@ -416,7 +423,7 @@ static void WS2812_driverTask(void *args)
 {
 
     uint32_t colours[6] = {0x00000011, 0x00001100, 0x00110000, 0x00111100, 0x00001111, 0x00110011};
-    uint8_t counter = 0;
+    uint8_t numstrands = 0;
 
     while (1)
     {
@@ -480,45 +487,112 @@ esp_err_t WS2812_ledsOff(StrandData_t *strand)
  * 
 **/
 
-esp_err_t WS2812_setAllLedColour(StrandData_t *strand, uint32_t colour)
-{
+// esp_err_t WS2812_setAllLedColour(StrandData_t *strand, uint32_t colour)
+// {
 
+//     esp_err_t status = ESP_OK;
+//     uint8_t r, g, b;
+//     uint8_t *ptr = strand->strandMem;
+
+//     if (strand == NULL)
+//     {
+//         status = ESP_ERR_INVALID_ARG;
+//         ESP_LOGE(WS2812_TAG, "Error: Invalid strand");
+//     }
+//     else
+//     {
+//         r = fade_color((uint8_t)colour, 2, 1);
+//         g = fade_color((uint8_t)(colour >> 8), 2, 1);
+//         b = fade_color((uint8_t)(colour >> 16), 2, 1);
+
+//         for (uint8_t offset = 0; offset < strand->strandMemLength; offset++)
+//         {
+//             if (offset % 3 == 0)
+//             {
+//                 *ptr = g;
+//             }
+//             else if (offset % 3 == 1)
+//             {
+//                 *ptr = r;
+//             }
+//             else if (offset % 3 == 2)
+//             {
+//                 *ptr = b;
+//             }
+//             ptr++;
+//         }
+//     }
+
+//     strand->updateLeds = 1;
+
+//     return status;
+// }
+
+
+
+
+esp_err_t ws2812_get_numleds(StrandData_t *strand, uint8_t *data) {
     esp_err_t status = ESP_OK;
-    uint8_t r, g, b;
-    uint8_t *ptr = strand->strandMem;
-
-    if (strand == NULL)
-    {
-        status = ESP_ERR_INVALID_ARG;
-        ESP_LOGE(WS2812_TAG, "Error: Invalid strand");
-    }
-    else
-    {
-        r = fade_color((uint8_t)colour, 2, 1);
-        g = fade_color((uint8_t)(colour >> 8), 2, 1);
-        b = fade_color((uint8_t)(colour >> 16), 2, 1);
-
-        for (uint8_t offset = 0; offset < strand->strandMemLength; offset++)
-        {
-            if (offset % 3 == 0)
-            {
-                *ptr = g;
-            }
-            else if (offset % 3 == 1)
-            {
-                *ptr = r;
-            }
-            else if (offset % 3 == 2)
-            {
-                *ptr = b;
-            }
-            ptr++;
-        }
-    }
-
-    strand->updateLeds = 1;
-
+    *data = strand->numLeds;
     return status;
 }
+
+
+esp_err_t ws2812_get_mode(StrandData_t *strand, uint8_t *data){
+    esp_err_t status = ESP_OK;
+    *data = strand->fxData->effect;
+    return status;
+}
+
+
+esp_err_t ws2812_get_colour(StrandData_t *strand, uint32_t *data){
+
+    esp_err_t status = ESP_OK;
+    *data = strand->fxData->colour;
+    return status;
+}
+
+
+esp_err_t ws2812_get_brightness(StrandData_t *strand, uint8_t *data){
+    esp_err_t status = ESP_OK;
+    *data = strand->fxData->brightness;
+    return status;
+}
+
+esp_err_t ws2812_set_mode(StrandData_t *strand, uint8_t *data) {
+    esp_err_t status;
+
+    if(*data > LEDFX_NUM_EFFECTS) {
+        status = ESP_ERR_INVALID_ARG;
+        ESP_LOGI(WS2812_TAG, "Error mode num");
+    } else {
+        ESP_LOGI(WS2812_TAG, "setting Mode %u", *data);
+
+        strand->fxData->effect = *data;
+        ledFx_updateMode(strand);
+    }
+    return status;
+}
+
+esp_err_t ws2812_set_colour(StrandData_t *strand, uint32_t *data){
+    esp_err_t status = ESP_OK;
+    ESP_LOGI(WS2812_TAG, "Setting colour to %06x", *data);
+    strand->fxData->colour = *data;
+    strand->updateLeds = true;
+    return status;
+}
+
+
+esp_err_t ws2812_set_brightness(StrandData_t *strand, uint8_t *data){
+    esp_err_t status = ESP_OK;
+
+    if(*data > WS2812_MAX_BR) {
+        status = ESP_ERR_INVALID_ARG;
+    } else {
+        strand->fxData->brightness = *data;
+    }
+    return status;
+}
+
 
 /********* UTILITY ***************/

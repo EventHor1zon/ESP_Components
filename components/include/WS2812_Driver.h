@@ -36,6 +36,7 @@
 #define WS2812_MAX_STRANDS 8        /** < Max number of strands (max rmt channels)*/
 #define WS2812_MAX_STRAND_LEDS 200  /** < max number of leds per strand - arbitrary for now. time later */
 #define WS2812_MAX_TOTAL_LEDS 1000  /** < max number of leds total - arbitrary */
+#define WS2812_MAX_BR 5
 
 #define WS2812_SEMAPHORE_TIMEOUT 100 /** <semaphore wait timeout in ms*/
 
@@ -45,17 +46,17 @@
 
 /********** Types **********************/
 
-typedef enum ledEffect
-{
-    LED_EFFECT_OFF,
-    LED_EFFECT_SINGLE_COLOUR,
-    LED_EFFECT_SLOW_FADE,
-    LED_EFFECT_RAINBOW,
-    LED_EFFECT_NIGHTRIDER,
-    LED_EFFECT_COLOUR_FADE,
+// typedef enum ledEffect
+// {
+//     LED_EFFECT_OFF,
+//     LED_EFFECT_SINGLE_COLOUR,
+//     LED_EFFECT_SLOW_FADE,
+//     LED_EFFECT_RAINBOW,
+//     LED_EFFECT_NIGHTRIDER,
+//     LED_EFFECT_COLOUR_FADE,
 
-    LED_EFFECT_NO_EFFECT = 0xFF
-} ledEffect_t;
+//     LED_EFFECT_NO_EFFECT = 0xFF
+// } ledEffect_t;
 
 /** WS2812b bit timings. 
  *  Hardware specific, the initalisation of values below. 
@@ -69,31 +70,31 @@ typedef struct
     uint32_t TRS;
 } ws2812b_timing_t;
 
-typedef struct ws2812_ledEffectData
-{
-    ledEffect_t effect;        /** < the current effect in enumeration */
-    EffectFunction func;       /** < a pointer to the LedEffects function */
-    uint32_t colour;           /** < colour - colour */
-    uint16_t refresh_t;        /** < refresh time in ms */
-    bool updateEffect;         /** < led effect has been changed - adjust parameters */
-    uint32_t *LedEffectData_t; /** < struct for holding led effect variables if needed */
-} ledEffectData_t;
+// typedef struct ws2812_ledEffectData
+// {
+//     ledEffect_t effect;        /** < the current effect in enumeration */
+//     EffectFunction func;       /** < a pointer to the LedEffects function */
+//     uint32_t colour;           /** < colour - colour */
+//     uint16_t refresh_t;        /** < refresh time in ms */
+//     bool updateEffect;         /** < led effect has been changed - adjust parameters */
+//     uint32_t *LedEffectData_t; /** < struct for holding led effect variables if needed */
+// } ledEffectData_t;
 
 /** Strand Data. 
  *  Data for each individual strand of leds 
  **/
-typedef struct strandData
-{
-    uint8_t strandIndex;         /** <index of the current strand  */
-    uint8_t updateLeds;          /** <update flag - led mem has changed */
-    uint16_t numLeds;            /** <num leds in strand           */
-    uint16_t strandMemLength;    /** <length of memory    */
-    uint8_t *strandMem;          /** <pointer to LED data          */
-    ledEffectData_t *fxData;     /** < pointer to led effect data */
-    SemaphoreHandle_t memSemphr; /** <sempahore for led data access*/
-    rmt_channel_t dataChannel;   /** <rmt channel driving leds (uint8_t)    */
-    TimerHandle_t refreshTimer;  /** < handle for the effect refresh timer **/
-} StrandData_t;
+// typedef struct strandData
+// {
+//     uint8_t strandIndex;         /** <index of the current strand  */
+//     uint8_t updateLeds;          /** <update flag - led mem has changed */
+//     uint16_t numLeds;            /** <num leds in strand           */
+//     uint16_t strandMemLength;    /** <length of memory    */
+//     uint8_t *strandMem;          /** <pointer to LED data          */
+//     ledEffectData_t *fxData;     /** < pointer to led effect data */
+//     SemaphoreHandle_t memSemphr; /** <sempahore for led data access*/
+//     rmt_channel_t dataChannel;   /** <rmt channel driving leds (uint8_t)    */
+//     TimerHandle_t refreshTimer;  /** < handle for the effect refresh timer **/
+// } StrandData_t;
 
 /** ws2812 Driver Control structure 
  *  Data storage for the driver. 
@@ -149,7 +150,7 @@ static uint8_t testFrame[3][3] = {
  *                      desireable.
  * \return ESP_OK or Error Code
  **/
-esp_err_t WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dataPin);
+StrandData_t *WS2812_init(ws2812_initdata_t *initdata);
 
 /**
  * \brief ws2812_deinit() - deinint the driver
@@ -175,7 +176,7 @@ esp_err_t WS2812_deinit(void);
  * 
  *  \return esp_ok or error 
  **/
-esp_err_t WS2812_setAllLedColour(StrandData_t *strand, uint32_t colour);
+//esp_err_t WS2812_setAllLedColour(StrandData_t *strand, uint32_t colour);
 
 
 

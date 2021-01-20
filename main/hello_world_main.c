@@ -62,9 +62,10 @@ void app_main(void)
     // genericI2Cinit(17, 16, 100000, 0);
 
     printf("Starting LEDSs\n");
-    uint16_t numLeds = 6;
-    gpio_num_t pin = GPIO_NUM_16;
-    WS2812_init(1, &numLeds, &pin);
+    ws2812_initdata_t init;
+    init.numLeds = 1;
+    init.dataPin = GPIO_NUM_27;
+    StrandData_t *strand = WS2812_init(&init);
 
     while (1)
     {
