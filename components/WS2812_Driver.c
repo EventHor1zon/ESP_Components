@@ -221,7 +221,7 @@ StrandData_t *WS2812_init(ws2812_initdata_t *initdata)
 
     /* set up the rmt driver config */
     rmt_config_t rmtConfig;
-    rmtConfig.channel = numstrands;
+    rmtConfig.channel = (rmt_channel_t)numstrands;
     rmtConfig.rmt_mode = RMT_MODE_TX;
     rmtConfig.clk_div = 4;
     rmtConfig.mem_block_num = 1;
