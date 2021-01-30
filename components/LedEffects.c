@@ -91,7 +91,8 @@ ledEffectData_t *ledEffectInit(StrandData_t *strand)
     }
     else
     {
-        ESP_LOGE(WS2812_TAG, "Error! Insufficient heap memory to assign LED effects data memory ( %u needed | %u available 8-bit capable )", spaceRequired, heap_caps_get_free_size(MALLOC_CAP_8BIT));
+        ESP_LOGE(WS2812_TAG, "Error! Insufficient heap memory to assign LED effects data memory \
+                ( %u needed | %u available 8-bit capable )", spaceRequired, heap_caps_get_free_size(MALLOC_CAP_8BIT));
         initStatus = ESP_ERR_NO_MEM;
     }
 

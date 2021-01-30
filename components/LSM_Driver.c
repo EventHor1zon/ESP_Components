@@ -26,6 +26,20 @@
 
 /****** Function Prototypes ***********/
 
+static void ISR_int1(void *args);
+static void ISR_int2(void *args);
+
+static void LSM_processAccel(LSM_DriverHandle_t *dev);
+static void LSM_processGyro(LSM_DriverHandle_t *dev);
+static uint16_t LSM_fifoPattern(LSM_DriverHandle_t *dev);
+static esp_err_t LSM_getFIFOpktCount(LSM_DriverHandle_t *dev, uint16_t *count);
+static esp_err_t LSM_waitSampleReady(LSM_DriverHandle_t *dev, uint8_t mask);
+static esp_err_t LSM_getWhoAmI(LSM_DriverHandle_t *device, uint8_t *whoami);
+
+void LSMDriverTask(void *args);
+
+
+
 /************ ISR *********************/
 
 static void ISR_int1(void *args)
@@ -37,10 +51,9 @@ static void ISR_int2(void *args)
 }
 /****** Private Data ******************/
 
-LSM_DriverSettings_t *device = NULL;
 /****** Private Functions *************/
 
-static void LSM_processAccel(LSM_DriverSettings_t *dev)
+static void LSM_processAccel(LSM_DriverHandle_t *dev)
 {
     float factor = 0;
 
@@ -83,7 +96,7 @@ static void LSM_processAccel(LSM_DriverSettings_t *dev)
     }
 }
 
-static void LSM_processGyro(LSM_DriverSettings_t *dev)
+static void LSM_processGyro(LSM_DriverHandle_t *dev)
 {
     float factor = 0;
 
@@ -111,7 +124,7 @@ static void LSM_processGyro(LSM_DriverSettings_t *dev)
     dev->measurements.calibGyroZ = ((float)((int16_t)(dev->measurements.rawGyro[5] << 8) | (int16_t)(dev->measurements.rawGyro[4])) * factor);
 }
 
-static uint16_t LSM_fifoPattern(LSM_DriverSettings_t *dev)
+static uint16_t LSM_fifoPattern(LSM_DriverHandle_t *dev)
 {
 
     uint8_t regVals[2] = {0, 0};
@@ -121,7 +134,7 @@ static uint16_t LSM_fifoPattern(LSM_DriverSettings_t *dev)
     return pattern;
 }
 
-static esp_err_t LSM_getFIFOpktCount(LSM_DriverSettings_t *dev, uint16_t *count)
+static esp_err_t LSM_getFIFOpktCount(LSM_DriverHandle_t *dev, uint16_t *count)
 {
     esp_err_t status = ESP_OK;
     uint8_t rxBuffer[2] = {0};
@@ -140,7 +153,7 @@ static esp_err_t LSM_getFIFOpktCount(LSM_DriverSettings_t *dev, uint16_t *count)
     return status;
 }
 
-static esp_err_t LSM_waitSampleReady(LSM_DriverSettings_t *dev, uint8_t mask)
+static esp_err_t LSM_waitSampleReady(LSM_DriverHandle_t *dev, uint8_t mask)
 {
     esp_err_t status = ESP_OK;
     uint8_t regVal = 0, tries = 0;
@@ -158,7 +171,7 @@ static esp_err_t LSM_waitSampleReady(LSM_DriverSettings_t *dev, uint8_t mask)
     return status;
 }
 
-static esp_err_t LSM_getWhoAmI(LSM_DriverSettings_t *device, uint8_t *whoami)
+static esp_err_t LSM_getWhoAmI(LSM_DriverHandle_t *device, uint8_t *whoami)
 {
     esp_err_t status = ESP_OK;
 
@@ -184,12 +197,11 @@ static esp_err_t LSM_getWhoAmI(LSM_DriverSettings_t *device, uint8_t *whoami)
  *                          - else 
  *                              - Check data ready
  *                              - Read new samples
- ***/
-
+ **/
 void LSMDriverTask(void *args)
 {
 
-    LSM_DriverSettings_t *dev = (LSM_DriverSettings_t *)args;
+    LSM_DriverHandle_t *dev = (LSM_DriverHandle_t *)args;
 
     while (1)
     {
@@ -207,9 +219,31 @@ void LSMDriverTask(void *args)
 
 /****** Global Data *******************/
 
+LSM_DriverHandle_t *device = NULL;
+
+#ifdef CONFIG_USE_PERIPH_MANAGER
+
+
+const parameter_t lsm_parameter_mappings[lsm_param_mappings_len] = {
+    {"Operating Mode", 1, NULL, &LSM_setOpMode, PARAMTYPE_UINT8, 2, (SET_FLAG) },
+    {"Accelerometer ODR", 2, NULL, &LSM_setAccelODRMode, PARAMTYPE_UINT8, 10, (SET_FLAG) },
+    {"Gyroscope ODR", 3, NULL, &LSM_setGyroODRMode, PARAMTYPE_UINT8, 8, (SET_FLAG) },
+    {"Gyro X", 4, NULL, &LSM_getGyroX, PARAMTYPE_FLOAT, 0, (GET_FLAG) },
+    {"Gyro Y", 5, NULL, &LSM_getGyroY, PARAMTYPE_FLOAT, 0, (GET_FLAG) },
+    {"Gyro Z", 6, NULL, &LSM_getGyroZ, PARAMTYPE_FLOAT, 0, (GET_FLAG) },
+    {"Accel X", 7, NULL, &LSM_getAccelX, PARAMTYPE_FLOAT, 0, (GET_FLAG) },
+    {"Accel Y", 8, NULL, &LSM_getAccelY, PARAMTYPE_FLOAT, 0, (GET_FLAG) },
+    {"Accel Z", 9, NULL, &LSM_getAccelZ, PARAMTYPE_FLOAT, 0, (GET_FLAG) },
+    {"FIFO mode", 10, &LSM_getFIFOmode, &LSM_setFIFOmode, PARAMTYPE_INT8, 7, (GET_FLAG | SET_FLAG) },
+
+};
+
+#endif
+
+
 /****** Global Functions *************/
 
-LSM_DriverSettings_t *LSM_init(LSM_initData_t *initData)
+LSM_DriverHandle_t *LSM_init(LSM_initData_t *initData)
 {
 
     esp_err_t initStatus = ESP_OK;
@@ -227,7 +261,7 @@ LSM_DriverSettings_t *LSM_init(LSM_initData_t *initData)
     else
     {
         /** allocate memory on the heap for the control structure */
-        device = (LSM_DriverSettings_t *)heap_caps_calloc(1, sizeof(LSM_DriverSettings_t), MALLOC_CAP_8BIT);
+        device = (LSM_DriverHandle_t *)heap_caps_calloc(1, sizeof(LSM_DriverHandle_t), MALLOC_CAP_8BIT);
 
         if (device == NULL)
         {
@@ -393,7 +427,7 @@ LSM_DriverSettings_t *LSM_init(LSM_initData_t *initData)
     return device;
 }
 
-esp_err_t LSM_deInit(LSM_DriverSettings_t *dev)
+esp_err_t LSM_deInit(LSM_DriverHandle_t *dev)
 {
     if (dev->fifoBuffer != NULL)
     {
@@ -407,7 +441,7 @@ esp_err_t LSM_deInit(LSM_DriverSettings_t *dev)
 
 /******* SAMPLE SETTINGS (BASIC) ********/
 
-esp_err_t LSM_setOpMode(LSM_DriverSettings_t *dev, LSM_OperatingMode_t *mode)
+esp_err_t LSM_setOpMode(LSM_DriverHandle_t *dev, LSM_OperatingMode_t *mode)
 {
     esp_err_t status = ESP_OK;
     uint8_t regVals[2] = {0};
@@ -443,7 +477,7 @@ esp_err_t LSM_setOpMode(LSM_DriverSettings_t *dev, LSM_OperatingMode_t *mode)
     return status;
 }
 
-esp_err_t LSM_setAccelODRMode(LSM_DriverSettings_t *dev, LSM_AccelODR_t mode)
+esp_err_t LSM_setAccelODRMode(LSM_DriverHandle_t *dev, LSM_AccelODR_t mode)
 {
     esp_err_t status = ESP_OK;
     uint8_t accelEn = 0, regVal = 0;
@@ -474,7 +508,7 @@ esp_err_t LSM_setAccelODRMode(LSM_DriverSettings_t *dev, LSM_AccelODR_t mode)
     return status;
 }
 
-esp_err_t LSM_setGyroODRMode(LSM_DriverSettings_t *dev, LSM_GyroODR_t mode)
+esp_err_t LSM_setGyroODRMode(LSM_DriverHandle_t *dev, LSM_GyroODR_t mode)
 {
     esp_err_t status = ESP_OK;
     uint8_t accelEn = 0, regVal = 0;
@@ -505,7 +539,7 @@ esp_err_t LSM_setGyroODRMode(LSM_DriverSettings_t *dev, LSM_GyroODR_t mode)
 
 /** CORE FUNCTIONALITY **/
 
-esp_err_t LSM_sampleLatest(LSM_DriverSettings_t *dev)
+esp_err_t LSM_sampleLatest(LSM_DriverHandle_t *dev)
 {
 
     esp_err_t status = ESP_OK;
@@ -541,42 +575,42 @@ esp_err_t LSM_sampleLatest(LSM_DriverSettings_t *dev)
     return status;
 }
 
-esp_err_t LSM_getGyroX(LSM_DriverSettings_t *dev, float *x)
+esp_err_t LSM_getGyroX(LSM_DriverHandle_t *dev, float *x)
 {
     esp_err_t status = ESP_OK;
     *x = dev->measurements.calibGyroX;
     return status;
 }
 
-esp_err_t LSM_getGyroY(LSM_DriverSettings_t *dev, float *y)
+esp_err_t LSM_getGyroY(LSM_DriverHandle_t *dev, float *y)
 {
     esp_err_t status = ESP_OK;
     *y = dev->measurements.calibGyroY;
     return status;
 }
 
-esp_err_t LSM_getGyroZ(LSM_DriverSettings_t *dev, float *z)
+esp_err_t LSM_getGyroZ(LSM_DriverHandle_t *dev, float *z)
 {
     esp_err_t status = ESP_OK;
     *z = dev->measurements.calibGyroZ;
     return status;
 }
 
-esp_err_t LSM_getAccelX(LSM_DriverSettings_t *dev, float *x)
+esp_err_t LSM_getAccelX(LSM_DriverHandle_t *dev, float *x)
 {
     esp_err_t status = ESP_OK;
     *x = dev->measurements.calibAccelX;
     return status;
 }
 
-esp_err_t LSM_getAccelY(LSM_DriverSettings_t *dev, float *y)
+esp_err_t LSM_getAccelY(LSM_DriverHandle_t *dev, float *y)
 {
     esp_err_t status = ESP_OK;
     *y = dev->measurements.calibAccelY;
     return status;
 }
 
-esp_err_t LSM_getAccelZ(LSM_DriverSettings_t *dev, float *z)
+esp_err_t LSM_getAccelZ(LSM_DriverHandle_t *dev, float *z)
 {
     esp_err_t status = ESP_OK;
     *z = dev->measurements.calibAccelZ;
@@ -585,7 +619,7 @@ esp_err_t LSM_getAccelZ(LSM_DriverSettings_t *dev, float *z)
 
 /** FIFO SETTINGS **/
 
-esp_err_t LSM_setFIFOmode(LSM_DriverSettings_t *dev, LSM_FIFOMode_t mode)
+esp_err_t LSM_setFIFOmode(LSM_DriverHandle_t *dev, LSM_FIFOMode_t mode)
 {
     uint8_t regvalue = 0, writevalue = 0;
 
@@ -615,21 +649,21 @@ esp_err_t LSM_setFIFOmode(LSM_DriverSettings_t *dev, LSM_FIFOMode_t mode)
     return status;
 }
 
-esp_err_t LSM_getFIFOmode(LSM_DriverSettings_t *dev, uint8_t *mode)
+esp_err_t LSM_getFIFOmode(LSM_DriverHandle_t *dev, uint8_t *mode)
 {
     esp_err_t status = ESP_OK;
 
     return status;
 }
 
-esp_err_t LSM_setFIFOwatermark(LSM_DriverSettings_t *dev, uint16_t *watermark)
+esp_err_t LSM_setFIFOwatermark(LSM_DriverHandle_t *dev, uint16_t *watermark)
 {
     esp_err_t status = ESP_OK;
     /** TODO: this **/
     return ESP_OK;
 }
 
-esp_err_t LSM_setFIFOpackets(LSM_DriverSettings_t *device, LSM_PktType_t pktType)
+esp_err_t LSM_setFIFOpackets(LSM_DriverHandle_t *device, LSM_PktType_t pktType)
 {
     esp_err_t status = ESP_OK;
 
@@ -674,7 +708,7 @@ esp_err_t LSM_setFIFOpackets(LSM_DriverSettings_t *device, LSM_PktType_t pktType
     return status;
 }
 
-esp_err_t LSM_readFifoBlock(LSM_DriverSettings_t *device, uint16_t length)
+esp_err_t LSM_readFifoBlock(LSM_DriverHandle_t *device, uint16_t length)
 {
 
     esp_err_t status = ESP_OK;
@@ -684,7 +718,7 @@ esp_err_t LSM_readFifoBlock(LSM_DriverSettings_t *device, uint16_t length)
 
 /**** INTERUPT SETTINGS  ****/
 
-esp_err_t LSM_configInt(LSM_DriverSettings_t *device, uint8_t intNum, LSM_interrupt_t intr)
+esp_err_t LSM_configInt(LSM_DriverHandle_t *device, uint8_t intNum, LSM_interrupt_t intr)
 {
     esp_err_t status = ESP_OK;
     uint8_t writeval = 0, regval = 0;

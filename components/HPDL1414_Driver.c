@@ -143,7 +143,7 @@ hpdl_driver_t *hpdl_init(hpdl_initdata_t *init) {
     ;
 
 
-    hpdl_driver_t *handle = heap_caps_calloc(1, sizeof(hpdl_driver_t), MALLOC_CAP_8BIT);
+    hpdl_driver_t *handle = (hpdl_driver_t *)heap_caps_calloc(1, sizeof(hpdl_driver_t), MALLOC_CAP_8BIT);
     if(handle == NULL) {
         ESP_LOGE(HPDL_TAG, "Error assigning memory for driver handle");
         status = ESP_ERR_NO_MEM;

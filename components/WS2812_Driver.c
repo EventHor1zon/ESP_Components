@@ -65,13 +65,16 @@ const ws2812b_timing_t ws2812Timings = {
     450,
 };
 
-const parameter_t availableCommands[4] = {
+
+#ifdef CONFIG_USE_PERIPH_MANAGER
+const parameter_t ws2812_param_mappings[ws2812_param_len] = {
     /** TODO: replace magic numbers */
     {"NumLeds", 1, &ws2812_get_numleds, NULL, PARAMTYPE_UINT32, 0, (GET_FLAG)},
     {"Mode", 2, &ws2812_get_mode, NULL, PARAMTYPE_UINT8, 4, (GET_FLAG | SET_FLAG)},
     {"Colour", 3, &ws2812_get_colour, &ws2812_set_colour, PARAMTYPE_UINT32, 0xFFFFFF, (GET_FLAG | SET_FLAG) },
     {"Brightness", 4, &ws2812_get_brightness, &ws2812_set_brightness, PARAMTYPE_UINT8, 5, (GET_FLAG | SET_FLAG)}
 };
+#endif
 
 
 /************ ISR *********************/

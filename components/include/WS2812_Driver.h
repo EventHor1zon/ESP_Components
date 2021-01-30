@@ -10,6 +10,7 @@
 
 /********* Includes ********************/
 
+#include "SysConfig.h"
 #include "driver/rmt.h"
 
 #include "freertos/FreeRTOS.h"
@@ -17,13 +18,16 @@
 #include "freertos/queue.h"
 #include "freertos/timers.h"
 #include "freertos/task.h"
-
-#define WS2812_DRIVER_USE_MANAGER
-
 #include "LedEffects.h"
 
-#ifdef ESP_HOME_API_ENABLE
-#include "PeripheralManager.h"
+#ifdef CONFIG_USE_PERIPH_MANAGER
+#include "CommandAPI.h"
+
+#define WS2812_PERIPH_TYPE PTYPE_ADDR_LEDS
+
+#define ws2812_param_len 4
+const parameter_t ws2812_param_mappings[ws2812_param_len]
+
 #endif
 
 /********* Definitions *****************/

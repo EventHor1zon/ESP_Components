@@ -12,7 +12,14 @@
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
 #include "CommandAPI.h"
-#endif
+
+#define apa_param_len 4
+const parameter_t apa_param_mappings[apa_param_len];
+
+/** define the peripheral type **/
+#define APA_PERIPH_TYPE PTYPE_ADDR_LEDS
+
+#endif 
 
 /********* Includes ********************/
 
@@ -30,15 +37,9 @@
 
 #define APA_SEMTAKE_TIMEOUT 500
 
-//#define CONFIG_USE_PERIPH_MANAGER 0
 
 /********** Types **********************/
 const char *APA_TAG;
-
-#ifdef CONFIG_USE_PERIPH_MANAGER
-#define apa_param_len 4
-const parameter_t apa_param_mappings[apa_param_len];
-#endif 
 
 typedef struct apa102_init 
 {

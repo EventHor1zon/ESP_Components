@@ -11,7 +11,8 @@
 
 /********* Includes ********************/
 
-#include <stdint.h>
+#include "SysConfig.h"
+#include "esp_types.h"
 
 /********* Definitions *****************/
 

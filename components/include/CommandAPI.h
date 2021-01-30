@@ -79,6 +79,27 @@ typedef enum param_type
     PARAMTYPE_INVALID = 0xFF
 } param_type_t;
 
+
+/** \brief  Peripheral_type
+ *          Type of peripheral
+ * **/
+typedef enum peripheral_type
+{
+    PTYPE_ADDR_LEDS = 0x01, /** < leds, addressable */
+    PTYPE_STD_LED,          /** < leds regular */
+    PTYPE_ACCEL_SENSOR,     /** < accelerometer/gyroscope/g-sensors */
+    PTYPE_ENVIRO_SENSOR,    /** < environment, temp, humid, pressure sensors */
+    PTYPE_DISTANCE_SENSOR,  /** < distance/movement/etc sensors */
+    PTYPE_POWER_SENSOR,     /** < voltage/current sensor */
+    PTYPE_ADC,              /** < adc periperal (on board) */
+    PTYPE_IO,               /** < basic io function */
+    PTYPE_DISPLAY,          /** < display oled/led/epaper */
+    PTYPE_COMMS,            /** < a comms/bluetooth/radio */
+    PTYPE_NONE = 0xFF       /** < blank **/
+} peripheral_type_t;
+
+
+
 typedef enum param_flags {
     GET_FLAG = 1,
     SET_FLAG = 2,
@@ -204,6 +225,7 @@ typedef struct parameter
     uint32_t maxValid;   /** < maximum valid value **/
     uint8_t types;       /** < get/set/act flags **/
 } parameter_t;
+
 
 /** \brief detail struct for each action
  * **/
