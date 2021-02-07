@@ -216,7 +216,7 @@ static esp_err_t WS2812_loadTestImage(StrandData_t *strand)
  *  initialises driver structures/tasks from init arguments
  * 
  **/
-StrandData_t *WS2812_init(ws2812_initdata_t *initdata)
+StrandData_t *WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dataPin)
 {
 
     uint16_t totalLeds = 0;
@@ -348,28 +348,7 @@ StrandData_t *WS2812_init(ws2812_initdata_t *initdata)
         }
     }
 
-    /** set up the led effects section **/
-    if(initStatus == ESP_OK) {
-        ESP_LOGI(WS2812_TAG, "Success! Strand %u initialised at %p ", numstrands, strand);
-                /* finish setup of Driver structure */
-        numstrands++;
-        ledControl.numStrands = numstrands;
-    } 
-    else 
-    {
-        /** free any mem claimed **/
-        if(strand != NULL) {
-            if(strand->strandMem != NULL) {
-                heap_caps_free(strand->strandMem);
-            }
-            if(strand->fxData != NULL) {
-                heap_caps_free(strand->fxData);
-            }
-            heap_caps_free(strand);
-        }
-    }
-
-    WS2812_loadTestImage(strand);
+    WS2812_setAllLedColour(allStrands[0], 0x0000ff00);
     return strand;
 }
 

@@ -82,13 +82,11 @@ void app_main(void)
     }
 
 
-<<<<<<< HEAD
     printf("Starting LEDSs\n");
     ws2812_initdata_t init;
     init.numLeds = 1;
     init.dataPin = GPIO_NUM_27;
     StrandData_t *strand = WS2812_init(&init);
-=======
     // bm_initData_t ini;
     // ini.addressPinState = 0;
     // ini.devType = 1;
@@ -129,7 +127,6 @@ void app_main(void)
     // hpdl_set_char(handle, (uint8_t *)c);
     // hpdl_set_led(handle, &a3);
     // hpdl_set_char(handle, (uint8_t *)d);
->>>>>>> max30102
 
     while (1)
     {

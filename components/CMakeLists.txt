@@ -10,6 +10,7 @@ set(srcs
     "SystemInterface.c"
     "HPDL1414_Driver.c"
     "Max30102_Driver.c"
+    "Lora_SX1276_Driver.c"
     )
 
 set(includes "include")
