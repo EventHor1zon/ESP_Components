@@ -55,6 +55,10 @@ esp_err_t genericI2CReadFromAddress(uint8_t i2cChannel, uint8_t deviceAddr, uint
     if (ret == ESP_ERR_TIMEOUT)
     {
         ESP_LOGW("GenericI2C Read", "I2C Timeout error");
+    } 
+    if (ret != ESP_OK)
+    {
+        ESP_LOGW("GenericI2C Read", "I2C error");
     }
 
     return ret;
