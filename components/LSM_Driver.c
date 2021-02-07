@@ -180,6 +180,11 @@ static esp_err_t LSM_getWhoAmI(LSM_DriverHandle_t *device, uint8_t *whoami)
     return status;
 }
 
+
+
+
+
+
 /**
  *  LSM_DriverTask - if interrupts configured, wait for unblock to proceed 
  *                         - if interrupt mode == FIFO_FULL/THRESHOLD/OVR
@@ -427,7 +432,8 @@ LSM_DriverHandle_t *LSM_init(LSM_initData_t *initData)
     return device;
 }
 
-esp_err_t LSM_deInit(LSM_DriverHandle_t *dev)
+
+esp_err_t LSM_deInit(LSM_DriverSettings_t *dev)
 {
     if (dev->fifoBuffer != NULL)
     {
@@ -477,7 +483,7 @@ esp_err_t LSM_setOpMode(LSM_DriverHandle_t *dev, LSM_OperatingMode_t *mode)
     return status;
 }
 
-esp_err_t LSM_setAccelODRMode(LSM_DriverHandle_t *dev, LSM_AccelODR_t mode)
+esp_err_t LSM_setAccelODRMode(LSM_DriverSettings_t *dev, LSM_AccelODR_t *mode)
 {
     esp_err_t status = ESP_OK;
     uint8_t accelEn = 0, regVal = 0;
@@ -492,7 +498,7 @@ esp_err_t LSM_setAccelODRMode(LSM_DriverHandle_t *dev, LSM_AccelODR_t mode)
         status = genericI2CReadFromAddress(dev->commsChannel, dev->devAddr, LSM_CTRL9_XL_REG, 1, &accelEn);
         /** if no axis are active and mode > LSM_ACCELPWR_OFF turn on axis **/
 
-        if ((accelEn == 0) && mode > LSM_ACCODR_PWR_OFF)
+        if ((accelEn == 0) && *mode > LSM_ACCODR_PWR_OFF)
         {
             accelEn |= ((LSM_CTRL9_ACCEL_Z_EN_BIT) | (LSM_CTRL9_ACCEL_Y_EN_BIT) | (LSM_CTRL9_ACCEL_X_EN_BIT));
             ESP_LOGI("LSM_Driver", "Writing %02x to Accel ctrl reg", accelEn);
@@ -501,14 +507,14 @@ esp_err_t LSM_setAccelODRMode(LSM_DriverHandle_t *dev, LSM_AccelODR_t mode)
         /** get register value, clear mode & set new **/
         status = genericI2CReadFromAddress(dev->commsChannel, dev->devAddr, LSM_CTRL1_XL_REG, 1, &regVal);
         regVal &= 0b1111;
-        regVal |= (mode << 4);
+        regVal |= (*mode << 4);
         status = genericI2CwriteToAddress(dev->commsChannel, dev->devAddr, LSM_CTRL1_XL_REG, 1, &regVal);
         ESP_LOGI("LSM_Driver", "Set ACCEL CTRL1 to %02x", regVal);
     }
     return status;
 }
 
-esp_err_t LSM_setGyroODRMode(LSM_DriverHandle_t *dev, LSM_GyroODR_t mode)
+esp_err_t LSM_setGyroODRMode(LSM_DriverSettings_t *dev, LSM_GyroODR_t *mode)
 {
     esp_err_t status = ESP_OK;
     uint8_t accelEn = 0, regVal = 0;
@@ -619,7 +625,7 @@ esp_err_t LSM_getAccelZ(LSM_DriverHandle_t *dev, float *z)
 
 /** FIFO SETTINGS **/
 
-esp_err_t LSM_setFIFOmode(LSM_DriverHandle_t *dev, LSM_FIFOMode_t mode)
+esp_err_t LSM_setFIFOmode(LSM_DriverSettings_t *dev, LSM_FIFOMode_t *mode)
 {
     uint8_t regvalue = 0, writevalue = 0;
 
@@ -656,39 +662,59 @@ esp_err_t LSM_getFIFOmode(LSM_DriverHandle_t *dev, uint8_t *mode)
     return status;
 }
 
-esp_err_t LSM_setFIFOwatermark(LSM_DriverHandle_t *dev, uint16_t *watermark)
+esp_err_t LSM_setFIFOwatermark(LSM_DriverSettings_t *dev, uint16_t *watermark)
 {
     esp_err_t status = ESP_OK;
-    /** TODO: this **/
-    return ESP_OK;
+    uint16_t val = *watermark;
+
+    if(val > LSM_WATERMARK_MAX) {
+        status = ESP_ERR_INVALID_ARG;
+    } else {
+        uint8_t regval = 0;
+        uint8_t writeval[2] = {0,0};
+        writeval[0] = (uint8_t) val;
+        writeval[1] = (uint8_t)(val >> 8);
+
+        esp_err_t status = genericI2CReadFromAddress(dev->commsChannel, dev->devAddr, LSM_FIFO_CTRL2_REG, 1, &regval);
+        writeval[1] |= regval; 
+        status = genericI2CwriteToAddress(dev->commsHandle, dev->devAddr, LSM_FIFO_CTRL1_REG, 2, writeval);
+    }
+    return status;
 }
 
-esp_err_t LSM_setFIFOpackets(LSM_DriverHandle_t *device, LSM_PktType_t pktType)
+esp_err_t LSM_getFIFOwatermark(LSM_DriverSettings_t *dev, uint16_t *watermark) {
+    
+    esp_err_t status = ESP_OK;
+    *watermark = dev->settings.watermark;
+    return status;
+}
+
+esp_err_t LSM_setFIFOpackets(LSM_DriverSettings_t *device, LSM_PktType_t *pktType)
 {
     esp_err_t status = ESP_OK;
 
     uint8_t writeA = 0, writeB = 0, regVal = 0, blank = 0, pktSize = 0;
     uint16_t writeVal = 0;
 
-    if (pktType & LSM_PKT1_GYRO)
+    if (*pktType & LSM_PKT1_GYRO)
     {
         writeA |= (1 << 3);
         pktSize += 2;
     }
 
-    if (pktType & LSM_PKT2_ACCL)
+    if (*pktType & LSM_PKT2_ACCL)
     {
         writeA |= 1;
         pktSize += 2;
     }
 
-    if (pktType & LSM_PKT3_SENSHUB)
+    if (*pktType & LSM_PKT3_SENSHUB)
     {
         writeB |= 1;
         pktSize += 2;
     }
 
-    if (pktType & LSM_PKT4_STEP_OR_TEMP)
+    if (*pktType & LSM_PKT4_STEP_OR_TEMP)
     {
         writeB |= (1 << 3);
         pktSize += 2;
@@ -708,7 +734,7 @@ esp_err_t LSM_setFIFOpackets(LSM_DriverHandle_t *device, LSM_PktType_t pktType)
     return status;
 }
 
-esp_err_t LSM_readFifoBlock(LSM_DriverHandle_t *device, uint16_t length)
+esp_err_t LSM_readFifoBlock(LSM_DriverSettings_t *device, uint16_t *length)
 {
 
     esp_err_t status = ESP_OK;
