@@ -284,11 +284,12 @@ esp_err_t apa_getBrightness(StrandData_t *strand, uint8_t *var) {
 
 esp_err_t apa_setBrightness(StrandData_t *strand, uint8_t *var) {
     esp_err_t status = ESP_OK;
-
+    ESP_LOGI("APA", "In function");
     if(*var > APA_CTRL_MAX_BR) {
         status = ESP_ERR_INVALID_ARG;
     } else {
         strand->fxData->brightness = *var;
+        ESP_LOGI("APA", "good function");
     }
     return status;
 }
