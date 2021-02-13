@@ -16,39 +16,41 @@
 #include "WS2812_Driver.h"
 #include "BME280_Driver.h"
 #include "RotaryEncoder_Driver.h"
+#include "MSGEQ7_Driver.h"
 
 const char *MAIN_TAG = "main";
 
 void envSensor(void *args)
 {
 
-    bm_initData_t initData = {0};
+    // bm_initData_t initData = {0};
 
-    initData.addressPinState = 0;
-    initData.i2cChannel = 0;
-    initData.devType = BME_280_DEVICE;
-    initData.sampleMode = BM_FORCE_MODE;
-    initData.sampleType = BM_MODE_TEMP_PRESSURE_HUMIDITY;
+    // initData.addressPinState = 0;
+    // initData.i2cChannel = 0;
+    // initData.devType = BME_280_DEVICE;
+    // initData.sampleMode = BM_FORCE_MODE;
+    // initData.sampleType = BM_MODE_TEMP_PRESSURE_HUMIDITY;
 
-    bm_controlData_t *bmeHandle = NULL;
-    bmeHandle = bm280_init(&initData);
-    if (bmeHandle == NULL)
-    {
-        ESP_LOGE(MAIN_TAG, "Error initialising bme");
-        while (1)
-        {
-            vTaskDelay(2000);
-        }
-    }
+    // bm_controlData_t *bmeHandle = NULL;
+    // bmeHandle = bm280_init(&initData);
+    // if (bmeHandle == NULL)
+    // {
+    //     ESP_LOGE(MAIN_TAG, "Error initialising bme");
+    //     while (1)
+    //     {
+    //         vTaskDelay(2000);
+    //     }
+    // }
+
 
     while (1)
     {
 
-        bm280_updateMeasurements(bmeHandle);
+        // bm280_updateMeasurements(bmeHandle);
 
-        printf("Humidity: %f (calib: %ul) (raw %ul) \n", bmeHandle->sensorData.realHumidity, bmeHandle->sensorData.calibratedHumidity, bmeHandle->sensorData.rawHumidity);
-        printf("Temp: %f (calib: %ul) (raw %ul) \n", bmeHandle->sensorData.realTemperature, bmeHandle->sensorData.calibratedTemperature, bmeHandle->sensorData.rawTemperature);
-        printf("Pressure: %f (calib: %ul) (raw %ul) \n", bmeHandle->sensorData.realPressure, bmeHandle->sensorData.calibratedPressure, bmeHandle->sensorData.rawPressure);
+        // printf("Humidity: %f (calib: %ul) (raw %ul) \n", bmeHandle->sensorData.realHumidity, bmeHandle->sensorData.calibratedHumidity, bmeHandle->sensorData.rawHumidity);
+        // printf("Temp: %f (calib: %ul) (raw %ul) \n", bmeHandle->sensorData.realTemperature, bmeHandle->sensorData.calibratedTemperature, bmeHandle->sensorData.rawTemperature);
+        // printf("Pressure: %f (calib: %ul) (raw %ul) \n", bmeHandle->sensorData.realPressure, bmeHandle->sensorData.calibratedPressure, bmeHandle->sensorData.rawPressure);
 
         vTaskDelay(1000);
     }
@@ -107,13 +109,18 @@ void app_main(void)
     printf("Free heap: %d\n", esp_get_free_heap_size());
     vTaskDelay(1000 / portTICK_PERIOD_MS);
 
-    printf("\n\nSetting up a rotary encoder!\n");
+    // printf("\n\nSetting up a rotary encoder!\n");
 
-    xTaskCreate(reTask, "reTask", 5012, NULL, 4, NULL);
+    // xTaskCreate(reTask, "reTask", 5012, NULL, 4, NULL);
 
-    printf("\n\nSetting up a BME 280");
+    // printf("\n\nSetting up a BME 280");
 
-    xTaskCreate(envSensor, "envSensor", 5012, NULL, 3, NULL);
+    // xTaskCreate(envSensor, "envSensor", 5012, NULL, 3, NULL);
+    msg_init_t ini = {0};
+    ini.data = 32;
+    ini.rst = 25;
+    ini.strobe = 26;
+    msg_handle_t *handle = msg_init(&ini);
 
     while (1)
     {

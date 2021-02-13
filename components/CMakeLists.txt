@@ -3,6 +3,7 @@ set(srcs
     "WS2812_Driver.c"
     "RotaryEncoder_Driver.c"
     "PushButton_Driver.c"
+    "MSGEQ7_Driver.c"
     )
 
 set(includes "include")
