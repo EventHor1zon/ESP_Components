@@ -3,6 +3,7 @@
 * \brief        Header file for the SSd1306 driver
 * \date         Jan 2021
 * \author       RJAM
+* \credit       Mostly copied from https://github.com/yanbe/ssd1306-esp-idf-i2c.git
 ****************************************/
 
 #ifndef SSD1306_DRIVER_H
@@ -58,6 +59,19 @@
 
 
 /********* Definitions *****************/
+
+typedef struct ssd1306_init
+{
+    /* data */
+} ssd1306_init_t;
+
+
+
+typedef struct ssd1306_handle
+{
+    /* data */
+} ssd1306_handle_t;
+
 
 /********** Types **********************/
 
