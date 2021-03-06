@@ -62,33 +62,59 @@ bool genericI2C_is_bus_init(uint8_t bus) {
 esp_err_t genericI2CReadFromAddress(uint8_t i2cChannel, uint8_t deviceAddr, uint8_t regAddr, uint16_t readLen, uint8_t *rxBuffer)
 {
     esp_err_t ret = ESP_OK;
-    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-    i2c_master_start(cmd);
-    if (regAddr != -1)
-    {
-        i2c_master_write_byte(cmd, deviceAddr << 1 | 0, 1);
-        i2c_master_write_byte(cmd, regAddr, 1);
-        i2c_master_start(cmd);
-    }
-    i2c_master_write_byte(cmd, deviceAddr << 1 | 1, 1);
-    if (readLen > 1)
-    {
-        i2c_master_read(cmd, rxBuffer, readLen - 1, 0);
-    }
-    i2c_master_read_byte(cmd, rxBuffer + readLen - 1, 1);
-    i2c_master_stop(cmd);
-    ret = i2c_master_cmd_begin(i2cChannel, cmd, 1000 / portTICK_RATE_MS);
-    i2c_cmd_link_delete(cmd);
+    SemaphoreHandle_t semphr = NULL;
 
-    if (ret == ESP_ERR_TIMEOUT)
+    if ((i2cChannel == I2C_NUM_0) || (i2cChannel == I2C_NUM_1))
     {
-        ESP_LOGW("GenericI2C Read", "I2C Timeout error");
-    } 
-    if (ret != ESP_OK)
-    {
-        ESP_LOGW("GenericI2C Read", "I2C error");
-    }
+        /** if bus using a semaphore, take it first **/
+        if((i2cChannel == I2C_NUM_0) && gcd.i2c0_sem != NULL) {
+            semphr = gcd.i2c0_sem;
+        }
+        else if((i2cChannel == I2C_NUM_1) && gcd.i2c1_sem != NULL) {
+            semphr = gcd.i2c1_sem;
+        }
 
+        if(sempr != NULL) {
+            if(xSemaphoreTake(semphr, portMS_TO_TICKS(GCD_SEMAPHORE_TIMEOUT)) != pdTRUE) {
+                ESP_LOGI(COMMS_TAG, "Could not get i2c %u semaphore in time", i2cChannel);
+                txStatus = ESP_ERR_TIMEOUT;
+            }
+        }
+        
+        if(txStatus == ESP_OK) {
+            i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+            i2c_master_start(cmd);
+            if (regAddr != -1)
+            {
+                i2c_master_write_byte(cmd, deviceAddr << 1 | 0, 1);
+                i2c_master_write_byte(cmd, regAddr, 1);
+                i2c_master_start(cmd);
+            }
+            i2c_master_write_byte(cmd, deviceAddr << 1 | 1, 1);
+            if (readLen > 1)
+            {
+                i2c_master_read(cmd, rxBuffer, readLen - 1, 0);
+            }
+            i2c_master_read_byte(cmd, rxBuffer + readLen - 1, 1);
+            i2c_master_stop(cmd);
+            ret = i2c_master_cmd_begin(i2cChannel, cmd, 1000 / portTICK_RATE_MS);
+            i2c_cmd_link_delete(cmd);
+
+            if (ret == ESP_ERR_TIMEOUT)
+            {
+                ESP_LOGW("GenericI2C Read", "I2C Timeout error");
+            } 
+            if (ret != ESP_OK)
+            {
+                ESP_LOGW("GenericI2C Read", "I2C error");
+            }
+
+            /** give back the sem **/
+            if(sempr != NULL) {
+                xSemaphoreGive(sempr);
+            }
+        }
+    }
     return ret;
 }
 
@@ -97,22 +123,46 @@ esp_err_t genericI2CwriteToAddress(uint8_t i2cChannel, uint8_t deviceAddr, uint8
 {
 
     esp_err_t txStatus;
-
+    SemaphoreHandle_t sempr = NULL;
+    
     if ((i2cChannel == I2C_NUM_0) || (i2cChannel == I2C_NUM_1))
     {
-        i2c_cmd_handle_t rxHandle = i2c_cmd_link_create();
-        i2c_master_start(rxHandle);
-        i2c_master_write_byte(rxHandle, (deviceAddr << 1 | I2C_MASTER_WRITE), 1);
-        i2c_master_write_byte(rxHandle, regAddr, 1);
-        i2c_master_write(rxHandle, txBuffer, writeLen, 1);
-        i2c_master_stop(rxHandle);
-
-        txStatus = i2c_master_cmd_begin(i2cChannel, rxHandle, pdMS_TO_TICKS(GENERIC_I2C_COMMS_TIMEOUT_MS));
-        if (txStatus != ESP_OK)
-        {
-            ESP_LOGE("GenericI2CwriteToAddress", "Error during transmission [%u]", txStatus);
+        /** if bus using a semaphore, take it first **/
+        if((i2cChannel == I2C_NUM_0) && gcd.i2c0_sem != NULL) {
+            semphr = gcd.i2c0_sem;
         }
-        i2c_cmd_link_delete(rxHandle);
+        else if((i2cChannel == I2C_NUM_1) && gcd.i2c1_sem != NULL) {
+            semphr = gcd.i2c1_sem;
+        }
+
+        if(sempr != NULL) {
+            if(xSemaphoreTake(semphr, portMS_TO_TICKS(GCD_SEMAPHORE_TIMEOUT)) != pdTRUE) {
+                ESP_LOGI(COMMS_TAG, "Could not get i2c %u semaphore in time", i2cChannel);
+                txStatus = ESP_ERR_TIMEOUT;
+            }
+        }
+        
+        if(txStatus == ESP_OK) {
+            /** perform the transaction **/
+            i2c_cmd_handle_t rxHandle = i2c_cmd_link_create();
+            i2c_master_start(rxHandle);
+            i2c_master_write_byte(rxHandle, (deviceAddr << 1 | I2C_MASTER_WRITE), 1);
+            i2c_master_write_byte(rxHandle, regAddr, 1);
+            i2c_master_write(rxHandle, txBuffer, writeLen, 1);
+            i2c_master_stop(rxHandle);
+
+            txStatus = i2c_master_cmd_begin(i2cChannel, rxHandle, pdMS_TO_TICKS(GENERIC_I2C_COMMS_TIMEOUT_MS));
+            if (txStatus != ESP_OK)
+            {
+                ESP_LOGE("GenericI2CwriteToAddress", "Error during transmission [%u]", txStatus);
+            }
+            i2c_cmd_link_delete(rxHandle);
+
+            /** give back the sem **/
+            if(sempr != NULL) {
+                xSemaphoreGive(sempr);
+            }
+        }
     }
     else
     {

@@ -19,6 +19,7 @@
 
 /********* Definitions *****************/
 
+#define GCD_SEMAPHORE_TIMEOUT 100
 #define GENERIC_I2C_COMMS_SHORTWAIT_MS 10
 #define GENERIC_I2C_COMMS_TIMEOUT_MS 100
 /********** Types **********************/
@@ -40,6 +41,14 @@ typedef struct genericCommsDriver
 
 
 /******** Function Definitions *********/
+
+/** \brief is_bus_init 
+ *         checks if selected bus has been init or inot.
+ *  \param bus - the i2c bus to check
+ *  \return boolean value of i2c bus init state
+ **/ 
+bool genericI2C_is_bus_init(uint8_t bus);
+
 
 /** \brief  genericI2CReadFromAddress
  *          Perform a read from an address on an i2c channel
