@@ -16,11 +16,28 @@
 
 #include "driver/i2c.h"
 
+
 /********* Definitions *****************/
 
 #define GENERIC_I2C_COMMS_SHORTWAIT_MS 10
 #define GENERIC_I2C_COMMS_TIMEOUT_MS 100
 /********** Types **********************/
+
+typedef struct genericCommsDriver
+{
+    /* data */
+    bool i2c0_is_init;
+    bool i2c1_is_init;
+    bool hspi_is_init;
+    bool vspi_is_init;
+    SemaphoreHandle_t i2c0_sem;
+    SemaphoreHandle_t i2c1_sem;
+    SemaphoreHandle_t hspi_sem;
+    SemaphoreHandle_t vspi_sem;
+
+} gcd_status_t;
+
+
 
 /******** Function Definitions *********/
 
@@ -54,8 +71,19 @@ esp_err_t genericI2CwriteToAddress(uint8_t i2cChannel, uint8_t deviceAddr, uint8
  *  \param  clockPin    -   also duh
  *  \param  clockSpeed  -   bus speed
  *  \param  busNum      -   i2c bus number (0 or 1)
+ *  \param  use_smphr   -   create a semaphore for access ctrl (sem will be used if not null)
  *  \return ESP_OK or error
  * **/
-esp_err_t genericI2Cinit(int16_t dataPin, int16_t clockPin, uint32_t clockSpeed, uint8_t busNum);
+esp_err_t genericI2Cinit(int16_t dataPin, int16_t clockPin, uint32_t clockSpeed, uint8_t busNum, bool create_smphr);
 
+
+/** \brief: generic_spi_init 
+ *          initialise an spi bus
+ *  \param clk_pin
+ *  \param mosi_pin
+ *  \param miso_pin
+ *  \param spi_bus - 1 or 2
+ *  \return ESP_OK or error
+ **/
+esp_err_t generic_spi_init(int16_t clk_pin, int16_t mosi_pin, int16_t miso_pin, uint8_t spi_bus);
 #endif /* GENERIC_COMMS_DRIVER_H */

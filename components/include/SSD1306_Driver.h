@@ -63,6 +63,8 @@
 typedef struct ssd1306_init
 {
     /* data */
+    uint8_t i2c_bus;
+    uint8_t i2c_addr;
 } ssd1306_init_t;
 
 
@@ -70,6 +72,8 @@ typedef struct ssd1306_init
 typedef struct ssd1306_handle
 {
     /* data */
+    uint8_t bus;
+    uint8_t dev_addr;
 } ssd1306_handle_t;
 
 
