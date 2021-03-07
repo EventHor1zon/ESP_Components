@@ -319,10 +319,10 @@ esp_err_t generic_spi_init(int16_t clk_pin, int16_t mosi_pin, int16_t miso_pin, 
             status = ESP_ERR_NO_MEM;
         }
         else {
-            if(busNum == SPI2_HOST) {
+            if(spi_bus == SPI2_HOST) {
                 gcd.hspi_sem = sem;
             }
-            else if(busNum == SPI3_HOST) {
+            else if(spi_bus == SPI3_HOST) {
                 gcd.vspi_sem = sem;
             }
         }
