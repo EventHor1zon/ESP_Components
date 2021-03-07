@@ -63,7 +63,7 @@ bool genericI2C_is_bus_init(uint8_t bus);
 esp_err_t genericI2CReadFromAddress(uint8_t i2cChannel, uint8_t deviceAddr, uint8_t regAddr, uint16_t readLen, uint8_t *rxBuffer);
 
 /** \brief  genericI2CWriteToAddress
- *          Perform a read from an address on an i2c channel
+ *          Perform a write to an address on an i2c channel
  *  \param  i2cChannel - a valid i2cChannel 
  *  \param  deviceAddr - the i2c address (unshifted) of the device
  *  \param  regAddr    - the register address on the device
@@ -73,6 +73,19 @@ esp_err_t genericI2CReadFromAddress(uint8_t i2cChannel, uint8_t deviceAddr, uint
  *  \return ESP_OK or error
  * **/
 esp_err_t genericI2CwriteToAddress(uint8_t i2cChannel, uint8_t deviceAddr, uint8_t regAddr, uint16_t writeLen, uint8_t *txBuffer);
+
+
+/** \brief  genericI2CWriteBlock
+ *          Perform a block write on an i2c channel
+ *  \param  i2cChannel - a valid i2cChannel 
+ *  \param  deviceAddr - the i2c address (unshifted) of the device
+ *  \param  writeLen   - length of write
+ *  \param  txBuffer   - a pointer to the tx buffer 
+ * 
+ *  \return ESP_OK or error
+ **/
+esp_err_t genericI2CWriteBlock(uint8_t i2cChannel, uint8_t deviceAddr, uint16_t writeLen, uint8_t *txBuffer);
+
 
 /** \brief  genericI2Cinit()
  *          initialise an i2c bus
@@ -94,5 +107,5 @@ esp_err_t genericI2Cinit(int16_t dataPin, int16_t clockPin, uint32_t clockSpeed,
  *  \param spi_bus - 1 or 2
  *  \return ESP_OK or error
  **/
-esp_err_t generic_spi_init(int16_t clk_pin, int16_t mosi_pin, int16_t miso_pin, uint8_t spi_bus);
+esp_err_t generic_spi_init(int16_t clk_pin, int16_t mosi_pin, int16_t miso_pin, uint8_t spi_bus, bool use_semphr);
 #endif /* GENERIC_COMMS_DRIVER_H */

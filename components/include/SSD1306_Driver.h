@@ -56,7 +56,8 @@
 #define OLED_CMD_SET_CHARGE_PUMP        0x8D    // follow with 0x14
 #define OLED_CMD_SET_CHARGE_PUMP_EN     0x14
 
-
+#define SSD1306_SEG_SELECT              0xB0
+#define SSD_MAX_STRLEN                    64
 
 /********* Definitions *****************/
 
@@ -74,11 +75,28 @@ typedef struct ssd1306_handle
     /* data */
     uint8_t bus;
     uint8_t dev_addr;
+    uint16_t pixel_width;
+    uint16_t pixel_height;
+
+    char text[SSD_MAX_STRLEN];
+    uint16_t text_len;
 } ssd1306_handle_t;
 
 
 /********** Types **********************/
 
 /******** Function Definitions *********/
+
+
+esp_err_t ssd1306_set_text(ssd1306_handle_t *screen, char *text);
+
+esp_err_t ssd1306_clear_screen(ssd1306_handle_t *screen);
+
+esp_err_t ssd1306_write_text(ssd1306_handle_t *screen);
+
+ssd1306_handle_t *ssd1306_init(ssd1306_init_t *init);
+
+
+
 
 #endif /* SSD1306_DRIVER_H */
