@@ -159,7 +159,7 @@ ssd1306_handle_t *ssd1306_init(ssd1306_init_t *init) {
     if(err == ESP_OK && !(genericI2C_is_bus_init(init->i2c_bus))) {
         uint32_t wait_counter = 0;
         while(!(genericI2C_is_bus_init(init->i2c_bus))){
-            vTaskDelay(portMS_TO_TICKS(100));
+            vTaskDelay(pdMS_TO_TICKS(100));
             wait_counter++;
             if(wait_counter > 10) {
                 ESP_LOGE(SSD_TAG, "Error - I2C bus was not initialised");
