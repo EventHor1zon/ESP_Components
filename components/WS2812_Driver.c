@@ -382,15 +382,6 @@ esp_err_t WS2812_deinit()
         free(allStrands[currentStrand]);
     }
 
-#ifdef ESP_HOME_API_ENABLE
-    /* delete queue here */
-    if (commandsQueue != NULL)
-    {
-        vQueueDelete(commandsQueue);
-    }
-    /* delete the task here */
-#endif
-
     return ESP_OK;
 }
 

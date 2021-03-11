@@ -135,7 +135,6 @@ esp_err_t rotaryEncoderInit(gpio_num_t dataPin, gpio_num_t clockPin, bool instal
         pinConfig.intr_type = GPIO_INTR_DISABLE;
         pinConfig.pin_bit_mask = clockPin;
         initStatus = gpio_config(&pinConfig);
-        ESP_LOGE(RE_TAG, "1: %u", initStatus);
     }
     else
     {

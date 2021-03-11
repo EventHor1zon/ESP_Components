@@ -44,7 +44,7 @@ const parameter_t ws2812_param_mappings[ws2812_param_len]
 
 #define WS2812_SEMAPHORE_TIMEOUT 100 /** <semaphore wait timeout in ms*/
 
-#define DRIVER_DEVELOPMENT_MODE
+#define DRIVER_DEVELOPMENT_MODE 1
 
 
 

@@ -23,110 +23,110 @@
 #include "SystemInterface.h"
 #include "HPDL1414_Driver.h"
 #include "Max30102_Driver.h"
+#include "RotaryEncoder_Driver.h"
+#include "MSGEQ7_Driver.h"
 
 #include "nvs_flash.h"
 
 #include "lwip/err.h"
 #include "lwip/sys.h"
+void envSensor(void *args)
+{
+
+    // bm_initData_t initData = {0};
+
+    // initData.addressPinState = 0;
+    // initData.i2cChannel = 0;
+    // initData.devType = BME_280_DEVICE;
+    // initData.sampleMode = BM_FORCE_MODE;
+    // initData.sampleType = BM_MODE_TEMP_PRESSURE_HUMIDITY;
+
+    // bm_controlData_t *bmeHandle = NULL;
+    // bmeHandle = bm280_init(&initData);
+    // if (bmeHandle == NULL)
+    // {
+    //     ESP_LOGE(MAIN_TAG, "Error initialising bme");
+    //     while (1)
+    //     {
+    //         vTaskDelay(2000);
+    //     }
+    // }
+
+
+    while (1)
+    {
+
+        // bm280_updateMeasurements(bmeHandle);
+
+        // printf("Humidity: %f (calib: %ul) (raw %ul) \n", bmeHandle->sensorData.realHumidity, bmeHandle->sensorData.calibratedHumidity, bmeHandle->sensorData.rawHumidity);
+        // printf("Temp: %f (calib: %ul) (raw %ul) \n", bmeHandle->sensorData.realTemperature, bmeHandle->sensorData.calibratedTemperature, bmeHandle->sensorData.rawTemperature);
+        // printf("Pressure: %f (calib: %ul) (raw %ul) \n", bmeHandle->sensorData.realPressure, bmeHandle->sensorData.calibratedPressure, bmeHandle->sensorData.rawPressure);
+
+        vTaskDelay(1000);
+    }
+}
+
+void reTask(void *args)
+{
+
+    uint32_t notify = 0;
+    TaskHandle_t reTaskHandle = xTaskGetCurrentTaskHandle();
+    rotaryEncoderInit(GPIO_NUM_17, GPIO_NUM_16, true, reTaskHandle);
+
+    while (1)
+    {
+        ESP_LOGI(MAIN_TAG, "pong");
+
+        xTaskNotifyWait(0, 0, &notify, portMAX_DELAY);
+        if (notify & RE_NOTIFY_CW_STEP)
+        {
+            ESP_LOGI(MAIN_TAG, "Got clockwise step!");
+        }
+        else if (notify & RE_NOTIFY_CC_STEP)
+        {
+            ESP_LOGI(MAIN_TAG, "Got counter-clockwise step!");
+        }
+        else if (notify & RE_NOTIFY_BTN_UP)
+        {
+            ESP_LOGI(MAIN_TAG, "Got button press!");
+        }
+        else
+        {
+            ESP_LOGI(MAIN_TAG, "The value didn't match :( %ul", notify);
+        }
+        vTaskDelay(10);
+    }
+}
 
 void app_main(void)
 {
     printf("Hello world!\n");
 
-    // /* Print chip information */
-    // esp_chip_info_t chip_info;
-    // esp_chip_info(&chip_info);
-    // printf("This is %s chip with %d CPU cores, WiFi%s%s, ",
-    //        CONFIG_IDF_TARGET,
-    //        chip_info.cores,
-    //        (chip_info.features & CHIP_FEATURE_BT) ? "/BT" : "",
-    //        (chip_info.features & CHIP_FEATURE_BLE) ? "/BLE" : "");
+    /* Print chip information */
+    esp_chip_info_t chip_info;
+    esp_chip_info(&chip_info);
+    printf("This is %s chip with %d CPU cores, WiFi%s%s, ",
+           CONFIG_IDF_TARGET,
+           chip_info.cores,
+           (chip_info.features & CHIP_FEATURE_BT) ? "/BT" : "",
+           (chip_info.features & CHIP_FEATURE_BLE) ? "/BLE" : "");
 
-    // printf("silicon revision %d, ", chip_info.revision);
+    printf("silicon revision %d, ", chip_info.revision);
 
-    // printf("%dMB %s flash\n", spi_flash_get_chip_size() / (1024 * 1024),
-    //        (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
+    printf("%dMB %s flash\n", spi_flash_get_chip_size() / (1024 * 1024),
+           (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
 
-    // printf("Free heap: %d\n", esp_get_free_heap_size());
+    printf("Free heap: %d\n", esp_get_free_heap_size());
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
 
-    // esp_err_t ret = nvs_flash_init();
-    // if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
-    // {
-    //     ESP_ERROR_CHECK(nvs_flash_erase());
-    //     ret = nvs_flash_init();
-    // }
-    // ESP_ERROR_CHECK(ret);
+    // printf("\n\nSetting up a rotary encoder!\n");
 
-    // ESP_LOGI("MAIN", "ESP_WIFI_MODE_STA");
-    //wifi_init_sta();
+    // xTaskCreate(reTask, "reTask", 5012, NULL, 4, NULL);
 
-    gpio_install_isr_service(ESP_INTR_FLAG_LEVEL3);
-    genericI2Cinit(27, 26, 100000, 1);
+    // printf("\n\nSetting up a BME 280");
 
-    max31_initdata_t ini = {0};
-    ini.i2c_bus = 1;
-    ini.intr_pin = 18;
-    max31_driver_t *h = max31_init(&ini);
-    if(h == NULL) {
-        ESP_LOGE("MAIN", "Null handle");
-    } else {
+    // xTaskCreate(envSensor, "envSensor", 5012, NULL, 3, NULL);
 
-        uint8_t val = 0;
-        esp_err_t status = max31_get_device_id(h, &val);
-        if(status == ESP_OK) {
-            ESP_LOGI("main", "Got device id : %u", val);
-            
-        } else {
-            ESP_LOGI("main", "rsp : %u", status);
-        }
-    }
-
-
-    printf("Starting LEDSs\n");
-    ws2812_initdata_t init;
-    init.numLeds = 1;
-    init.dataPin = GPIO_NUM_27;
-    StrandData_t *strand = WS2812_init(&init);
-    // bm_initData_t ini;
-    // ini.addressPinState = 0;
-    // ini.devType = 1;
-    // ini.i2cChannel = 0;
-    // ini.sampleMode = BM_NORMAL_MODE;
-    // ini.sampleType = BM_MODE_TEMP_PRESSURE_HUMIDITY;
-    
-    // bm_controlData_t *handle = bm280_init(&ini);
-
-    // HPDL1414_init_t init = {0};
-    // init.write = 26;
-    // init.D0 = 15;
-    // init.D1 = 16;
-    // init.D2 = 17;
-    // init.D3 = 18;
-    // init.D4 = 25;
-    // init.D5 = 19;
-    // init.D6 = 32;
-    // init.A0 = 14;
-    // init.A1 = 27;
-
-    // char *a = "F";
-    // char *b = "U";
-    // char *c = "C";
-    // char *d = "K";
-
-    // uint8_t a0 = 0;
-    // uint8_t a1 = 1;
-    // uint8_t a2 = 2;
-    // uint8_t a3 = 3;
-
-    // hpdl_driver_t *handle = hdpl1414_init(&init);
-    // hpdl_set_led(handle, &a0);
-    // hpdl_set_char(handle, (uint8_t *)a);
-    // hpdl_set_led(handle, &a1);
-    // hpdl_set_char(handle, (uint8_t *)b);
-    // hpdl_set_led(handle, &a2);
-    // hpdl_set_char(handle, (uint8_t *)c);
-    // hpdl_set_led(handle, &a3);
-    // hpdl_set_char(handle, (uint8_t *)d);
 
     while (1)
     {
