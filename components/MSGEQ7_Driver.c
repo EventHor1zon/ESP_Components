@@ -62,12 +62,16 @@ static void test_mode(msg_handle_t *handle) {
 
     int ch = 0;
     for(uint16_t j=0; j < 1000; j++) {
+        gpio_set_level(handle->rst_pin, 1);
+        vTaskDelay(pdMS_TO_TICKS(5));
+        gpio_set_level(handle->rst_pin, 0);
+
         for(uint16_t i=0; i < 7; i++) {
             ch = i+1;
             gpio_set_level(handle->strobe_pin, 1);
-            vTaskDelay(pdMS_TO_TICKS(2));
+            vTaskDelay(pdMS_TO_TICKS(1));
             gpio_set_level(handle->strobe_pin, 0);
-            vTaskDelay(pdMS_TO_TICKS(2));
+            vTaskDelay(pdMS_TO_TICKS(5));
             read = adc1_get_raw((adc1_channel_t)handle->adc_channel);
             arr[i] = read;
             vTaskDelay(5);
@@ -155,7 +159,7 @@ msg_handle_t *msg_init(msg_init_t *init) {
 
     if (istat == ESP_OK) {
         adc1_config_width(ADC_WIDTH_10Bit);
-        adc1_config_channel_atten((adc_channel_t)channel, ADC_ATTEN_DB_0);
+        adc1_config_channel_atten((adc_channel_t)channel, ADC_ATTEN_DB_11);
     }
 
     /** Config GPIOs **/
