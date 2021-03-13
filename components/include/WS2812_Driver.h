@@ -26,7 +26,7 @@
 #define WS2812_PERIPH_TYPE PTYPE_ADDR_LEDS
 
 #define ws2812_param_len 4
-const parameter_t ws2812_param_mappings[ws2812_param_len]
+const parameter_t ws2812_param_mappings[ws2812_param_len];
 
 #endif
 

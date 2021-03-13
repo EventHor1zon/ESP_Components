@@ -348,7 +348,7 @@ StrandData_t *WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dat
         }
     }
 
-    WS2812_setAllLedColour(allStrands[0], 0x0000ff00);
+    //WS2812_setAllLedColour(allStrands[0], 0x0000ff00);
     return strand;
 }
 

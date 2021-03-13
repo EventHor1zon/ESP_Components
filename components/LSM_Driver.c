@@ -433,7 +433,7 @@ LSM_DriverHandle_t *LSM_init(LSM_initData_t *initData)
 }
 
 
-esp_err_t LSM_deInit(LSM_DriverSettings_t *dev)
+esp_err_t LSM_deInit(LSM_DriverHandle_t *dev)
 {
     if (dev->fifoBuffer != NULL)
     {
@@ -483,7 +483,7 @@ esp_err_t LSM_setOpMode(LSM_DriverHandle_t *dev, LSM_OperatingMode_t *mode)
     return status;
 }
 
-esp_err_t LSM_setAccelODRMode(LSM_DriverSettings_t *dev, LSM_AccelODR_t *mode)
+esp_err_t LSM_setAccelODRMode(LSM_DriverHandle_t *dev, LSM_AccelODR_t *mode)
 {
     esp_err_t status = ESP_OK;
     uint8_t accelEn = 0, regVal = 0;
@@ -514,7 +514,7 @@ esp_err_t LSM_setAccelODRMode(LSM_DriverSettings_t *dev, LSM_AccelODR_t *mode)
     return status;
 }
 
-esp_err_t LSM_setGyroODRMode(LSM_DriverSettings_t *dev, LSM_GyroODR_t *mode)
+esp_err_t LSM_setGyroODRMode(LSM_DriverHandle_t *dev, LSM_GyroODR_t *mode)
 {
     esp_err_t status = ESP_OK;
     uint8_t accelEn = 0, regVal = 0;
@@ -625,7 +625,7 @@ esp_err_t LSM_getAccelZ(LSM_DriverHandle_t *dev, float *z)
 
 /** FIFO SETTINGS **/
 
-esp_err_t LSM_setFIFOmode(LSM_DriverSettings_t *dev, LSM_FIFOMode_t *mode)
+esp_err_t LSM_setFIFOmode(LSM_DriverHandle_t *dev, LSM_FIFOMode_t *mode)
 {
     uint8_t regvalue = 0, writevalue = 0;
 
@@ -662,7 +662,7 @@ esp_err_t LSM_getFIFOmode(LSM_DriverHandle_t *dev, uint8_t *mode)
     return status;
 }
 
-esp_err_t LSM_setFIFOwatermark(LSM_DriverSettings_t *dev, uint16_t *watermark)
+esp_err_t LSM_setFIFOwatermark(LSM_DriverHandle_t *dev, uint16_t *watermark)
 {
     esp_err_t status = ESP_OK;
     uint16_t val = *watermark;
@@ -682,14 +682,14 @@ esp_err_t LSM_setFIFOwatermark(LSM_DriverSettings_t *dev, uint16_t *watermark)
     return status;
 }
 
-esp_err_t LSM_getFIFOwatermark(LSM_DriverSettings_t *dev, uint16_t *watermark) {
+esp_err_t LSM_getFIFOwatermark(LSM_DriverHandle_t *dev, uint16_t *watermark) {
     
     esp_err_t status = ESP_OK;
     *watermark = dev->settings.watermark;
     return status;
 }
 
-esp_err_t LSM_setFIFOpackets(LSM_DriverSettings_t *device, LSM_PktType_t *pktType)
+esp_err_t LSM_setFIFOpackets(LSM_DriverHandle_t *device, LSM_PktType_t *pktType)
 {
     esp_err_t status = ESP_OK;
 
@@ -734,7 +734,7 @@ esp_err_t LSM_setFIFOpackets(LSM_DriverSettings_t *device, LSM_PktType_t *pktTyp
     return status;
 }
 
-esp_err_t LSM_readFifoBlock(LSM_DriverSettings_t *device, uint16_t *length)
+esp_err_t LSM_readFifoBlock(LSM_DriverHandle_t *device, uint16_t *length)
 {
 
     esp_err_t status = ESP_OK;

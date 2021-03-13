@@ -12,6 +12,14 @@ set(srcs
     "Max30102_Driver.c"
     "Lora_SX1276_Driver.c"
     "MSGEQ7_Driver.c"
+    "vl53l0x_api.c"
+    "vl53l0x_api_calibration.c"
+    "vl53l0x_api_core.c"
+    "vl53l0x_api_ranging.c"
+    "vl53l0x_api_strings.c"
+    "vl53l0x_platform.c"
+    "vl53l0x_platform_i2c.c"
+    "vl53l0x_platform_log.c"
     )
 
 set(includes "include")
