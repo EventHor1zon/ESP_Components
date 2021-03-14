@@ -1,5 +1,5 @@
 /*******************************************************************************
-Copyright © 2015, STMicroelectronics International N.V.
+Copyright ï¿½ 2015, STMicroelectronics International N.V.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -43,8 +43,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *  If stdint.h is not available review and adapt all signed and unsigned 8/16/32 bits basic types. \n
  *  If stddef.h is not available review and adapt NULL definition .
  */
-#include <stdint.h>
-#include <stddef.h>
+#include "esp_types.h"
 
 #ifndef NULL
 #error "Error NULL definition should be done. Please add required include "

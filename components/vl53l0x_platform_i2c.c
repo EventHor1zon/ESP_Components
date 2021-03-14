@@ -1,8 +1,8 @@
 
-#include "inc/vl53l0x_i2c_platform.h"
-#include "inc/vl53l0x_platform.h"
+#include "vl53l0x_i2c_platform.h"
+#include "vl53l0x_platform.h"
 
-#include "FreeRTOS/FreeRTOS.h"
+#include "freertos/FreeRTOS.h"
 #include "genericCommsDriver.h"
 
 #include "driver/gpio.h"
@@ -45,7 +45,7 @@ int32_t VL53L0X_write_byte(uint8_t address,  uint8_t index, uint8_t data){
 
     int32_t ret = 0;
     uint8_t pdata = data;
-    if(genericI2CReadFromAddress(I2C_NUM_0, address, index, 1, &pdata) != ESP_OK) {
+    if(genericI2CwriteToAddress(I2C_NUM_0, address, index, 1, &pdata) != ESP_OK) {
         ret = 1;
     }
     return ret; 
@@ -57,7 +57,7 @@ int32_t VL53L0X_write_word(uint8_t address,  uint8_t index, uint16_t  data) {
     uint8_t pdata[2] = {0};
     pdata[0] = (uint8_t )(data >> 8);
     pdata[1] = (uint8_t )(data);
-    if(genericI2CReadFromAddress(I2C_NUM_0, address, index, 2, pdata) != ESP_OK) {
+    if(genericI2CwriteToAddress(I2C_NUM_0, address, index, 2, pdata) != ESP_OK) {
         ret = 1;
     }
     return ret;   
@@ -71,7 +71,7 @@ int32_t VL53L0X_write_dword(uint8_t address, uint8_t index, uint32_t  data) {
     pdata[1] = (uint8_t )(data >> 16);
     pdata[2] = (uint8_t )(data >> 8);
     pdata[3] = (uint8_t )(data);
-    if(genericI2CReadFromAddress(I2C_NUM_0, address, index, 4, pdata) != ESP_OK) {
+    if(genericI2CwriteToAddress(I2C_NUM_0, address, index, 4, pdata) != ESP_OK) {
         ret = 1;
     }
     return ret;   

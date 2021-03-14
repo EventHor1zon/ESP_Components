@@ -9,15 +9,17 @@
 ****************************************/
 
 /********* Includes *******************/
-#include <stdint.h>
 #include <string.h>
-#include "include/WS2812_Driver.h"
-#include "include/APA102_Driver.h"
-#include "include/LedEffects.h"
-#include "include/Utilities.h"
+#include "WS2812_Driver.h"
+#include "APA102_Driver.h"
+#include "Utilities.h"
 
 #include "esp_log.h"
 #include "esp_err.h"
+#include "esp_types.h"
+
+#include "CommandAPI.h"
+
 
 /****** Function Prototypes ***********/
 
@@ -91,8 +93,7 @@ ledEffectData_t *ledEffectInit(StrandData_t *strand)
     }
     else
     {
-        ESP_LOGE(WS2812_TAG, "Error! Insufficient heap memory to assign LED effects data memory \
-                ( %u needed | %u available 8-bit capable )", spaceRequired, heap_caps_get_free_size(MALLOC_CAP_8BIT));
+        ESP_LOGE(WS2812_TAG, "Error! Insufficient heap memory to assign LED effects data memory ( %u needed | %u available 8-bit capable )", spaceRequired, heap_caps_get_free_size(MALLOC_CAP_8BIT));
         initStatus = ESP_ERR_NO_MEM;
     }
 
@@ -287,7 +288,7 @@ void all_single_colour(StrandData_t *strand) {
         ptr++;
     }
 
-    //showmem(strand->strandMem, strand->strandMemLength);
+    showmem(strand->strandMem, strand->strandMemLength);
     strand->updateLeds = 1;
 }
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
- Copyright © 2016, STMicroelectronics International N.V.
+ Copyright ï¿½ 2016, STMicroelectronics International N.V.
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -71,10 +71,13 @@ VL53L0X_Error VL53L0X_measurement_poll_for_completion(VL53L0X_DEV Dev)
 	do {
 		Status = VL53L0X_GetMeasurementDataReady(Dev, &NewDataReady);
 		if (Status != 0)
+            printf("status 6.31: %u\n", Status);
+
 			break; /* the error is set */
 
 		if (NewDataReady == 1)
 			break; /* done note that status == 0 */
+            printf("status 6.21: %u\n", Status);
 
 		LoopNb++;
 		if (LoopNb >= VL53L0X_DEFAULT_MAX_LOOP) {
@@ -1959,11 +1962,25 @@ VL53L0X_Error VL53L0X_calc_sigma_estimate(VL53L0X_DEV Dev,
 		/* sigmaEstRef = 1mm * 25ms/final range integration time (inc pre-range)
 		 * sqrt(FixPoint1616/int) = FixPoint2408)
 		 */
-		sigmaEstRef =
-			VL53L0X_isqrt((cDfltFinalRangeIntegrationTimeMilliSecs +
-				finalRangeIntegrationTimeMilliSecs/2)/
-				finalRangeIntegrationTimeMilliSecs);
 
+        // printf("try: %u\n", a);
+        // printf("some values: %d %u %u %u %u %u\n\n", cDfltFinalRangeIntegrationTimeMilliSecs, 
+        //                                 finalRangeIntegrationTimeMilliSecs,
+        //                                 finalRangeTimeoutMicroSecs,
+        //                                 preRangeTimeoutMicroSecs,
+        //                                 (finalRangeTimeoutMicroSecs + preRangeTimeoutMicroSecs + 500),
+        //                                 ((finalRangeTimeoutMicroSecs + preRangeTimeoutMicroSecs + 500)/1000)
+        //                                 );
+        if(finalRangeIntegrationTimeMilliSecs > 0) {
+    		sigmaEstRef =
+                VL53L0X_isqrt((cDfltFinalRangeIntegrationTimeMilliSecs +
+                    finalRangeIntegrationTimeMilliSecs/2)/
+                    finalRangeIntegrationTimeMilliSecs);
+        } 
+        else {
+            sigmaEstRef =
+                VL53L0X_isqrt(1);         
+        }
 		/* FixPoint2408 << 8 = FixPoint1616 */
 		sigmaEstRef <<= 8;
 		sigmaEstRef = (sigmaEstRef + 500)/1000;

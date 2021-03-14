@@ -10,7 +10,6 @@
 
 /********* Includes ********************/
 
-#include "SysConfig.h"
 #include "driver/rmt.h"
 
 #include "freertos/FreeRTOS.h"
@@ -20,13 +19,15 @@
 #include "freertos/task.h"
 #include "LedEffects.h"
 
-#ifdef CONFIG_USE_PERIPH_MANAGER
-#include "CommandAPI.h"
-
+#define CONFIG_USE_PERIPH_MANAGER
 #define WS2812_PERIPH_TYPE PTYPE_ADDR_LEDS
 
+
+#ifdef CONFIG_USE_PERIPH_MANAGER
+#include "CommandAPI.h"
 #define ws2812_param_len 4
-const parameter_t ws2812_param_mappings[ws2812_param_len];
+parameter_t ws2812_param_mapping[ws2812_param_len];
+
 
 #endif
 
@@ -44,23 +45,11 @@ const parameter_t ws2812_param_mappings[ws2812_param_len];
 
 #define WS2812_SEMAPHORE_TIMEOUT 100 /** <semaphore wait timeout in ms*/
 
-#define DRIVER_DEVELOPMENT_MODE 1
+#define DRIVER_DEVELOPMENT_MODE
 
 
 
 /********** Types **********************/
-
-// typedef enum ledEffect
-// {
-//     LED_EFFECT_OFF,
-//     LED_EFFECT_SINGLE_COLOUR,
-//     LED_EFFECT_SLOW_FADE,
-//     LED_EFFECT_RAINBOW,
-//     LED_EFFECT_NIGHTRIDER,
-//     LED_EFFECT_COLOUR_FADE,
-
-//     LED_EFFECT_NO_EFFECT = 0xFF
-// } ledEffect_t;
 
 /** WS2812b bit timings. 
  *  Hardware specific, the initalisation of values below. 
@@ -74,31 +63,6 @@ typedef struct
     uint32_t TRS;
 } ws2812b_timing_t;
 
-// typedef struct ws2812_ledEffectData
-// {
-//     ledEffect_t effect;        /** < the current effect in enumeration */
-//     EffectFunction func;       /** < a pointer to the LedEffects function */
-//     uint32_t colour;           /** < colour - colour */
-//     uint16_t refresh_t;        /** < refresh time in ms */
-//     bool updateEffect;         /** < led effect has been changed - adjust parameters */
-//     uint32_t *LedEffectData_t; /** < struct for holding led effect variables if needed */
-// } ledEffectData_t;
-
-/** Strand Data. 
- *  Data for each individual strand of leds 
- **/
-// typedef struct strandData
-// {
-//     uint8_t strandIndex;         /** <index of the current strand  */
-//     uint8_t updateLeds;          /** <update flag - led mem has changed */
-//     uint16_t numLeds;            /** <num leds in strand           */
-//     uint16_t strandMemLength;    /** <length of memory    */
-//     uint8_t *strandMem;          /** <pointer to LED data          */
-//     ledEffectData_t *fxData;     /** < pointer to led effect data */
-//     SemaphoreHandle_t memSemphr; /** <sempahore for led data access*/
-//     rmt_channel_t dataChannel;   /** <rmt channel driving leds (uint8_t)    */
-//     TimerHandle_t refreshTimer;  /** < handle for the effect refresh timer **/
-// } StrandData_t;
 
 /** ws2812 Driver Control structure 
  *  Data storage for the driver. 
@@ -154,7 +118,7 @@ static uint8_t testFrame[3][3] = {
  *                      desireable.
  * \return ESP_OK or Error Code
  **/
-StrandData_t *WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dataPin);
+StrandData_t *WS2812_init(ws2812_initdata_t *initdata);
 
 /**
  * \brief ws2812_deinit() - deinint the driver

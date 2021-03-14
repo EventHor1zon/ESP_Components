@@ -25,11 +25,17 @@
 #include "Max30102_Driver.h"
 #include "RotaryEncoder_Driver.h"
 #include "MSGEQ7_Driver.h"
+#include "VL53L0X_Driver.h"
 
 #include "nvs_flash.h"
 
 #include "lwip/err.h"
 #include "lwip/sys.h"
+
+
+const char *MAIN_TAG = "[Main]";
+
+
 void envSensor(void *args)
 {
 
@@ -118,6 +124,10 @@ void app_main(void)
 
     printf("Free heap: %d\n", esp_get_free_heap_size());
     vTaskDelay(1000 / portTICK_PERIOD_MS);
+
+    genericI2Cinit(16, 17, 400000, 0, 0);
+
+    VL53L0X_DEV dev = vl53_init();
 
     // printf("\n\nSetting up a rotary encoder!\n");
 

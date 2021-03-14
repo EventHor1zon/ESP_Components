@@ -14,7 +14,6 @@
 /********* Includes *******************/
 
 /* header */
-#include "WS2812_Driver.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -30,8 +29,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 #include "freertos/task.h"
-#include "CommandAPI.h"
-#include "LedEffects.h"
+#include "WS2812_Driver.h"
 
 /****** Function Prototypes ***********/
 
@@ -67,15 +65,27 @@ const ws2812b_timing_t ws2812Timings = {
 
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
-const parameter_t ws2812_param_mappings[ws2812_param_len] = {
+const parameter_t availableCommands[ws2812_param_len] = {
     /** TODO: replace magic numbers */
     {"NumLeds", 1, &ws2812_get_numleds, NULL, PARAMTYPE_UINT32, 0, (GET_FLAG)},
     {"Mode", 2, &ws2812_get_mode, NULL, PARAMTYPE_UINT8, 4, (GET_FLAG | SET_FLAG)},
     {"Colour", 3, &ws2812_get_colour, &ws2812_set_colour, PARAMTYPE_UINT32, 0xFFFFFF, (GET_FLAG | SET_FLAG) },
     {"Brightness", 4, &ws2812_get_brightness, &ws2812_set_brightness, PARAMTYPE_UINT8, 5, (GET_FLAG | SET_FLAG)}
 };
-#endif
 
+
+peripheral_t ws_peripheral_template = {
+    .actions = NULL,
+    .actions_len = 0,
+    .handle = NULL,
+    .param_len = ws2812_param_len,
+    .params = ws2812_param_mapping,
+    .peripheral_name = "WS2812B",
+    .peripheral_id = 0,
+    .periph_type = PTYPE_ADDR_LEDS,
+};
+
+#endif
 
 /************ ISR *********************/
 
@@ -216,7 +226,7 @@ static esp_err_t WS2812_loadTestImage(StrandData_t *strand)
  *  initialises driver structures/tasks from init arguments
  * 
  **/
-StrandData_t *WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dataPin)
+StrandData_t *WS2812_init(ws2812_initdata_t *initdata)
 {
 
     uint16_t totalLeds = 0;
@@ -249,6 +259,7 @@ StrandData_t *WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dat
     {
         strand->strandIndex = numstrands;
         strand->updateLeds = 0;
+        strand->periph_template = &ws_peripheral_template;
         allStrands[numstrands] = strand;
     }
     else
@@ -290,7 +301,7 @@ StrandData_t *WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dat
     /* init Function - create Led Effects structure */
     if (initStatus == ESP_OK)
     {
-        ledEffect_t *ledFxData = ledEffectInit(strand);
+        ledEffectData_t *ledFxData = ledEffectInit(strand);
         TimerHandle_t fxTimer = xTimerCreate("fxTimer", (TickType_t)UINT32_MAX, pdTRUE, NULL, fxCallbackFunction);
 
         if (ledFxData == NULL)
@@ -348,7 +359,28 @@ StrandData_t *WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dat
         }
     }
 
-    //WS2812_setAllLedColour(allStrands[0], 0x0000ff00);
+    /** set up the led effects section **/
+    if(initStatus == ESP_OK) {
+        ESP_LOGI(WS2812_TAG, "Success! Strand %u initialised at %p ", numstrands, strand);
+                /* finish setup of Driver structure */
+        numstrands++;
+        ledControl.numStrands = numstrands;
+    } 
+    else 
+    {
+        /** free any mem claimed **/
+        if(strand != NULL) {
+            if(strand->strandMem != NULL) {
+                heap_caps_free(strand->strandMem);
+            }
+            if(strand->fxData != NULL) {
+                heap_caps_free(strand->fxData);
+            }
+            heap_caps_free(strand);
+        }
+    }
+
+    WS2812_loadTestImage(strand);
     return strand;
 }
 
@@ -381,6 +413,15 @@ esp_err_t WS2812_deinit()
     {
         free(allStrands[currentStrand]);
     }
+
+#ifdef ESP_HOME_API_ENABLE
+    /* delete queue here */
+    if (commandsQueue != NULL)
+    {
+        vQueueDelete(commandsQueue);
+    }
+    /* delete the task here */
+#endif
 
     return ESP_OK;
 }

@@ -27,6 +27,7 @@
 #include "vl53l0x_i2c_platform.h"
 #include "vl53l0x_def.h"
 #include "vl53l0x_platform_log.h"
+#include "esp_heap_caps.h"
 
 #define trace_print(level, ...) trace_print_module_function(TRACE_MODULE_PLATFORM, level, TRACE_FUNCTION_NONE, ##__VA_ARGS__)
 #define trace_i2c(...) trace_print_module_function(TRACE_MODULE_NONE, TRACE_LEVEL_NONE, TRACE_FUNCTION_I2C, ##__VA_ARGS__)
@@ -65,7 +66,7 @@ int32_t VL53L0X_trace_config(char *filename, uint32_t modules, uint32_t level, u
 
         if ( _tracefile != NULL )
         {
-            _trace_filename = (char*)malloc((strlen(filename) + 1) * sizeof(char));
+            _trace_filename = (char*)heap_caps_calloc(1, (strlen(filename) + 1) * sizeof(char), MALLOC_CAP_DEFAULT);
             strcpy(_trace_filename, filename);
         } else
             STATUS = 1;

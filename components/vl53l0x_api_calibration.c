@@ -1,5 +1,5 @@
 /*******************************************************************************
- Copyright © 2016, STMicroelectronics International N.V.
+ Copyright ï¿½ 2016, STMicroelectronics International N.V.
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -722,6 +722,7 @@ VL53L0X_Error VL53L0X_perform_ref_spad_management(VL53L0X_DEV Dev,
 
 
 	targetRefRate = PALDevDataGet(Dev, targetRefRate);
+    printf("tgt rate: %u\n", targetRefRate);
 
 	/*
 	 * Initialize Spad arrays.
@@ -736,17 +737,21 @@ VL53L0X_Error VL53L0X_perform_ref_spad_management(VL53L0X_DEV Dev,
 
 
 	Status = VL53L0X_WrByte(Dev, 0xFF, 0x01);
+    printf("status 1: %u\n", Status);
 
 	if (Status == VL53L0X_ERROR_NONE)
 		Status = VL53L0X_WrByte(Dev,
 			VL53L0X_REG_DYNAMIC_SPAD_REF_EN_START_OFFSET, 0x00);
+    printf("status 2: %u\n", Status);
 
 	if (Status == VL53L0X_ERROR_NONE)
 		Status = VL53L0X_WrByte(Dev,
 			VL53L0X_REG_DYNAMIC_SPAD_NUM_REQUESTED_REF_SPAD, 0x2C);
+    printf("status 3: %u\n", Status);
 
 	if (Status == VL53L0X_ERROR_NONE)
 		Status = VL53L0X_WrByte(Dev, 0xFF, 0x00);
+    printf("status 4: %u\n", Status);
 
 	if (Status == VL53L0X_ERROR_NONE)
 		Status = VL53L0X_WrByte(Dev,
@@ -757,11 +762,13 @@ VL53L0X_Error VL53L0X_perform_ref_spad_management(VL53L0X_DEV Dev,
 	if (Status == VL53L0X_ERROR_NONE)
 		Status = VL53L0X_WrByte(Dev,
 				VL53L0X_REG_POWER_MANAGEMENT_GO1_POWER_FORCE, 0);
+    printf("status 5 %u\n", Status);
 
 	/* Perform ref calibration */
 	if (Status == VL53L0X_ERROR_NONE)
 		Status = VL53L0X_perform_ref_calibration(Dev, &VhvSettings,
 			&PhaseCal, 0);
+    printf("status 6: %u\n", Status);
 
 	if (Status == VL53L0X_ERROR_NONE) {
 		/* Enable Minimum NON-APERTURE Spads */
@@ -778,12 +785,15 @@ VL53L0X_Error VL53L0X_perform_ref_spad_management(VL53L0X_DEV Dev,
 					minimumSpadCount,
 					&lastSpadIndex);
 	}
+    printf("status 7: %u\n", Status);
 
 	if (Status == VL53L0X_ERROR_NONE) {
 		currentSpadIndex = lastSpadIndex;
 
 		Status = perform_ref_signal_measurement(Dev,
 			&peakSignalRateRef);
+        printf("status 8: %u\n", Status);
+
 		if ((Status == VL53L0X_ERROR_NONE) &&
 			(peakSignalRateRef > targetRefRate)) {
 			/* Signal rate measurement too high,
@@ -1108,6 +1118,7 @@ VL53L0X_Error VL53L0X_ref_calibration_io(VL53L0X_DEV Dev, uint8_t read_not_write
 			Status |= VL53L0X_WrByte(Dev, 0xCB, VhvSettings);
 		if (phase_enable)
 			Status |= VL53L0X_UpdateByte(Dev, 0xEE, 0x80, PhaseCal);
+
 	}
 
 	Status |= VL53L0X_WrByte(Dev, 0xFF, 0x01);

@@ -506,7 +506,7 @@ typedef struct LSM_DriverSettings
     LSM_DeviceMeasures_t measurements; /** < the device's latest measurtements **/
     uint8_t commsChannel;              /** < the i2c or spi channel being used */
     uint8_t devAddr;                   /** < the device i2c address **/
-    void *commsHandle;                 /** < can be used to hold a device handle */
+    uint8_t commsHandle;                 /** < can be used to hold a device handle */
     void *fifoBuffer;                  /** < ptr to fifo buffer memory **/
     TaskHandle_t taskHandle;           /** < handle to the task **/
 } LSM_DriverHandle_t;
@@ -599,6 +599,11 @@ esp_err_t LSM_setAccelODRMode(LSM_DriverHandle_t *dev, LSM_AccelODR_t *mode);
  **/
 esp_err_t LSM_setGyroODRMode(LSM_DriverHandle_t *dev, LSM_GyroODR_t *mode);
 
+/**
+ * TODO: Description
+ **/
+esp_err_t LSM_getFIFOmode(LSM_DriverHandle_t *dev, uint8_t *mode);
+
 /** \brief  setFifoMode - set the fifo mode 
  *                      - only bypass/standard currently supported
  *  \param  dev - pointer to device struct 
@@ -619,7 +624,7 @@ esp_err_t LSM_setFIFOwatermark(LSM_DriverHandle_t *dev, uint16_t *watermark);
  *  \param  pktType - pointer to packet type. Should be an OR'd value of enum LSM_PktType_t 
  *  \return ESP_OK or error
  **/
-esp_err_t LSM_setFIFOpackets(LSM_DriverHandle_t *dev, LSM_PktType_t pktType);
+esp_err_t LSM_setFIFOpackets(LSM_DriverHandle_t *dev, LSM_PktType_t *pktType);
 
 /** \brief  configInt - set the fifo packet type
  *  \param  dev - pointer to device struct 

@@ -20,6 +20,7 @@ set(srcs
     "vl53l0x_platform.c"
     "vl53l0x_platform_i2c.c"
     "vl53l0x_platform_log.c"
+    "VL53L0X_Driver.c"
     )
 
 set(includes "include")

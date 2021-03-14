@@ -37,6 +37,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vl53l0x_platform.h"
 #include "vl53l0x_i2c_platform.h"
 #include "vl53l0x_api.h"
+
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
+
 // #include <Windows.h>
 
 #define LOG_FUNCTION_START(fmt, ... )           _LOG_FUNCTION_START(TRACE_MODULE_PLATFORM, fmt, ##__VA_ARGS__)
@@ -150,9 +155,7 @@ VL53L0X_Error VL53L0X_WrByte(VL53L0X_DEV Dev, uint8_t index, uint8_t data){
 	uint8_t deviceAddress;
 
     deviceAddress = Dev->I2cDevAddr;
-
 	status_int = VL53L0X_write_byte(deviceAddress, index, data);
-
 	if (status_int != 0)
 		Status = VL53L0X_ERROR_CONTROL_INTERFACE;
 
@@ -221,7 +224,6 @@ VL53L0X_Error VL53L0X_RdByte(VL53L0X_DEV Dev, uint8_t index, uint8_t *data){
     deviceAddress = Dev->I2cDevAddr;
 
     status_int = VL53L0X_read_byte(deviceAddress, index, data);
-
     if (status_int != 0)
         Status = VL53L0X_ERROR_CONTROL_INTERFACE;
 
@@ -262,7 +264,7 @@ VL53L0X_Error  VL53L0X_RdDWord(VL53L0X_DEV Dev, uint8_t index, uint32_t *data){
 VL53L0X_Error VL53L0X_PollingDelay(VL53L0X_DEV Dev){
     VL53L0X_Error status = VL53L0X_ERROR_NONE;
 
-    vTaskDelay(pdMS_TO_TICKS(5));
+    // vTaskDelay(pdMS_TO_TICKS(5));
 
     return status;
 }

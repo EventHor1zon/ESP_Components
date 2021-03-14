@@ -408,8 +408,8 @@ LSM_DriverHandle_t *LSM_init(LSM_initData_t *initData)
             /** initialise device settings **/
             ESP_LOGI("LSM_Driver", "Setting Data rates");
             LSM_setOpMode(device, &initData->opMode);
-            LSM_setAccelODRMode(device, initData->accelRate);
-            LSM_setGyroODRMode(device, initData->gyroRate);
+            LSM_setAccelODRMode(device, &initData->accelRate);
+            LSM_setGyroODRMode(device, &initData->gyroRate);
         }
 
         if (initStatus == ESP_OK)
@@ -483,10 +483,11 @@ esp_err_t LSM_setOpMode(LSM_DriverHandle_t *dev, LSM_OperatingMode_t *mode)
     return status;
 }
 
-esp_err_t LSM_setAccelODRMode(LSM_DriverHandle_t *dev, LSM_AccelODR_t *mode)
+esp_err_t LSM_setAccelODRMode(LSM_DriverHandle_t *dev, LSM_AccelODR_t *m)
 {
     esp_err_t status = ESP_OK;
     uint8_t accelEn = 0, regVal = 0;
+    uint8_t mode = *m;
 
     if (mode > LSM_ACCODR_6_66KHZ)
     {
@@ -498,7 +499,7 @@ esp_err_t LSM_setAccelODRMode(LSM_DriverHandle_t *dev, LSM_AccelODR_t *mode)
         status = genericI2CReadFromAddress(dev->commsChannel, dev->devAddr, LSM_CTRL9_XL_REG, 1, &accelEn);
         /** if no axis are active and mode > LSM_ACCELPWR_OFF turn on axis **/
 
-        if ((accelEn == 0) && *mode > LSM_ACCODR_PWR_OFF)
+        if ((accelEn == 0) && mode > LSM_ACCODR_PWR_OFF)
         {
             accelEn |= ((LSM_CTRL9_ACCEL_Z_EN_BIT) | (LSM_CTRL9_ACCEL_Y_EN_BIT) | (LSM_CTRL9_ACCEL_X_EN_BIT));
             ESP_LOGI("LSM_Driver", "Writing %02x to Accel ctrl reg", accelEn);
@@ -507,17 +508,18 @@ esp_err_t LSM_setAccelODRMode(LSM_DriverHandle_t *dev, LSM_AccelODR_t *mode)
         /** get register value, clear mode & set new **/
         status = genericI2CReadFromAddress(dev->commsChannel, dev->devAddr, LSM_CTRL1_XL_REG, 1, &regVal);
         regVal &= 0b1111;
-        regVal |= (*mode << 4);
+        regVal |= (mode << 4);
         status = genericI2CwriteToAddress(dev->commsChannel, dev->devAddr, LSM_CTRL1_XL_REG, 1, &regVal);
         ESP_LOGI("LSM_Driver", "Set ACCEL CTRL1 to %02x", regVal);
     }
     return status;
 }
 
-esp_err_t LSM_setGyroODRMode(LSM_DriverHandle_t *dev, LSM_GyroODR_t *mode)
+esp_err_t LSM_setGyroODRMode(LSM_DriverHandle_t *dev, LSM_GyroODR_t *m)
 {
     esp_err_t status = ESP_OK;
     uint8_t accelEn = 0, regVal = 0;
+    uint8_t mode = *m;
 
     if (mode > LSM_GYRO_ODR_1_66KHZ)
     {
@@ -625,10 +627,10 @@ esp_err_t LSM_getAccelZ(LSM_DriverHandle_t *dev, float *z)
 
 /** FIFO SETTINGS **/
 
-esp_err_t LSM_setFIFOmode(LSM_DriverHandle_t *dev, LSM_FIFOMode_t *mode)
+esp_err_t LSM_setFIFOmode(LSM_DriverHandle_t *dev, LSM_FIFOMode_t *m)
 {
     uint8_t regvalue = 0, writevalue = 0;
-
+    uint8_t mode = *m;
     esp_err_t status = ESP_OK;
 
     if (mode == LSM_FIFO_MODE_BYPASS || /** because several reserved values, have to do this the long way... **/
@@ -689,32 +691,32 @@ esp_err_t LSM_getFIFOwatermark(LSM_DriverHandle_t *dev, uint16_t *watermark) {
     return status;
 }
 
-esp_err_t LSM_setFIFOpackets(LSM_DriverHandle_t *device, LSM_PktType_t *pktType)
+esp_err_t LSM_setFIFOpackets(LSM_DriverHandle_t *device, LSM_PktType_t *pT)
 {
     esp_err_t status = ESP_OK;
-
+    uint8_t pktType = *pT;
     uint8_t writeA = 0, writeB = 0, regVal = 0, blank = 0, pktSize = 0;
     uint16_t writeVal = 0;
 
-    if (*pktType & LSM_PKT1_GYRO)
+    if (pktType & LSM_PKT1_GYRO)
     {
         writeA |= (1 << 3);
         pktSize += 2;
     }
 
-    if (*pktType & LSM_PKT2_ACCL)
+    if (pktType & LSM_PKT2_ACCL)
     {
         writeA |= 1;
         pktSize += 2;
     }
 
-    if (*pktType & LSM_PKT3_SENSHUB)
+    if (pktType & LSM_PKT3_SENSHUB)
     {
         writeB |= 1;
         pktSize += 2;
     }
 
-    if (*pktType & LSM_PKT4_STEP_OR_TEMP)
+    if (pktType & LSM_PKT4_STEP_OR_TEMP)
     {
         writeB |= (1 << 3);
         pktSize += 2;

@@ -1,5 +1,5 @@
 /*******************************************************************************
- Copyright © 2016, STMicroelectronics International N.V.
+ Copyright ï¿½ 2016, STMicroelectronics International N.V.
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -387,7 +387,7 @@ VL53L0X_Error VL53L0X_DataInit(VL53L0X_DEV Dev)
 		Status = VL53L0X_WrByte(Dev, 0x88, 0x00);
 
 	VL53L0X_SETDEVICESPECIFICPARAMETER(Dev, ReadDataFromDeviceDone, 0);
-
+    printf("Status 1: %u\n", Status);
 #ifdef USE_IQC_STATION
 	if (Status == VL53L0X_ERROR_NONE)
 		Status = VL53L0X_apply_offset_adjustment(Dev);
@@ -416,6 +416,7 @@ VL53L0X_Error VL53L0X_DataInit(VL53L0X_DEV Dev)
 		CurrentParameters.HistogramMode = VL53L0X_HISTOGRAMMODE_DISABLED;
 		PALDevDataSet(Dev, CurrentParameters, CurrentParameters);
 	}
+    printf("Status 2: %u\n", Status);
 
 	/* Sigma estimator variable */
 	PALDevDataSet(Dev, SigmaEstRefArray, 100);
@@ -434,6 +435,7 @@ VL53L0X_Error VL53L0X_DataInit(VL53L0X_DEV Dev)
 	Status |= VL53L0X_WrByte(Dev, 0x00, 0x01);
 	Status |= VL53L0X_WrByte(Dev, 0xFF, 0x00);
 	Status |= VL53L0X_WrByte(Dev, 0x80, 0x00);
+    printf("Status 3: %u\n", Status);
 
 	/* Enable all check */
 	for (i = 0; i < VL53L0X_CHECKENABLE_NUMBER_OF_CHECKS; i++) {
@@ -1793,7 +1795,7 @@ VL53L0X_Error VL53L0X_GetLimitCheckValue(VL53L0X_DEV Dev, uint16_t LimitCheckId,
 	VL53L0X_Error Status = VL53L0X_ERROR_NONE;
 	uint8_t EnableZeroValue = 0;
 	uint16_t Temp16;
-	FixPoint1616_t TempFix1616;
+	FixPoint1616_t TempFix1616 = 0;
 
 	LOG_FUNCTION_START("");
 
@@ -2333,6 +2335,7 @@ VL53L0X_Error VL53L0X_GetMeasurementDataReady(VL53L0X_DEV Dev,
 			*pMeasurementDataReady = 1;
 		else
 			*pMeasurementDataReady = 0;
+
 	} else {
 		Status = VL53L0X_RdByte(Dev, VL53L0X_REG_RESULT_RANGE_STATUS,
 			&SysRangeStatusRegister);
@@ -2899,14 +2902,14 @@ VL53L0X_Error VL53L0X_GetInterruptMaskStatus(VL53L0X_DEV Dev,
 	uint32_t *pInterruptMaskStatus)
 {
 	VL53L0X_Error Status = VL53L0X_ERROR_NONE;
-	uint8_t Byte;
+	uint8_t _byte;
 	LOG_FUNCTION_START("");
 
-	Status = VL53L0X_RdByte(Dev, VL53L0X_REG_RESULT_INTERRUPT_STATUS, &Byte);
-	*pInterruptMaskStatus = Byte & 0x07;
-
-	if (Byte & 0x18)
+	Status = VL53L0X_RdByte(Dev, VL53L0X_REG_RESULT_INTERRUPT_STATUS, &_byte);
+	*pInterruptMaskStatus = _byte & 0x07;
+	if (_byte & 0x18)
 		Status = VL53L0X_ERROR_RANGE_ERROR;
+
 
 	LOG_FUNCTION_END(Status);
 	return Status;
