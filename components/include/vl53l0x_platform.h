@@ -40,6 +40,15 @@ extern "C" {
 
 #define VL53_MEASURE_WAIT_RETRIES 10
 
+
+typedef enum VL53L0X_config {
+    VL53L0X_SENSE_DEFAULT = 0x00,
+    VL53L0X_SENSE_LONG_RANGE = 0x01,
+    VL53L0X_SENSE_HIGH_SPEED = 0x02,
+    VL53L0X_SENSE_HIGH_ACCURACY = 0x03,
+
+} VL53L0X_config_t;
+
 /**
  * @file vl53l0x_platform.h
  *
@@ -68,6 +77,8 @@ typedef struct {
     VL53L0X_DeviceModes dev_mode;       /**< current device mode **/
 
     VL53L0X_RangingMeasurementData_t rangeData;
+
+    VL53L0X_config_t sample_mode;
 
 } VL53L0X_Dev_t;
 

@@ -25,27 +25,158 @@
 
 /****** Function Prototypes ***********/
 
-static VL53L0X_Dev_t dev = {0};
+/** Driver Task **/
+static void vl53_driver_task(void *arg);
+
+/** set device config profile **/
+static esp_err_t SetSensorConfig(VL53L0X_DEV Dev, VL53L0X_config_t vl_config);
+
 /************ ISR *********************/
 
 /****** Private Data ******************/
+
+static VL53L0X_Dev_t dev = {0};
 
 const char *VL53_TAG = "VL53L0X";
 
 /****** Private Functions *************/
 
+
+
+/**************************************************************************/
+/*! Configs Borrowed from Adafruit's VL53L0X driver. Thanks :)
+    @brief  Configure the sensor for one of the ways the example ST
+    sketches configure the sensors for different usages.
+    @param  vl_config Which configureation you are trying to configure for
+    It should be one of the following
+        VL53L0X_SENSE_DEFAULT
+        VL53L0X_SENSE_LONG_RANGE
+        VL53L0X_SENSE_HIGH_SPEED,
+        VL53L0X_SENSE_HIGH_ACCURACY
+    @returns True if config was set successfully, False otherwise
+*/
+/**************************************************************************/
+static esp_err_t SetSensorConfig(VL53L0X_DEV Dev, VL53L0X_config_t vl_config) {
+    // All of them appear to configure a few things
+
+    // Serial.print(F("VL53L0X: configSensor "));
+    // Serial.println((int)vl_config, DEC);
+    // Enable/Disable Sigma and Signal check
+    esp_err_t Status = VL53L0X_SetLimitCheckEnable(
+        Dev, VL53L0X_CHECKENABLE_SIGMA_FINAL_RANGE, 1);
+
+    if (Status == VL53L0X_ERROR_NONE) {
+        Status = VL53L0X_SetLimitCheckEnable(
+            Dev, VL53L0X_CHECKENABLE_SIGNAL_RATE_FINAL_RANGE, 1);
+    }
+
+    if (Status != VL53L0X_ERROR_NONE) {
+        return false;
+    }
+
+    switch (vl_config) {
+        
+        case VL53L0X_SENSE_DEFAULT:
+        // Taken directly from SDK vl5310x_SingleRanging_example.c
+        // Maybe should convert to helper functions but...
+            ESP_LOGI(VL53_TAG, "Configuring VL53L0X_SENSE_DEFAULT");
+            
+            if (Status == VL53L0X_ERROR_NONE) {
+            Status = VL53L0X_SetLimitCheckEnable(
+                Dev, VL53L0X_CHECKENABLE_RANGE_IGNORE_THRESHOLD, 1);
+            }
+
+            if (Status == VL53L0X_ERROR_NONE) {
+            Status = VL53L0X_SetLimitCheckValue(
+                Dev, VL53L0X_CHECKENABLE_RANGE_IGNORE_THRESHOLD,
+                (FixPoint1616_t)(1.5 * 0.023 * 65536));
+            }
+            break;
+            
+        case VL53L0X_SENSE_LONG_RANGE:
+            Status = VL53L0X_SetLimitCheckValue(
+                Dev, VL53L0X_CHECKENABLE_SIGNAL_RATE_FINAL_RANGE,
+                (FixPoint1616_t)(0.1 * 65536));
+            if (Status == VL53L0X_ERROR_NONE) {
+            Status = VL53L0X_SetLimitCheckValue(Dev,
+                                                VL53L0X_CHECKENABLE_SIGMA_FINAL_RANGE,
+                                                (FixPoint1616_t)(60 * 65536));
+            }
+            if (Status == VL53L0X_ERROR_NONE) {
+            Status = VL53L0X_SetMeasurementTimingBudgetMicroSeconds(Dev, 33000);
+            }
+
+            if (Status == VL53L0X_ERROR_NONE) {
+            Status = VL53L0X_SetVcselPulsePeriod(Dev,
+                                                VL53L0X_VCSEL_PERIOD_PRE_RANGE, 18);
+            }
+            if (Status == VL53L0X_ERROR_NONE) {
+            Status = VL53L0X_SetVcselPulsePeriod(
+                Dev, VL53L0X_VCSEL_PERIOD_FINAL_RANGE, 14);
+            }
+            break;
+
+        case VL53L0X_SENSE_HIGH_SPEED:
+            ESP_LOGI(VL53_TAG, "Configuring VL53L0X_SENSE_HIGH_SPEED");
+            Status = VL53L0X_SetLimitCheckValue(
+                Dev, VL53L0X_CHECKENABLE_SIGNAL_RATE_FINAL_RANGE,
+                (FixPoint1616_t)(0.25 * 65536));
+            if (Status == VL53L0X_ERROR_NONE) {
+                Status = VL53L0X_SetLimitCheckValue(Dev,
+                                                    VL53L0X_CHECKENABLE_SIGMA_FINAL_RANGE,
+                                                    (FixPoint1616_t)(32 * 65536));
+            }
+            if (Status == VL53L0X_ERROR_NONE) {
+                Status = VL53L0X_SetMeasurementTimingBudgetMicroSeconds(Dev, 30000);
+            }
+            break;
+
+        case VL53L0X_SENSE_HIGH_ACCURACY:
+        // increase timing budget to 200 ms
+
+            if (Status == VL53L0X_ERROR_NONE) {
+                VL53L0X_SetLimitCheckValue(Dev, VL53L0X_CHECKENABLE_SIGNAL_RATE_FINAL_RANGE,
+                                    (FixPoint1616_t)(0.25 * 65536));
+            }
+            if (Status == VL53L0X_ERROR_NONE) {
+                VL53L0X_SetLimitCheckValue(Dev, VL53L0X_CHECKENABLE_SIGMA_FINAL_RANGE,
+                                    (FixPoint1616_t)(18 * 65536));
+            }
+            if (Status == VL53L0X_ERROR_NONE) {
+                VL53L0X_SetMeasurementTimingBudgetMicroSeconds(Dev, 200000);
+            }
+            // Not sure about ignore threhold, try turnning it off...
+            if (Status == VL53L0X_ERROR_NONE) {
+                Status = VL53L0X_SetLimitCheckEnable(
+                    Dev, VL53L0X_CHECKENABLE_RANGE_IGNORE_THRESHOLD, 0);
+            }
+            break;
+    }
+
+  return Status;
+}
+
+
 static void vl53_driver_task(void *arg) {
 
     VL53L0X_DEV Dev = (VL53L0X_DEV)arg;
-
+    esp_err_t ret = ESP_OK;
     uint8_t rdy;
-    VL53L0X_RangingMeasurementData_t data = {0};
+    ESP_LOGI(VL53_TAG, "Starting VL53L0X Driver Task");
 
     while(1) {
-        vl53_UpdateMeasurement(Dev);
-        vTaskDelay(50);
-    }
+        
+        
+        ret = vl53_UpdateMeasurement(Dev);
 
+        if(ret != ESP_OK) {
+            ESP_LOGE(VL53_TAG, "Update Measurements failed!");
+        } else {
+            ESP_LOGI(VL53_TAG, "[%u]\tRange (%u)\tMeasureT %u  (ts: %u)", Dev->rangeData.RangeStatus, Dev->rangeData.RangeMilliMeter, Dev->rangeData.MeasurementTimeUsec, Dev->rangeData.TimeStamp);
+        }
+        
+        vTaskDelay(pdMS_TO_TICKS(500));
+    }   
 }
 
 /****** Global Data *******************/
@@ -61,6 +192,7 @@ VL53L0X_DEV vl53_init() {
     dev.comms_speed_khz = 400;
     dev.comms_type = 1;
     dev.I2cDevAddr = 0x29;
+    dev.sample_mode = 0;
     uint32_t spads = 0;
     uint8_t iaspads = 0, Vhv = 0, phase = 0;
 
@@ -122,6 +254,13 @@ VL53L0X_DEV vl53_init() {
         }
     }
 
+    if(ret == 0) {
+        ret = SetSensorConfig(Dev, VL53L0X_SENSE_HIGH_ACCURACY);
+        if(ret != 0) {
+            printf("SSC Ret was: %i\n", ret);
+        }
+    }
+
     if(ret == 0){
         ret = VL53L0X_StartMeasurement(Dev);
         if(ret != 0) {
@@ -143,6 +282,7 @@ esp_err_t vl53_getDeviceMode(VL53L0X_DEV Dev, uint8_t *val) {
     esp_err_t ret = VL53L0X_GetDeviceMode(Dev, val);
     return ret;
 }
+
 
 esp_err_t vl53_setDeviceMode(VL53L0X_DEV Dev, uint8_t *val) {
 
@@ -166,6 +306,7 @@ esp_err_t vl53_setDeviceMode(VL53L0X_DEV Dev, uint8_t *val) {
     return ret;
 }
 
+
 esp_err_t vl53_UpdateMeasurement(VL53L0X_DEV Dev) {
 
     esp_err_t ret = ESP_OK;
@@ -181,16 +322,12 @@ esp_err_t vl53_UpdateMeasurement(VL53L0X_DEV Dev) {
     else if(mode == VL53L0X_DEVICEMODE_SINGLE_RANGING) {
         ret = VL53L0X_StartMeasurement(Dev);
     }
+
     while(notmeasured) {
-        uint8_t ret = VL53L0X_GetMeasurementDataReady(Dev, &rdy);
+        ret = VL53L0X_GetMeasurementDataReady(Dev, &rdy);
+        /** a small delay loop **/
         if(rdy) {
             ret = VL53L0X_GetRangingMeasurementData(Dev, &(Dev->rangeData));
-            ESP_LOGI(VL53_TAG, "status [%u]\tRange (%u)\n", Dev->rangeData.RangeStatus, Dev->rangeData.RangeMilliMeter);
-
-            if(Dev->rangeData.RangeStatus != 0) {
-                ESP_LOGE(VL53_TAG, "Error in measurement: %i", ret);
-                ret = ESP_ERR_INVALID_RESPONSE;
-            }
             notmeasured = 0;       
         } else {
             vTaskDelay(5);
@@ -220,13 +357,42 @@ esp_err_t vl53_setDevicePwr(VL53L0X_DEV Dev, uint8_t *val) {
 }
 
 
-
 esp_err_t vl53_getDevicePwr(VL53L0X_DEV Dev, uint8_t *val) {
     
     esp_err_t ret = ESP_OK;
 
-
+    ret = VL53L0X_GetPowerMode(Dev, val);
 
     return ret;
+}
 
+
+esp_err_t vl53_getDeviceSampleConfig(VL53L0X_DEV Dev, uint8_t *val) {
+    
+    esp_err_t ret = ESP_OK;
+
+    *val = Dev->sample_mode;
+
+    return ret;
+}
+
+
+esp_err_t vl53_setDeviceSampleConfig(VL53L0X_DEV Dev, uint8_t *val) {
+    
+    esp_err_t ret = ESP_OK;
+    uint8_t conf = *val;
+
+    if(conf != VL53L0X_SENSE_DEFAULT &&
+        conf != VL53L0X_SENSE_LONG_RANGE &&
+        conf != VL53L0X_SENSE_HIGH_SPEED &&
+        conf != VL53L0X_SENSE_HIGH_ACCURACY
+    ) {
+        ESP_LOGE(VL53_TAG, "Invalid Sample config");
+        ret = ESP_ERR_INVALID_ARG;
+    } 
+    else {
+        ret = SetSensorConfig(Dev, conf);
+    }
+
+    return ret;
 }
