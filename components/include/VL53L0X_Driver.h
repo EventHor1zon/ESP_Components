@@ -18,7 +18,12 @@
 
 /********* Definitions *****************/
 
+#ifdef CONFIG_USE_PERIPH_MANAGER
 
+#include "CommandAPI.h"
+#define vl53_param_leng 5
+const parameter_t vl53_param_map[vl53_param_len];
+#endif
 
 /********** Types **********************/
 

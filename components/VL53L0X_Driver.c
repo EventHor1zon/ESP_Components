@@ -22,6 +22,14 @@
 #include "vl53l0x_api.h"
 #include "vl53l0x_platform.h"
 
+#ifdef CONFIG_USE_PERIPH_MANAGER
+const parameter_t vl53_param_map[vl53_param_len] = {
+    {"Device Mode", 1, &vl53_getDeviceMode, &vl53_setDeviceMode, PARAMTYPE_UINT8, 3, (GET_FLAG | SET_FLAG) }, 
+    {"Power Mode", 2, &vl53_getDevicePwr, &vl53_setDevicePwr, PARAMTYPE_UINT8, 2, (GET_FLAG | SET_FLAG) }, 
+    {"Sample Config", 3, &vl53_getDeviceMode, &vl53_setDeviceMode, PARAMTYPE_UINT8, 3, (GET_FLAG | SET_FLAG) }, 
+    {"Update Measurement", 4, &vl53_UpdateMeasurement, NULL, 0, 0, ( ACT_FLAG ) }, 
+}
+#endif
 
 /****** Function Prototypes ***********/
 
@@ -254,12 +262,12 @@ VL53L0X_DEV vl53_init() {
         }
     }
 
-    if(ret == 0) {
-        ret = SetSensorConfig(Dev, VL53L0X_SENSE_HIGH_ACCURACY);
-        if(ret != 0) {
-            printf("SSC Ret was: %i\n", ret);
-        }
-    }
+    // if(ret == 0) {
+    //     ret = SetSensorConfig(Dev, VL53L0X_SENSE_HIGH_ACCURACY);
+    //     if(ret != 0) {
+    //         printf("SSC Ret was: %i\n", ret);
+    //     }
+    // }
 
     if(ret == 0){
         ret = VL53L0X_StartMeasurement(Dev);
@@ -292,10 +300,7 @@ esp_err_t vl53_setDeviceMode(VL53L0X_DEV Dev, uint8_t *val) {
     if( mode != VL53L0X_DEVICEMODE_SINGLE_RANGING &&
         mode != VL53L0X_DEVICEMODE_CONTINUOUS_RANGING &&
         mode != VL53L0X_DEVICEMODE_CONTINUOUS_TIMED_RANGING && 
-        mode != VL53L0X_DEVICEMODE_SINGLE_HISTOGRAM &&
-        mode != VL53L0X_HISTOGRAMMODE_REFERENCE_ONLY &&
-        mode != VL53L0X_HISTOGRAMMODE_RETURN_ONLY && 
-        mode != VL53L0X_HISTOGRAMMODE_BOTH
+        mode != VL53L0X_DEVICEMODE_SINGLE_HISTOGRAM 
     ) {
         ret = ESP_ERR_INVALID_ARG;
     }
