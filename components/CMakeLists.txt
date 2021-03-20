@@ -4,12 +4,9 @@ set(srcs
     "PushButton_Driver.c"
     "genericCommsDriver.c"
     "Utilities.c"
-    "LSM_Driver.c"
     "SystemInterface.c"
-    "HPDL1414_Driver.c"
-    "Max30102_Driver.c"
-    "Lora_SX1276_Driver.c"
-    "MSGEQ7_Driver.c"
+
+    "HMC5883_Driver.c"
     )
 
 set(includes "include")
