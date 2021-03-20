@@ -2,6 +2,8 @@
 * \file     Lora_SX1276_Driver.c
 * \brief    A driver for the SX1276 Lora Chipset 
 *              This one is going to be fun...
+*               Thanks to https://github.com/sandeepmistry/arduino-LoRa for guidance
+*               via codesurfing
 * \date     March 2021
 * \author   RJAM
 ****************************************/
@@ -30,7 +32,14 @@ const char *LORA_TAG = "SX1276";
 
 
 /****** Private Functions *************/
+static void reset_device(SX1276_DEV Dev) {
 
+    ESP_LOGI(LORA_TAG, "Resetting device");
+    gpio_set_level(Dev->rst_pin, 0);
+    vTaskDelay(pdMS_TO_TICKS(5));
+    gpio_set_level(Dev->rst_pin, 1);
+
+}
 
 
 static esp_err_t sx_spi_write_address_byte(SX1276_DEV Dev, uint8_t addr, uint8_t byte) {
@@ -54,6 +63,7 @@ static esp_err_t sx_spi_write_address_byte(SX1276_DEV Dev, uint8_t addr, uint8_t
 
     return err;
 }
+
 
 static esp_err_t sx_read_address_byte(SX1276_DEV Dev, uint8_t addr, uint8_t *byte) {
 
@@ -84,15 +94,6 @@ static esp_err_t sx_read_address_byte(SX1276_DEV Dev, uint8_t addr, uint8_t *byt
     return err;
 }
 
-static void reset_device(SX1276_DEV Dev) {
-
-    ESP_LOGI(LORA_TAG, "Resetting device");
-    gpio_set_level(Dev->rst_pin, 0);
-    vTaskDelay(pdMS_TO_TICKS(5));
-    gpio_set_level(Dev->rst_pin, 1);
-
-}
-
 
 static esp_err_t set_overcurrent_protection(SX1276_DEV Dev, uint8_t mA) {
     
@@ -114,6 +115,7 @@ static esp_err_t set_overcurrent_protection(SX1276_DEV Dev, uint8_t mA) {
 
     return err;
 }
+
 
 static esp_err_t set_tx_pwr(SX1276_DEV Dev, uint16_t pwr) {
     // SX1276_REGADDR_PA_CONFIG
@@ -145,6 +147,7 @@ static esp_err_t set_tx_pwr(SX1276_DEV Dev, uint16_t pwr) {
     return err;
 }
 
+
 static esp_err_t device_sleep(SX1276_DEV Dev) {
     esp_err_t err = ESP_OK;
     ESP_LOGI(LORA_TAG, "Setting device to sleep");
@@ -152,10 +155,12 @@ static esp_err_t device_sleep(SX1276_DEV Dev) {
     return err;
 }
 
+
 static esp_err_t device_idle(SX1276_DEV Dev) {
     esp_err_t err = sx_spi_write_address_byte(Dev, SX1276_REGADDR_OPMODE, (SX1276_LORA_MODE_BIT | SX1276_MODE_STDBY));
     return err;
 }
+
 
 static esp_err_t get_device_id(SX1276_DEV Dev, uint8_t *ver) {
     uint8_t version = 0;
@@ -170,6 +175,7 @@ static esp_err_t get_device_id(SX1276_DEV Dev, uint8_t *ver) {
     return err;
 }
 
+
 static esp_err_t set_frequency(SX1276_DEV Dev, uint32_t frq) {
 
     uint64_t frf = (uint64_t)((frq << 19) / 32000000);
@@ -179,6 +185,7 @@ static esp_err_t set_frequency(SX1276_DEV Dev, uint32_t frq) {
 
     return err;
 }
+
 
 static esp_err_t  device_init(SX1276_DEV Dev) {
 
@@ -221,6 +228,7 @@ static esp_err_t  device_init(SX1276_DEV Dev) {
 
     return err;
 }
+
 
 static void sx1276_driver_task(void *args) {
 
@@ -326,7 +334,7 @@ SX1276_DEV sx1276_init() {
             heap_caps_free(dev_handle);
         }
     }
-    
+
     return dev_handle;
 }
 
@@ -337,6 +345,10 @@ esp_err_t sx1276_get_modtype(sx1276_driver_t *dev, uint8_t *mode);
 
 esp_err_t sx1276_get_lowfreq_mode(sx1276_driver_t *dev, uint8_t *mode);
 
-esp_err_t sx1276_get_mode(sx1276_driver_t *dev, uint8_t *mode);
+esp_err_t sx_get_mode(SX1276_DEV Dev, uint8_t mode) {
+   esp_err_t status = ESP_OK;
+   
+   return status;
+}
 
 
