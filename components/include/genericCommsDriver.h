@@ -39,6 +39,9 @@ typedef struct genericCommsDriver
 
 /******** Function Definitions *********/
 
+
+bool gcd_check_i2c_bus(uint8_t bus);
+
 /** \brief  gcd_i2c_read_address
  *          Perform a read from an address on an i2c channel
  *  \param  i2cChannel - a valid i2cChannel 

@@ -37,6 +37,17 @@ static gcd_status_t gcd = {0};
 
 /****** Global Functions *************/
 
+bool gcd_check_i2c_bus(uint8_t bus) {
+
+    if(bus == I2C_NUM_0 || bus == I2C_NUM_1) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+
 esp_err_t gcd_i2c_read_address(uint8_t i2cChannel, uint8_t deviceAddr, uint8_t regAddr, uint16_t readLen, uint8_t *rxBuffer)
 {
     esp_err_t txStatus = ESP_OK;
