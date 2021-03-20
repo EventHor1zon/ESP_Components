@@ -12,7 +12,7 @@
 #include "esp_types.h"
 #include "esp_err.h"
 
-
+#include "driver/spi_common.h"
 /********* Definitions *****************/
 
 /** registers have overlapping addresses as function changes 
@@ -60,33 +60,33 @@
 #define SX1276_REGADDR_RSSI_VAL 0x1B
 #define SX1276_REGADDR_AFC_LSB  0x1C
 #define SX1276_REGADDR_HOPCHANNEL 0x1C
-#define SX1276_REGADDR_FEI_MSB      0x1D
+#define SX1276_REGADDR_FEI_MSB_FKSMODE  0x1D
 #define SX1276_REGADDR_MODEM_CONFIG1 0x1D
-#define SX1276_REGADDR_FEI_LSB  0x1E
+#define SX1276_REGADDR_FEI_LSB_FSKMODE  0x1E
 #define SX1276_REGADDR_MODEM_CONFIG2 0x1E
 #define SX1276_REGADDR_PREAMBLE_DETECT 0x1F
 #define SX1276_REGADDR_SYMB_TIMEOUT_LSB 0x1F
 #define SX1276_REGADDR_RX_TIMEOUT1  0x20
-#define SX1276_REGADDR_PREAMBLE_MSB 0x20
+#define SX1276_REGADDR_PREAMBLE_MSB_LORAMODE 0x20
 #define SX1276_REGADDR_RX_TIMEOUT2 0x21
-#define SX1276_REGADDR_PREAMBLE_LSB 0x21
+#define SX1276_REGADDR_PREAMBLE_LSB_LORAMODE 0x21
 #define SX1276_REGADDR_RX_TIMEOUT3 0x22
 #define SX1276_REGADDR_PAYLOAD_LEN 0x22
 #define SX1276_REGADDR_RX_DELAY 0x23
 #define SX1276_REGADDR_MAX_PAYLOAD_LEN 0x23
 #define SX1276_REGADDR_OSC      0x24
 #define SX1276_REGADDR_HOP_PERIOD 0x24
-#define SX1276_REGADDR_PREAMBLE_MSB 0x25
+#define SX1276_REGADDR_PREAMBLE_MSB_FSKMODE 0x25
 #define SX1276_REGADDR_FIFO_RXBYTE 0x25
-#define SX1276_REGADDR_PREAMBLE_LSB 0x26
+#define SX1276_REGADDR_PREAMBLE_LSB_FSKMODE 0x26
 #define SX1276_REGADDR_MODEM_CONFIG3 0x26
 #define SX1276_REGADDR_SYNC_CONFIG 0x27
 #define SX1276_REGADDR_SYNC_VAL1 0x28
-#define SX1276_REGADDR_FEI_MSB 0x28
+#define SX1276_REGADDR_FEI_MSB_LORAMODE 0x28
 #define SX1276_REGADDR_SYNC_VAL2 0x29
 #define SX1276_REGADDR_FEI_MIDB 0x29
 #define SX1276_REGADDR_SYNC_VAL3 0x2A
-#define SX1276_REGADDR_FEI_LSB 0x2A
+#define SX1276_REGADDR_FEI_LSB_LORAMODE 0x2A
 #define SX1276_REGADDR_SYNC_VAL4 0x2B
 #define SX1276_REGADDR_SYNC_VAL5 0x2C
 #define SX1276_REGADDR_RSSI_WIDEBAND 0x2C
@@ -263,10 +263,22 @@
 /** TXCO BITS **/
 #define SX1276_TXCO_INPUTON_BIT (1 << 4)
 
+/** LNA BITS **/
+#define SX1276_LNA_BOOST_EN 0x3
 
+/** HIGH PWR **/
+#define RE_PA_STD_PWR 0x84
+#define RE_PA_HP_ENABLE 0x87
 
+#define SX_READWRITE_BIT (1 << 8)
+#define SX_WRITE 1
+#define SX_READ  0
+#define SX_SPI_TIMEOUT_DEFAULT 500
+
+#define SX1276_LORA_FREQ_EURO 868000000(UL)
 
 /********** Types **********************/
+
 
 
 typedef enum {
@@ -276,7 +288,7 @@ typedef enum {
     SX1276_MODE_TX,
     SX1276_MODE_FS_RX,
     SX1276_MODE_RX
-} mode_t;
+} sx_mode_t;
 
 typedef enum {
     SX1276_PA_OUTPUT_RFO,
@@ -457,21 +469,23 @@ typedef enum {
 
 
 typedef enum {
-    SX11276_LOWBAT_TRIM_1_7V,
-    SX11276_LOWBAT_TRIM_1_76V,
-    SX11276_LOWBAT_TRIM_1_84V,
-    SX11276_LOWBAT_TRIM_1_9V,
-    SX11276_LOWBAT_TRIM_1_98V,
-    SX11276_LOWBAT_TRIM_2V,
-    SX11276_LOWBAT_TRIM_2_1V,
-    SX11276_LOWBAT_TRIM_2_2V,
+    SX1276_LOWBAT_TRIM_1_7V,
+    SX1276_LOWBAT_TRIM_1_76V,
+    SX1276_LOWBAT_TRIM_1_84V,
+    SX1276_LOWBAT_TRIM_1_9V,
+    SX1276_LOWBAT_TRIM_1_98V,
+    SX1276_LOWBAT_TRIM_2V,
+    SX1276_LOWBAT_TRIM_2_1V,
+    SX1276_LOWBAT_TRIM_2_2V,
 } low_batt_trim_t;
 
 
 
 typedef struct SX1276_Device_Settings
 {
-    
+    uint32_t  frequency;
+    sx_mode_t current_mode;
+    lna_gain_t gain;
 } sx1276_settings_t;
 
 
@@ -481,14 +495,20 @@ typedef struct SX1276_Driver
     sx1276_settings_t settings;
     uint8_t rx_buffer[256];
     uint8_t tx_buffer[256];
-
+    gpio_num_t rst_pin; 
+    gpio_num_t cs_pin; 
+    spi_device_handle_t spi_handle;
 } sx1276_driver_t;
 
+
+typedef sx1276_driver_t * SX1276_DEV;  /** found this approach in the VL53L0X driver,
+                                        *  seems quite nice, less stars everywhere  
+                                        **/
 
 /******** Function Definitions *********/
 
 
-esp_err_t sx1276_init();
+SX1276_DEV sx1276_init();
 
 esp_err_t sx1276_get_opmode_LoRa(sx1276_driver_t *dev, uint8_t *mode);
 

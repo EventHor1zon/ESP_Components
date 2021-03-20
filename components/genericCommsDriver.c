@@ -37,20 +37,7 @@ static gcd_status_t gcd = {0};
 
 /****** Global Functions *************/
 
-bool genericI2C_is_bus_init(uint8_t bus) {
-    bool ret = false;
-    if(bus == I2C_NUM_0 && gcd.i2c0_is_init) {
-        ret = true;
-    }
-    else if(bus == I2C_NUM_1 && gcd.i2c1_is_init) {
-        ret = true;
-    }
-    return ret;
-}
-
-
-
-esp_err_t genericI2CReadFromAddress(uint8_t i2cChannel, uint8_t deviceAddr, uint8_t regAddr, uint16_t readLen, uint8_t *rxBuffer)
+esp_err_t gcd_i2c_read_address(uint8_t i2cChannel, uint8_t deviceAddr, uint8_t regAddr, uint16_t readLen, uint8_t *rxBuffer)
 {
     esp_err_t txStatus = ESP_OK;
     SemaphoreHandle_t sempr = NULL;
@@ -157,7 +144,7 @@ esp_err_t genericI2CWriteBlock(uint8_t i2cChannel, uint8_t deviceAddr, uint16_t 
     {
         ESP_LOGW("GenericI2C Read", "I2C Timeout error");
     } 
-    if (txStatus != ESP_OK)
+    if (ret != ESP_OK)
     {
         ESP_LOGW("GenericI2C Read", "I2C error");
     }
@@ -165,7 +152,7 @@ esp_err_t genericI2CWriteBlock(uint8_t i2cChannel, uint8_t deviceAddr, uint16_t 
     return txStatus;   
 }
 
-esp_err_t genericI2CwriteToAddress(uint8_t i2cChannel, uint8_t deviceAddr, uint8_t regAddr, uint16_t writeLen, uint8_t *txBuffer)
+esp_err_t gcd_i2c_write_address(uint8_t i2cChannel, uint8_t deviceAddr, uint8_t regAddr, uint16_t writeLen, uint8_t *txBuffer)
 {
 
     esp_err_t txStatus;
@@ -204,23 +191,22 @@ esp_err_t genericI2CwriteToAddress(uint8_t i2cChannel, uint8_t deviceAddr, uint8
             }
             i2c_cmd_link_delete(cmd);
 
-            /** give back the sem **/
-            if(sempr != NULL) {
-                xSemaphoreGive(sempr);
-            }
+        txStatus = i2c_master_cmd_begin(i2cChannel, rxHandle, pdMS_TO_TICKS(GENERIC_I2C_COMMS_TIMEOUT_MS));
+        if (txStatus != ESP_OK)
+        {
+            ESP_LOGE("gcd_i2c_write_address", "Error during transmission [%u]", txStatus);
         }
     }
     else
     {
-        ESP_LOGE("GenericI2CreadFromAddress", "Error - invalid i2c channel");
+        ESP_LOGE("gcd_i2c_read_address", "Error - invalid i2c channel");
         txStatus = ESP_ERR_INVALID_ARG;
     }
 
     return txStatus;
 }
 
-
-esp_err_t genericI2Cinit(int16_t dataPin, int16_t clockPin, uint32_t clockSpeed, uint8_t busNum, bool use_smphr)
+esp_err_t gcd_i2c_init(int16_t dataPin, int16_t clockPin, uint32_t clockSpeed, uint8_t busNum)
 {
     ESP_LOGI("GenericI2C Init", "Initialsing i2c bus");
     esp_err_t status = ESP_OK;
@@ -342,3 +328,40 @@ esp_err_t generic_spi_init(int16_t clk_pin, int16_t mosi_pin, int16_t miso_pin, 
 
     return status;
 }
+
+
+esp_err_t gcd_spi_check_bus(uint8_t spi_bus) {
+    esp_err_t status = ESP_OK;
+    if (!(spi_bus == SPI2_HOST || spi_bus == SPI3_HOST))
+    {
+        ESP_LOGE("SPI_SETUP", "Error - invalid SPI bus. Please use SPI2_HOST or SPI3_HOST");
+        status = ESP_ERR_INVALID_ARG;
+    }
+
+    return status;
+}
+
+
+esp_err_t gcd_spi_init(int16_t clk_pin, int16_t mosi_pin, int16_t miso_pin, uint8_t spi_bus) {
+
+    esp_err_t status = ESP_OK;
+    ESP_LOGI("SPI_SETUP", "[+] Setting up SPI bus");
+
+    status = gcd_spi_check_bus(spi_bus);
+    if(status == ESP_OK) {
+        spi_bus_config_t buscfg = {0};
+        buscfg.mosi_io_num = mosi_pin;
+        buscfg.miso_io_num = miso_pin;
+        buscfg.sclk_io_num = clk_pin;
+        buscfg.max_transfer_sz = 0; // led data + up to 10 frames of start & end
+        buscfg.quadhd_io_num = -1;
+        buscfg.quadwp_io_num = -1;
+        buscfg.flags = SPICOMMON_BUSFLAG_MASTER;
+        buscfg.intr_flags = 0;
+        status = spi_bus_initialize(spi_bus, &buscfg, 1);
+    }
+
+    return status;
+}
+
+

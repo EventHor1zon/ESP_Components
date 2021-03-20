@@ -16,15 +16,8 @@
 #include "esp_spi_flash.h"
 #include "../inc/main.h"
 #include "../inc/WifiDriver.h"
-#include "WS2812_Driver.h"
-#include "BME280_Driver.h"
-#include "LSM_Driver.h"
 #include "genericCommsDriver.h"
 #include "SystemInterface.h"
-#include "HPDL1414_Driver.h"
-#include "Max30102_Driver.h"
-#include "RotaryEncoder_Driver.h"
-#include "MSGEQ7_Driver.h"
 
 #include "nvs_flash.h"
 
@@ -127,10 +120,33 @@ void app_main(void)
 
     // xTaskCreate(envSensor, "envSensor", 5012, NULL, 3, NULL);
 
+    // esp_err_t ret = nvs_flash_init();
+    // if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
+    // {
+    //     ESP_ERROR_CHECK(nvs_flash_erase());
+    //     ret = nvs_flash_init();
+    // }
+    // ESP_ERROR_CHECK(ret);
+
+    // ESP_LOGI("MAIN", "ESP_WIFI_MODE_STA");
+    //wifi_init_sta();
+
+    // gcd_i2c_init(17, 16, 100000, 0);
+
+    if(gcd_spi_init(5, 27, 19, SPI2_HOST) != ESP_OK ||
+       gcd_i2c_init(4, 15, 200000, 0) != ESP_OK) {
+        ESP_LOGE("MAIN", "Error starting comms");
+        while(1) {
+            ESP_LOGI("MAIN", "Chillin...");
+            vTaskDelay(1000);
+        }
+    }
+
+    
+
 
     while (1)
     {
-
         //dump_system_info();
         vTaskDelay(1000);
     }
