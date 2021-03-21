@@ -42,6 +42,18 @@ static void reset_device(SX1276_DEV Dev) {
 }
 
 
+static esp_err_t sx_modem_status(SX1276_DEV Dev, uint8_t *val) {
+
+    esp_err_t err = ESP_OK;
+    uint8_t regval = 0;
+    err = sx_read_address_byte(Dev, SX1276_REGADDR_MODEM_STAT, &regval);
+    if(!err) {
+        *val = regval;
+    }
+    return err;
+}
+
+
 static esp_err_t sx_spi_write_address_byte(SX1276_DEV Dev, uint8_t addr, uint8_t byte) {
 
     esp_err_t err = ESP_OK;
@@ -53,7 +65,7 @@ static esp_err_t sx_spi_write_address_byte(SX1276_DEV Dev, uint8_t addr, uint8_t
     trx.tx_data[1] = byte;
     trx.flags = SPI_TRANS_USE_TXDATA;
 
-    err = spi_device_acquire_bus(Dev->spi_handle, SX_SPI_TIMEOUT_DEFAULT);
+    // err = spi_device_acquire_bus(Dev->spi_handle, SX_SPI_TIMEOUT_DEFAULT);
     if(err != ESP_OK) {
        ESP_LOGE(LORA_TAG, "Error: Unable to aquire bus [%u]", err);
     }
@@ -91,6 +103,19 @@ static esp_err_t sx_read_address_byte(SX1276_DEV Dev, uint8_t addr, uint8_t *byt
         *byte = trx.rx_data[0];
     }
 
+    return err;
+}
+
+
+static esp_err_t sx_spi_read_mod_write_byte(SX1276_DEV Dev, uint8_t addr, uint8_t or_data) {
+    esp_err_t err = ESP_OK;
+
+    uint8_t reg = 0;
+    err = sx_read_address_byte(Dev, addr, &reg);
+    if(!err) {
+        reg |= or_data;
+        err = sx_spi_write_address_byte(Dev, addr, reg);
+    }
     return err;
 }
 
@@ -187,6 +212,42 @@ static esp_err_t set_frequency(SX1276_DEV Dev, uint32_t frq) {
 }
 
 
+static esp_err_t spreadingfactor_set(SX1276_DEV Dev, uint8_t sf) {
+   esp_err_t err = ESP_OK;
+   if(sf >= SX1276_SPREADF_MAX || sf <= SX1276_SPREADF_MIN) {
+       err = ESP_ERR_INVALID_ARG;
+   } else {
+        uint8_t reg = 0;
+        err = sx_read_address_byte(Dev, SX1276_REGADDR_MODEM_CONFIG2, &reg);
+        if(!err) {
+            reg |= (sf << 4);
+            err = sx_spi_write_address_byte(Dev, SX1276_REGADDR_MODEM_CONFIG2, &reg);
+        }
+   }
+    if(!err) {
+        Dev->settings.sf = sf;
+    }
+
+   return err;
+}
+
+
+static esp_err_t set_lora_bw(SX1276_DEV Dev, lora_bw_t bw) {
+    esp_err_t err = ESP_OK;
+    uint8_t reg = 0, val = 0;
+    err = sx_read_address_byte(Dev, SX1276_REGADDR_MODEM_CONFIG1, &reg);
+    if(!err) {
+        val = reg;
+        val |= (bw << 4);
+        err = sx_spi_write_address_byte(Dev, SX1276_REGADDR_MODEM_CONFIG1, val);
+    }
+    if(!err) {
+        Dev->settings.bw = bw;
+    }
+    return err;
+}
+
+
 static esp_err_t  device_init(SX1276_DEV Dev) {
 
     esp_err_t err = ESP_OK;
@@ -201,8 +262,13 @@ static esp_err_t  device_init(SX1276_DEV Dev) {
     else if(device_sleep(Dev) != ESP_OK) {
         return 1;
     }
+    /** set LoRa mode **/
+    else if(sx_spi_write_address_byte(Dev, SX1276_REGADDR_OPMODE, SX1276_LORA_MODE_BIT) != ESP_OK) {
+        return 1;
+    }
+
     /** set the operating frequency - made this settable within limits **/
-    else if(set_frequency(Dev, 413000000) != ESP_OK) {
+    else if(set_frequency(Dev, SX1276_LORA_FREQ_EURO) != ESP_OK) {
         return 1;
     }
     /** set the fifo off **/
@@ -220,11 +286,18 @@ static esp_err_t  device_init(SX1276_DEV Dev) {
         return 1;
     }
     /** Set TX power **/
-    else if(set_tx_pwr(Dev, 12)) {
+    else if(set_tx_pwr(Dev, 12) != ESP_OK) {
         return 1;
     }
+    else {
+        device_idle(Dev);
 
-    device_idle(Dev);
+        Dev->settings.frequency = SX1276_LORA_FREQ_EURO;
+        Dev->settings.current_mode = SX1276_MODE_STDBY;
+        Dev->settings.gain = SX1276_MAX_GAIN;
+        Dev->settings.lna_boost = true;
+        Dev->settings.agc_auto = true;
+    }
 
     return err;
 }
@@ -320,6 +393,7 @@ SX1276_DEV sx1276_init() {
         ESP_LOGE(LORA_TAG, "Error starting driver task [%u]", err);
     }
 
+    /** initialise the device in std lora mode **/
     if(!err && device_init(dev_handle) != ESP_OK) {
         err = ESP_FAIL;
         ESP_LOGE(LORA_TAG, "Error configuring device [%u]", err);   
@@ -339,6 +413,17 @@ SX1276_DEV sx1276_init() {
 }
 
 
+/** lora getters / setters 
+ * 
+ * TODO: 
+ *  - spreading factor
+ *  - bandwidth
+ *  - header_mode (implicit/explicit)
+ *  - LDR Optimisation
+ *  - status
+ *  - DIO function
+ **/
+
 esp_err_t sx1276_get_opmode_LoRa(sx1276_driver_t *dev, uint8_t *mode);
 
 esp_err_t sx1276_get_modtype(sx1276_driver_t *dev, uint8_t *mode);
@@ -352,3 +437,62 @@ esp_err_t sx_get_mode(SX1276_DEV Dev, uint8_t mode) {
 }
 
 
+esp_err_t sx_get_lora_spreading_factor(SX1276_DEV dev, uint8_t *val) {
+   esp_err_t status = ESP_OK;
+   
+   return status;
+}
+
+esp_err_t sx_set_lora_spreading_factor(SX1276_DEV dev, uint8_t *val) {
+   esp_err_t status = ESP_OK;
+   
+   return status;
+}
+
+esp_err_t sx_get_lora_bandwidth(SX1276_DEV dev, uint8_t *val) {
+   esp_err_t status = ESP_OK;
+   
+   return status;
+}
+
+esp_err_t sx_set_lora_bandwidth(SX1276_DEV dev, uint8_t *val) {
+   esp_err_t status = ESP_OK;
+   
+   return status;
+}
+
+esp_err_t sx_get_lora_headermode(SX1276_DEV dev, uint8_t *val) {
+   esp_err_t status = ESP_OK;
+   
+   return status;
+}
+
+esp_err_t sx_set_lora_headermode(SX1276_DEV dev, uint8_t *val) {
+   esp_err_t status = ESP_OK;
+   
+   return status;
+}
+
+esp_err_t sx_get_lora_ldo_optmz(SX1276_DEV dev, uint8_t *val) {
+   esp_err_t status = ESP_OK;
+   
+   return status;
+}
+
+esp_err_t sx_set_lora_ldo_optmz(SX1276_DEV dev, uint8_t *val) {
+   esp_err_t status = ESP_OK;
+   
+   return status;
+}
+
+esp_err_t sx_get_lora_dio0_func(SX1276_DEV dev, uint8_t *val) {
+   esp_err_t status = ESP_OK;
+   
+   return status;
+}
+
+esp_err_t sx_set_lora_dio0_func(SX1276_DEV dev, uint8_t *val) {
+   esp_err_t status = ESP_OK;
+   
+   return status;
+}
