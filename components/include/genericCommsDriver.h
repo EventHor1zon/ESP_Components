@@ -14,6 +14,9 @@
 #include "esp_types.h"
 #include "esp_err.h"
 
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
+
 /********* Definitions *****************/
 
 #define GCD_SEMAPHORE_TIMEOUT 100
@@ -40,7 +43,7 @@ typedef struct genericCommsDriver
 
 /******** Function Definitions *********/
 
-bool gdc_valid_i2c_bus(uint8_t bus);
+bool gdc_i2c_check_bus(uint8_t bus);
 
 /** \brief  gcd_i2c_read_address
  *          Perform a read from an address on an i2c channel
@@ -86,18 +89,7 @@ esp_err_t gcd_i2c_init(int16_t dataPin, int16_t clockPin, uint32_t clockSpeed, u
  *  \param spi_bus - 1 or 2
  *  \return ESP_OK or error
  **/
-esp_err_t gcd_spi_init(int16_t clk_pin, int16_t mosi_pin, int16_t miso_pin, uint8_t spi_bus);
+esp_err_t gcd_spi_init(int16_t clk_pin, int16_t mosi_pin, int16_t miso_pin, uint8_t spi_bus,  bool use_smphr);
 
 
-
-
-/** \brief: generic_spi_init 
- *          initialise an spi bus
- *  \param clk_pin
- *  \param mosi_pin
- *  \param miso_pin
- *  \param spi_bus - 1 or 2
- *  \return ESP_OK or error
- **/
-esp_err_t generic_spi_init(int16_t clk_pin, int16_t mosi_pin, int16_t miso_pin, uint8_t spi_bus, bool use_semphr);
 #endif /* GENERIC_COMMS_DRIVER_H */

@@ -37,7 +37,7 @@ static gcd_status_t gcd = {0};
 
 /****** Global Functions *************/
 
-bool gdc_valid_i2c_bus(uint8_t bus) {
+bool gdc_i2c_check_bus(uint8_t bus) {
     if(bus >= I2C_NUM_MAX) {
         return false;
     } 
@@ -158,6 +158,7 @@ esp_err_t genericI2CWriteBlock(uint8_t i2cChannel, uint8_t deviceAddr, uint16_t 
 
     return txStatus;   
 }
+
 
 esp_err_t gcd_i2c_write_address(uint8_t i2cChannel, uint8_t deviceAddr, uint8_t regAddr, uint16_t writeLen, uint8_t *txBuffer)
 {
@@ -284,7 +285,7 @@ esp_err_t generic_spi_check_bus(uint8_t spi_bus) {
 }
 
 
-esp_err_t generic_spi_init(int16_t clk_pin, int16_t mosi_pin, int16_t miso_pin, uint8_t spi_bus, bool use_smphr) {
+esp_err_t gcd_spi_init(int16_t clk_pin, int16_t mosi_pin, int16_t miso_pin, uint8_t spi_bus, bool use_smphr) {
 
     esp_err_t status = ESP_OK;
     ESP_LOGI("SPI_SETUP", "[+] Setting up SPI bus");
@@ -344,27 +345,5 @@ esp_err_t gcd_spi_check_bus(uint8_t spi_bus) {
     return status;
 }
 
-
-esp_err_t gcd_spi_init(int16_t clk_pin, int16_t mosi_pin, int16_t miso_pin, uint8_t spi_bus) {
-
-    esp_err_t status = ESP_OK;
-    ESP_LOGI("SPI_SETUP", "[+] Setting up SPI bus");
-
-    status = gcd_spi_check_bus(spi_bus);
-    if(status == ESP_OK) {
-        spi_bus_config_t buscfg = {0};
-        buscfg.mosi_io_num = mosi_pin;
-        buscfg.miso_io_num = miso_pin;
-        buscfg.sclk_io_num = clk_pin;
-        buscfg.max_transfer_sz = 0; // led data + up to 10 frames of start & end
-        buscfg.quadhd_io_num = -1;
-        buscfg.quadwp_io_num = -1;
-        buscfg.flags = SPICOMMON_BUSFLAG_MASTER;
-        buscfg.intr_flags = 0;
-        status = spi_bus_initialize(spi_bus, &buscfg, 1);
-    }
-
-    return status;
-}
 
 
