@@ -37,6 +37,13 @@ static gcd_status_t gcd = {0};
 
 /****** Global Functions *************/
 
+bool gdc_valid_i2c_bus(uint8_t bus) {
+    if(bus >= I2C_NUM_MAX) {
+        return false;
+    } 
+    return true;
+}
+
 esp_err_t gcd_i2c_read_address(uint8_t i2cChannel, uint8_t deviceAddr, uint8_t regAddr, uint16_t readLen, uint8_t *rxBuffer)
 {
     esp_err_t txStatus = ESP_OK;
@@ -99,7 +106,7 @@ esp_err_t gcd_i2c_read_address(uint8_t i2cChannel, uint8_t deviceAddr, uint8_t r
 
 esp_err_t genericI2CWriteBlock(uint8_t i2cChannel, uint8_t deviceAddr, uint16_t writeLen, uint8_t *txBuffer) {
 
-    esp_err_t txStatus;
+    esp_err_t txStatus = ESP_OK;
     SemaphoreHandle_t sempr = NULL;
     
     if ((i2cChannel == I2C_NUM_0) || (i2cChannel == I2C_NUM_1))
@@ -144,7 +151,7 @@ esp_err_t genericI2CWriteBlock(uint8_t i2cChannel, uint8_t deviceAddr, uint16_t 
     {
         ESP_LOGW("GenericI2C Read", "I2C Timeout error");
     } 
-    if (ret != ESP_OK)
+    if (txStatus != ESP_OK)
     {
         ESP_LOGW("GenericI2C Read", "I2C error");
     }
@@ -155,7 +162,7 @@ esp_err_t genericI2CWriteBlock(uint8_t i2cChannel, uint8_t deviceAddr, uint16_t 
 esp_err_t gcd_i2c_write_address(uint8_t i2cChannel, uint8_t deviceAddr, uint8_t regAddr, uint16_t writeLen, uint8_t *txBuffer)
 {
 
-    esp_err_t txStatus;
+    esp_err_t txStatus = ESP_OK;
     SemaphoreHandle_t sempr = NULL;
     
     if ((i2cChannel == I2C_NUM_0) || (i2cChannel == I2C_NUM_1))
@@ -190,11 +197,6 @@ esp_err_t gcd_i2c_write_address(uint8_t i2cChannel, uint8_t deviceAddr, uint8_t 
                 ESP_LOGE("GenericI2CwriteToAddress", "Error during transmission [%u]", txStatus);
             }
             i2c_cmd_link_delete(cmd);
-
-        txStatus = i2c_master_cmd_begin(i2cChannel, rxHandle, pdMS_TO_TICKS(GENERIC_I2C_COMMS_TIMEOUT_MS));
-        if (txStatus != ESP_OK)
-        {
-            ESP_LOGE("gcd_i2c_write_address", "Error during transmission [%u]", txStatus);
         }
     }
     else
@@ -202,11 +204,12 @@ esp_err_t gcd_i2c_write_address(uint8_t i2cChannel, uint8_t deviceAddr, uint8_t 
         ESP_LOGE("gcd_i2c_read_address", "Error - invalid i2c channel");
         txStatus = ESP_ERR_INVALID_ARG;
     }
-
+    
     return txStatus;
 }
 
-esp_err_t gcd_i2c_init(int16_t dataPin, int16_t clockPin, uint32_t clockSpeed, uint8_t busNum)
+
+esp_err_t gcd_i2c_init(int16_t dataPin, int16_t clockPin, uint32_t clockSpeed, uint8_t busNum, bool use_smphr)
 {
     ESP_LOGI("GenericI2C Init", "Initialsing i2c bus");
     esp_err_t status = ESP_OK;

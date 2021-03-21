@@ -11,6 +11,7 @@
 
 /********* Includes ********************/
 
+#include "esp_types.h"
 #include "esp_err.h"
 
 /********* Definitions *****************/
@@ -38,6 +39,8 @@ typedef struct genericCommsDriver
 
 
 /******** Function Definitions *********/
+
+bool gdc_valid_i2c_bus(uint8_t bus);
 
 /** \brief  gcd_i2c_read_address
  *          Perform a read from an address on an i2c channel
@@ -72,7 +75,7 @@ esp_err_t gcd_i2c_write_address(uint8_t i2cChannel, uint8_t deviceAddr, uint8_t 
  *  \param  use_smphr   -   create a semaphore for access ctrl (sem will be used if not null)
  *  \return ESP_OK or error
  * **/
-esp_err_t gcd_i2c_init(int16_t dataPin, int16_t clockPin, uint32_t clockSpeed, uint8_t busNum);
+esp_err_t gcd_i2c_init(int16_t dataPin, int16_t clockPin, uint32_t clockSpeed, uint8_t busNum, bool use_smphr);
 
 
 /** \brief: gcd_spi_init 
