@@ -44,15 +44,6 @@ void app_main(void)
            (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
 
     printf("Free heap: %d\n", esp_get_free_heap_size());
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
-
-    // printf("\n\nSetting up a rotary encoder!\n");
-
-    // xTaskCreate(reTask, "reTask", 5012, NULL, 4, NULL);
-
-    // printf("\n\nSetting up a BME 280");
-
-    // xTaskCreate(envSensor, "envSensor", 5012, NULL, 3, NULL);
 
     // esp_err_t ret = nvs_flash_init();
     // if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
@@ -65,9 +56,8 @@ void app_main(void)
     // ESP_LOGI("MAIN", "ESP_WIFI_MODE_STA");
     //wifi_init_sta();
 
-    // gcd_i2c_init(17, 16, 100000, 0);
 
-    if(gcd_spi_init(5, 27, 19, SPI2_HOST) != ESP_OK ||
+    if(gcd_spi_init(5, 27, 19, SPI2_HOST, false) != ESP_OK ||
        gcd_i2c_init(4, 15, 200000, 0, false) != ESP_OK) {
         ESP_LOGE("MAIN", "Error starting comms");
         while(1) {
@@ -75,9 +65,6 @@ void app_main(void)
             vTaskDelay(1000);
         }
     }
-
-    
-
 
     while (1)
     {

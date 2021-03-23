@@ -19,6 +19,9 @@
  *  between LoRa / fsk/ook mode  
  **/
 
+/** TODO: put these in a couple of arrays or prefix lora/fsk 
+ ***/ 
+
 #define SX1276_REGADDR_REGFIFO 0x00
 #define SX1276_REGADDR_OPMODE  0x01
 #define SX1276_REGADDR_BITRATE_MSB 0x02
@@ -275,20 +278,22 @@
 #define SX_READ  0
 #define SX_SPI_TIMEOUT_DEFAULT 500
 
-#define SX1276_LORA_FREQ_EURO 868000000(UL)
+#define SX1276_LORA_FREQ_EURO 868000000UL
 
 /********** Types **********************/
 
 
 
 typedef enum {
-    SX1276_MODE_SLEEP,
-    SX1276_MODE_STDBY,
-    SX1276_MODE_FS_TX,
-    SX1276_MODE_TX,
-    SX1276_MODE_FS_RX,
-    SX1276_MODE_RX
-} sx_mode_t;
+    SX1276_MODE_SLEEP,  /** clears fifo, switch lora/fsk **/
+    SX1276_MODE_STDBY,  /** large bits off **/
+    SX1276_MODE_FS_TX,  /** freq synth tx, pll on, rf off **/
+    SX1276_MODE_TX,     /** rf on, tx, then standby **/
+    SX1276_MODE_FS_RX,  /** above, but rx **/
+    SX1276_MODE_RX_CONT, /** rx until told to stop **/
+    SX1276_MODE_RX_SGL,  /** rx a single packet, then stdby **/
+    SX1276_MODE_CAD,    /** check chan for lora preamble **/
+} sx_mode_t;            
 
 typedef enum {
     SX1276_PA_OUTPUT_RFO,
@@ -328,6 +333,41 @@ typedef enum {
     SX1276_RSSI_SMOOTH_256SAMPLES,
 } rssi_smoothing_t;
 
+
+typedef enum {
+    SX1276_LORA_BW_7_8KHZ,
+    SX1276_LORA_BW_10_4KHZ,
+    SX1276_LORA_BW_15_6KHZ,
+    SX1276_LORA_BW_20_8KHZ,
+    SX1276_LORA_BW_31_25KHZ,
+    SX1276_LORA_BW_41_7KHZ,
+    SX1276_LORA_BW_62_5KHZ,
+    SX1276_LORA_BW_125KHZ,
+    SX1276_LORA_BW_250KHZ,
+    SX1276_LORA_BW_500KHZ,
+    SX1276_LORA_BW_MAX,
+} lora_bw_t;
+
+typedef enum {
+    SX1276_SPREADF_MIN = 0x05,
+    SX1276_SPREADF_64_CS,
+    SX1276_SPREADF_128_CS,
+    SX1276_SPREADF_256_CS,
+    SX1276_SPREADF_512_CS,
+    SX1276_SPREADF_1024_CS,
+    SX1276_SPREADF_2048_CS,
+    SX1276_SPREADF_4096_CS,
+    SX1276_SPREADF_MAX,
+} lora_spread_fac_t;
+
+
+typedef enum {
+    SX1276_CODING_RATE_4_5 = 0x01,
+    SX1276_CODING_RATE_4_6,
+    SX1276_CODING_RATE_4_7,
+    SX1276_CODING_RATE_4_8,
+    SX1276_CODING_RATE_MAX,
+} lora_coding_rate_t;
 
 typedef enum {
     SX1276_RX_BW_MANT_16,
@@ -486,6 +526,12 @@ typedef struct SX1276_Device_Settings
     uint32_t  frequency;
     sx_mode_t current_mode;
     lna_gain_t gain;
+    lora_bw_t bw;
+    lora_spread_fac_t sf;
+    bool agc_auto;
+    bool lna_boost;
+    bool lora_mode;
+
 } sx1276_settings_t;
 
 
