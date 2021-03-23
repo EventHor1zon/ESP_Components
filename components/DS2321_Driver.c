@@ -102,7 +102,7 @@ static void ds2321_driver_task(void *args) {
             ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         }
         else if(dev->opmode == DS2321_OPMODE_SAMPLE_1S) {
-            ds2321_update_time(dev);
+            ESP_ERROR_CHECK(ds2321_update_time(dev));
             ds2321_dump_time(dev);
             vTaskDelay(pdMS_TO_TICKS(1000));
         }
@@ -209,7 +209,7 @@ esp_err_t ds2321_set_twentyfour(DS2321_DEV Dev, bool *state) {
     esp_err_t err = gcd_i2c_read_address(Dev->i2c_bus, DS2321_I2C_DEVICE_ADDR, DS2321_REGADDR_HOURS, 1, &regval);
     if(!err) {   
         if(i && !(regval & (i << 5))) {
-            regval &= (i << 5);
+            regval |= (i << 5);
             err = gcd_i2c_write_address(Dev->i2c_bus, DS2321_I2C_DEVICE_ADDR, DS2321_REGADDR_HOURS, 1, &regval);
             if(!err) {
                 Dev->settings.twentyfour_hour = true;
@@ -230,7 +230,7 @@ esp_err_t ds2321_set_twentyfour(DS2321_DEV Dev, bool *state) {
 esp_err_t ds2321_update_time(DS2321_DEV dev) {
     esp_err_t err = ESP_OK;
 
-    uint8_t buffer[7];
+    uint8_t buffer[7] = {0};
 
     err = gcd_i2c_read_address(dev->i2c_bus, DS2321_I2C_DEVICE_ADDR, DS2321_REGADDR_SECONDS, 7, buffer);
 
@@ -363,6 +363,7 @@ esp_err_t ds2321_set_year(DS2321_DEV dev, uint8_t *y) {
         uint8_t _s = _y % 10;
         uint8_t _t = _y / 10;
         uint8_t r = ((_t << 4) | _s); 
+        ESP_LOGI(DS_TAG, "Year: %02x %02x %02x", _s, _t, r);
 
         status = gcd_i2c_write_address(dev->i2c_bus, DS2321_I2C_DEVICE_ADDR, DS2321_REGADDR_YEAR, 1, &r);
     }
