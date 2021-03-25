@@ -20,11 +20,13 @@
 
 /********* Definitions *****************/
 
-#define APDS_REGADDR_RAM_START      0x00
-#define APDS_REGADDR_RAM_END        0x79
-#define APDS_REGADDR_ENABLE         0x80
-#define APDS_REGADDR_ADCTIME        0x81
-#define APDS_REGADDR_WAITTIME       0x83
+#define APDS_I2C_ADDRESS                0x39
+
+#define APDS_REGADDR_RAM_START          0x00
+#define APDS_REGADDR_RAM_END            0x79
+#define APDS_REGADDR_ENABLE             0x80
+#define APDS_REGADDR_ADCTIME            0x81
+#define APDS_REGADDR_WAITTIME           0x83
 #define APDS_REGADDR_ALS_THR_LOW_LSB    0x84
 #define APDS_REGADDR_ALS_THR_LOW_MSB    0x85
 #define APDS_REGADDR_ALS_THR_HIGH_LSB   0x86
@@ -247,6 +249,23 @@ typedef adps_handle_t * APDS_DEV;
 
 APDS_DEV apds_init(apds_init_t *init);
 
+
+
+esp_err_t apds_get_pwr_on_status(APDS_DEV dev, uint8_t *on);
+
+esp_err_t apds_set_pwr_on_status(APDS_DEV dev, uint8_t *on);
+
+esp_err_t apds_get_proximity_status(APDS_DEV dev, uint8_t *on);
+
+esp_err_t apds_set_proximity_status(APDS_DEV dev, uint8_t *on);
+
+esp_err_t apds_get_als_status(APDS_DEV dev, uint8_t *on);
+
+esp_err_t apds_set_als_status(APDS_DEV dev, uint8_t *on);
+
+esp_err_t apds_get_gesture_status(APDS_DEV dev, uint8_t *on);
+
+esp_err_t apds_set_gesture_status(APDS_DEV dev, uint8_t *on);
 
 esp_err_t apds_get_adc_time(APDS_DEV dev, uint8_t *adct);
 

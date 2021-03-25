@@ -2,6 +2,7 @@ set(srcs
     "genericCommsDriver.c"
     "Utilities.c"
     "SystemInterface.c"
+    "APDS9960_Driver.c"
     )
 
 set(includes "include")

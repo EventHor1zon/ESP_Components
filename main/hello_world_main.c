@@ -18,6 +18,7 @@
 #include "../inc/WifiDriver.h"
 #include "genericCommsDriver.h"
 #include "SystemInterface.h"
+#include "APDS9960_Driver.h"
 
 #include "nvs_flash.h"
 
@@ -58,13 +59,17 @@ void app_main(void)
 
 
     if(gcd_spi_init(5, 27, 19, SPI2_HOST, false) != ESP_OK ||
-       gcd_i2c_init(4, 15, 200000, 0, false) != ESP_OK) {
+       gcd_i2c_init(18, 19, 200000, 0, false) != ESP_OK) {
         ESP_LOGE("MAIN", "Error starting comms");
         while(1) {
             ESP_LOGI("MAIN", "Chillin...");
             vTaskDelay(1000);
         }
     }
+
+    apds_init_t ini = {0};
+    ini.i2c_bus = 0;
+    APDS_DEV d = apds_init(&ini);
 
     while (1)
     {
