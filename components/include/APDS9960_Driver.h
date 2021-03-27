@@ -131,6 +131,7 @@
 #define APDS_DISABLE_D_DTCR_MASK    0b0100
 #define APDS_DISABLE_U_DTCR_MASK    0b1000
 
+
 /** GST CONFIG 2 **/
 #define APDS_REGOFFSET_GST_GAIN         5
 #define APDS_REGOFFSET_GST_LED_STR      3
@@ -171,6 +172,13 @@ typedef enum {
     APDS_GST_GAIN_MAX,
 }gst_gain_t ; 
 
+typedef enum {
+    APDS_PRX_GAIN_1,
+    APDS_PRX_GAIN_4,
+    APDS_PRX_GAIN_16,
+    APDS_PRX_GAIN_64,
+    APDS_PRX_GAIN_MAX,
+}als_gain_t ; 
 
 typedef enum {
     APDS_GST_LEDDRIVE_100MA,
@@ -223,9 +231,75 @@ typedef struct APDS_Init
     /* data */
 
     uint8_t i2c_bus;
-
+    gpio_num_t intr_pin;
 
 } apds_init_t;
+
+
+typedef struct APDS9960_ALS_Settings
+{
+    /* data */
+    bool asl_en;
+    bool wait_long_en;
+    bool clr_diode_satr_en;
+
+    uint8_t wait_time;
+    uint8_t als_gain;
+    uint8_t als_persist;
+    uint8_t adc_intg_time;
+
+    uint16_t als_thresh_l;
+    uint16_t als_thresh_h;
+
+} als_settings_t;
+
+
+typedef struct APDS9960_PRX_Settings
+{
+    /* data */
+    bool prx_en;
+    bool prox_int_en;
+    bool prox_satr_int_en;
+    bool prox_gain_comp_en;
+
+    uint8_t prox_thresh_l;
+    uint8_t prox_thresh_h;
+
+    uint8_t prox_gain;
+    uint8_t prox_led_en_mask;
+
+    prx_ledtime_t ledtime;
+    uint8_t led_pulse_n;
+
+} prx_settings_t;
+
+
+
+typedef struct APDS9960_GST_Settings
+{
+    /* data */
+    bool gst_en;
+    bool low_pwr_clk;
+    bool gst_int_en;
+
+    uint8_t gst_thresh_entr;
+    uint8_t gst_thresh_exit;
+    uint8_t gst_gain_ctrl;
+    uint8_t gst_exit_persist;
+    uint8_t gst_exit_mask;
+    uint8_t gst_led_drive_str;
+    uint8_t gst_wait_time;
+    uint8_t gst_satr;
+    uint8_t gst_pulse_cnt;
+    uint8_t gst_pulse_len;
+    uint8_t gst_d_select;
+
+} gst_settings_t;
+
+
+
+
+
 
 
 
@@ -235,7 +309,15 @@ typedef struct APDS9960_Driver
 
     uint8_t bus;
     uint8_t addr;
+    bool pwr_on;
 
+    gpio_num_t intr_pin;
+
+    gst_settings_t gst_settings;
+    prx_settings_t prx_settings;
+    als_settings_t als_settings;
+    
+    TaskHandle_t t_handle;
 } adps_handle_t;
 
 
@@ -295,9 +377,9 @@ esp_err_t apds_get_longwait_en(APDS_DEV dev, uint8_t *thr);
 
 esp_err_t apds_set_longwait_en(APDS_DEV dev, uint8_t *thr);
 
-esp_err_t apds_set_prx_int_persistence(APDS_DEV dev, uint8_t *cnt);
+esp_err_t apds_set_prx_intr_persistence(APDS_DEV dev, uint8_t *cnt);
 
-esp_err_t apds_set_als_int_persistence(APDS_DEV dev, uint8_t *cnt);
+esp_err_t apds_set_als_intr_persistence(APDS_DEV dev, uint8_t *cnt);
 
 esp_err_t apds_get_prx_ledpulse_t(APDS_DEV dev, prx_ledtime_t *t);
 
@@ -322,6 +404,19 @@ esp_err_t apds_get_gst_proximity_thr(APDS_DEV dev, uint8_t *d);
 esp_err_t apds_set_gst_proximity_thr(APDS_DEV dev, uint8_t *d);
 
 esp_err_t apds_get_gst_fifo_pkt_len(APDS_DEV dev, uint8_t *d);
+
+
+esp_err_t apds_set_led_drive_strength(APDS_DEV dev, gst_led_drive_t *drive);
+
+esp_err_t apds_get_led_drive_strength(APDS_DEV dev, gst_led_drive_t *drive);
+
+esp_err_t apds_get_prx_gain(APDS_DEV dev, prx_gain_t *g);
+
+esp_err_t apds_set_prx_gain(APDS_DEV dev, prx_gain_t *g);
+
+esp_err_t apds_get_als_gain(APDS_DEV dev, prx_gain_t *g);
+
+esp_err_t apds_set_als_gain(APDS_DEV dev, prx_gain_t *g);
 
 
 
