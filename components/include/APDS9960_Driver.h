@@ -157,6 +157,7 @@ const peripheral_t apds_periph_mapping[apds_periph_len];
 
 /********** Types **********************/
 
+
 typedef enum {
     APDS_GST_PLSLEN_4US,
     APDS_GST_PLSLEN_8US,
@@ -251,7 +252,7 @@ typedef struct APDS9960_ALS_Settings
     bool asl_en;
     bool wait_long_en;
     bool clr_diode_satr_en;
-
+    bool asl_intr_en;
     uint8_t wait_time;
     uint8_t als_gain;
     uint8_t als_persist;
@@ -267,21 +268,27 @@ typedef struct APDS9960_PRX_Settings
 {
     /* data */
     bool prx_en;
-    bool prox_int_en;
+    bool prox_intr_en;
     bool prox_satr_int_en;
     bool prox_gain_comp_en;
 
     uint8_t prox_thresh_l;
     uint8_t prox_thresh_h;
-
     uint8_t prox_gain;
     uint8_t prox_led_en_mask;
-
-    prx_ledtime_t ledtime;
     uint8_t led_pulse_n;
+    uint8_t prox_perist_cycles;
+    prx_ledtime_t ledtime;
 
 } prx_settings_t;
 
+typedef struct APDS_GeneralSettings
+{
+    /* data */
+    bool sleep_after_intr;
+    bool pwr_on;
+
+} gen_settings_t;
 
 
 typedef struct APDS9960_GST_Settings
@@ -306,27 +313,21 @@ typedef struct APDS9960_GST_Settings
 } gst_settings_t;
 
 
-
-
-
-
-
-
 typedef struct APDS9960_Driver
 {
     /* data */
 
     uint8_t bus;
     uint8_t addr;
-    bool pwr_on;
 
     gpio_num_t intr_pin;
 
     gst_settings_t gst_settings;
     prx_settings_t prx_settings;
     als_settings_t als_settings;
-    
+    gen_settings_t gen_settings;
     TaskHandle_t t_handle;
+
 } adps_handle_t;
 
 
@@ -341,6 +342,7 @@ typedef adps_handle_t * APDS_DEV;
 APDS_DEV apds_init(apds_init_t *init);
 
 
+/** Set status values **/
 
 esp_err_t apds_get_pwr_on_status(APDS_DEV dev, uint8_t *on);
 
@@ -358,13 +360,34 @@ esp_err_t apds_get_gesture_status(APDS_DEV dev, uint8_t *on);
 
 esp_err_t apds_set_gesture_status(APDS_DEV dev, uint8_t *on);
 
-esp_err_t apds_get_adc_time(APDS_DEV dev, uint8_t *adct);
 
-esp_err_t apds_set_adc_time(APDS_DEV dev, uint8_t *adct);
+/** General settings **/
 
 esp_err_t apds_get_wait_time(APDS_DEV dev, uint8_t *wait);
 
 esp_err_t apds_set_wait_time(APDS_DEV dev, uint8_t *wait);
+
+esp_err_t apds_get_longwait_en(APDS_DEV dev, uint8_t *thr);
+
+esp_err_t apds_set_longwait_en(APDS_DEV dev, uint8_t *thr);
+
+esp_err_t apds_set_led_drive_strength(APDS_DEV dev, gst_led_drive_t *drive);
+
+esp_err_t apds_get_led_drive_strength(APDS_DEV dev, gst_led_drive_t *drive);
+
+
+/** TODO: Interrupt settings **/
+
+esp_err_t apds_get_sleep_after_intr(APDS_DEV dev, uint8_t *en);
+
+esp_err_t apds_set_sleep_after_intr(APDS_DEV dev, uint8_t *en);
+
+
+/** ALS **/
+
+esp_err_t apds_get_adc_time(APDS_DEV dev, uint8_t *adct);
+
+esp_err_t apds_set_adc_time(APDS_DEV dev, uint8_t *adct);
 
 esp_err_t apds_get_alsintr_low_thr(APDS_DEV dev, uint16_t *thr);
 
@@ -374,6 +397,17 @@ esp_err_t apds_get_alsintr_hi_thr(APDS_DEV dev, uint16_t *thr);
 
 esp_err_t apds_set_alsintr_hi_thr(APDS_DEV dev, uint16_t *thr);
 
+esp_err_t apds_get_als_intr_persistence(APDS_DEV dev, uint8_t *cnt);
+
+esp_err_t apds_set_als_intr_persistence(APDS_DEV dev, uint8_t *cnt);
+
+esp_err_t apds_get_als_gain(APDS_DEV dev, als_gain_t *g);
+
+esp_err_t apds_set_als_gain(APDS_DEV dev, als_gain_t *g);
+
+
+/** Proximity settings **/
+
 esp_err_t apds_get_prxintr_low_thr(APDS_DEV dev, uint8_t *thr);
 
 esp_err_t apds_set_prxintr_low_thr(APDS_DEV dev, uint8_t *thr);
@@ -382,13 +416,7 @@ esp_err_t apds_get_prxintr_high_thr(APDS_DEV dev, uint8_t *thr);
 
 esp_err_t apds_set_prxintr_high_thr(APDS_DEV dev, uint8_t *thr);
 
-esp_err_t apds_get_longwait_en(APDS_DEV dev, uint8_t *thr);
-
-esp_err_t apds_set_longwait_en(APDS_DEV dev, uint8_t *thr);
-
 esp_err_t apds_set_prx_intr_persistence(APDS_DEV dev, uint8_t *cnt);
-
-esp_err_t apds_set_als_intr_persistence(APDS_DEV dev, uint8_t *cnt);
 
 esp_err_t apds_get_prx_ledpulse_t(APDS_DEV dev, prx_ledtime_t *t);
 
@@ -397,6 +425,24 @@ esp_err_t apds_set_prx_ledpulse_t(APDS_DEV dev, prx_ledtime_t *t);
 esp_err_t apds_get_prx_pulses(APDS_DEV dev, uint8_t *cnt);
 
 esp_err_t apds_set_prx_pulses(APDS_DEV dev, uint8_t *cnt);
+
+esp_err_t apds_get_prx_gain(APDS_DEV dev, gst_gain_t *g);
+
+esp_err_t apds_set_prx_gain(APDS_DEV dev, gst_gain_t *g);
+
+
+/** Gesture settings **/
+
+esp_err_t apds_get_gst_proximity_ent_thr(APDS_DEV dev, uint8_t *d);
+
+esp_err_t apds_set_gst_proximity_ent_thr(APDS_DEV dev, uint8_t *d);
+
+esp_err_t apds_get_gst_proximity_ext_thr(APDS_DEV dev, uint8_t *d);
+
+esp_err_t apds_set_gst_proximity_ext_thr(APDS_DEV dev, uint8_t *d);
+
+
+/** Get results **/
 
 esp_err_t apds_get_red_data(APDS_DEV dev, uint16_t *d);
 
@@ -408,24 +454,10 @@ esp_err_t apds_get_clear_data(APDS_DEV dev, uint16_t *d);
 
 esp_err_t apds_get_proximity_data(APDS_DEV dev, uint8_t *d);
 
-esp_err_t apds_get_gst_proximity_thr(APDS_DEV dev, uint8_t *d);
-
-esp_err_t apds_set_gst_proximity_thr(APDS_DEV dev, uint8_t *d);
-
-esp_err_t apds_get_gst_fifo_pkt_len(APDS_DEV dev, uint8_t *d);
 
 
-esp_err_t apds_set_led_drive_strength(APDS_DEV dev, gst_led_drive_t *drive);
 
-esp_err_t apds_get_led_drive_strength(APDS_DEV dev, gst_led_drive_t *drive);
 
-esp_err_t apds_get_prx_gain(APDS_DEV dev, prx_gain_t *g);
-
-esp_err_t apds_set_prx_gain(APDS_DEV dev, prx_gain_t *g);
-
-esp_err_t apds_get_als_gain(APDS_DEV dev, prx_gain_t *g);
-
-esp_err_t apds_set_als_gain(APDS_DEV dev, prx_gain_t *g);
 
 
 

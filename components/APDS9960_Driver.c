@@ -143,7 +143,10 @@ static esp_err_t apds_config_intr_pin(APDS_DEV dev) {
     return err;
 }
 
-
+static esp_err_t apds_gst_clr_fifo(APDS_DEV dev) {
+    esp_err_t err = regSetMask(dev, APDS_REGADDR_GST_CONFIG_3, APDS_REGBIT_GST_FIFO_CLR);
+    return err;
+}
 
 static esp_err_t testmode(APDS_DEV dev) {
 
@@ -187,7 +190,11 @@ static esp_err_t testmode(APDS_DEV dev) {
     return ESP_OK;
 }
 
-
+static uint8_t get_gst_fifo_pkts(APDS_DEV dev) {
+    uint8_t val = 0;
+    gcd_i2c_read_address(dev->bus, dev->addr, APDS_REGADDR_GST_FIFO_LVL, 1, &val);
+    return val;
+}
 
 static void apds_driver_task(void *args) {
  
@@ -253,7 +260,7 @@ APDS_DEV apds_init(apds_init_t *init) {
 
 
 esp_err_t apds_get_pwr_on_status(APDS_DEV dev, uint8_t *on) {
-    *on = dev->pwr_on;
+    *on = dev->gen_settings.pwr_on;
     return ESP_OK;
 }
 
@@ -269,7 +276,7 @@ esp_err_t apds_set_pwr_on_status(APDS_DEV dev, uint8_t *on) {
     }
  
     if(!err) {
-        dev->pwr_on = (val) ? 1 : 0;
+        dev->gen_settings.pwr_on = (val) ? 1 : 0;
     }
     return err;
 }
@@ -355,7 +362,7 @@ esp_err_t apds_set_alsintr_low_thr(APDS_DEV dev, uint16_t *thr) {
         (uint8_t )val,
         ((uint8_t )val >> 8),
     };
-    esp_err_t err = gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_ALS_THR_LOW_LSB, 2, bytes);
+    esp_err_t err = gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_ALS_THR_LOW_LSB, 2, &bytes);
     if(!err) {
         dev->als_settings.als_thresh_l = val;
     }
@@ -373,7 +380,7 @@ esp_err_t apds_set_alsintr_hi_thr(APDS_DEV dev, uint16_t *thr) {
         (uint8_t )val,
         ((uint8_t )val >> 8),
     };
-    esp_err_t err = gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_ALS_THR_HIGH_LSB, 2, bytes);
+    esp_err_t err = gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_ALS_THR_HIGH_LSB, 2, &bytes);
     if(!err) {
         dev->als_settings.als_thresh_h = val;
     }
@@ -387,7 +394,7 @@ esp_err_t apds_get_prxintr_low_thr(APDS_DEV dev, uint8_t *thr) {
 
 esp_err_t apds_set_prxintr_low_thr(APDS_DEV dev, uint8_t *thr) {
     uint8_t val = *thr;
-    esp_err_t err = gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_PRX_THR_LOW, 1, val);
+    esp_err_t err = gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_PRX_THR_LOW, 1, &val);
     if(!err) {
         dev->prx_settings.prox_thresh_l = val;
     }
@@ -401,7 +408,7 @@ esp_err_t apds_get_prxintr_high_thr(APDS_DEV dev, uint8_t *thr) {
 
 esp_err_t apds_set_prxintr_high_thr(APDS_DEV dev, uint8_t *thr) {
     uint8_t val = *thr;
-    esp_err_t err = gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_PRX_THR_HIGH, 1, val);
+    esp_err_t err = gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_PRX_THR_HIGH, 1, &val);
     if(!err) {
         dev->prx_settings.prox_thresh_h = val;
     }
@@ -432,19 +439,51 @@ esp_err_t apds_set_longwait_en(APDS_DEV dev, uint8_t *thr) {
 }
 
 esp_err_t apds_get_prx_intr_persistence(APDS_DEV dev, uint8_t *cnt) {
-    return ESP_ERR_NOT_SUPPORTED;
+    *cnt = dev->prx_settings.prox_perist_cycles;
+    return ESP_OK;
 }
 
 esp_err_t apds_get_als_intr_persistence(APDS_DEV dev, uint8_t *cnt) {
-    return ESP_ERR_NOT_SUPPORTED;
+    *cnt = dev->als_settings.als_persist;
+    return ESP_OK;
 }
 
 esp_err_t apds_set_prx_intr_persistence(APDS_DEV dev, uint8_t *cnt) {
-    return ESP_ERR_NOT_SUPPORTED;
+    esp_err_t err = ESP_OK;
+    uint8_t val = *cnt;
+    if(val > 15) {
+        err= ESP_ERR_INVALID_ARG;
+    }
+    else {
+        err = regUnsetMask(dev, APDS_REGADDR_ISR_PERSIST_FLTR, 0xf0);
+        if(!err && val) {
+            err =regSetMask(dev, APDS_REGADDR_ISR_PERSIST_FLTR, (val << 4));
+        }
+    }
+    if(!err) {
+        dev->prx_settings.prox_perist_cycles = val;
+    }
+
+    return err;
 }
 
 esp_err_t apds_set_als_intr_persistence(APDS_DEV dev, uint8_t *cnt) {
-    return ESP_ERR_NOT_SUPPORTED;
+    esp_err_t err = ESP_OK;
+    uint8_t val = *cnt;
+    if(val > 15) {
+        err= ESP_ERR_INVALID_ARG;
+    }
+    else {
+        err = regUnsetMask(dev, APDS_REGADDR_ISR_PERSIST_FLTR, 0x0f);
+        if(!err && val) {
+            err =regSetMask(dev, APDS_REGADDR_ISR_PERSIST_FLTR, val);
+        }
+    }
+    if(!err) {
+        dev->als_settings.als_persist = val;
+    }
+
+    return err;
 }
 
 esp_err_t apds_get_prx_ledpulse_t(APDS_DEV dev, prx_ledtime_t *t) {
@@ -488,7 +527,7 @@ esp_err_t apds_set_prx_pulses(APDS_DEV dev, uint8_t *cnt) {
     }
     else {
         uint8_t  regval = val | (dev->prx_settings.ledtime << 6);
-        err = gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_PRX_PULSE_LEN, 1, &val); 
+        err = gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_PRX_PULSE_LEN, 1, &regval); 
     }
     if(!err) {
         dev->prx_settings.led_pulse_n = val; 
@@ -570,6 +609,127 @@ esp_err_t apds_set_als_gain(APDS_DEV dev, als_gain_t *g) {
 
     if(!err) {
         dev->als_settings.als_gain = val;
+    }
+    return err;
+}
+
+
+esp_err_t apds_get_sleep_after_intr(APDS_DEV dev, uint8_t *en) {
+    *en = dev->gen_settings.sleep_after_intr;
+    return ESP_OK;
+}
+
+esp_err_t apds_set_sleep_after_intr(APDS_DEV dev, uint8_t *en) {
+    esp_err_t err = ESP_OK;
+    uint8_t val = *en;
+
+    if(val ) {
+        err = regSetMask(dev, APDS_REGADDR_CONFIG_3, APDS_REGBIT_SLP_POST_INT);
+    }
+    else {
+        err = regUnsetMask(dev, APDS_REGADDR_CONFIG_3, APDS_REGBIT_SLP_POST_INT);
+    }
+ 
+    if(!err) {
+        dev->gen_settings.sleep_after_intr = (val) ? 1 : 0;
+    }
+    return err;
+}
+
+esp_err_t apds_get_gst_proximity_ent_thr(APDS_DEV dev, uint8_t *d) {
+    *d = dev->gst_settings.gst_thresh_entr;
+    return ESP_OK;
+}
+
+esp_err_t apds_set_gst_proximity_ent_thr(APDS_DEV dev, uint8_t *d) {
+    uint8_t val = *d;
+    esp_err_t err = gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_GST_ENTR_THR, 1, &val);
+    if(!err) {
+        dev->gst_settings.gst_thresh_entr = val;
+    }
+
+    return err;
+}
+
+esp_err_t apds_get_gst_proximity_ext_thr(APDS_DEV dev, uint8_t *d) {
+    *d = dev->gst_settings.gst_thresh_exit;
+    return ESP_OK;
+}
+
+esp_err_t apds_set_gst_proximity_ext_thr(APDS_DEV dev, uint8_t *d) {
+    uint8_t val = *d;
+    esp_err_t err = gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_GST_EXT_THR, 1, &val);
+    if(!err) {
+        dev->gst_settings.gst_thresh_exit = val;
+    }
+
+    return err;
+}
+
+
+
+esp_err_t apds_get_als_intr(APDS_DEV dev, uint8_t *en) {
+    *en = dev->als_settings.asl_intr_en;
+    return ESP_OK;
+}
+
+esp_err_t apds_set_als_intr(APDS_DEV dev, uint8_t *en) {
+    esp_err_t err = ESP_OK;
+    uint8_t val = *en;
+
+    if(val ) {
+        err = regSetMask(dev, APDS_REGADDR_ENABLE, APDS_REGBIT_ALS_INT_EN);
+    }
+    else {
+        err = regUnsetMask(dev, APDS_REGADDR_ENABLE, APDS_REGBIT_ALS_INT_EN);
+    }
+ 
+    if(!err) {
+        dev->als_settings.asl_intr_en = (val) ? 1 : 0;
+    }
+    return err;
+}
+
+esp_err_t apds_get_prox_intr(APDS_DEV dev, uint8_t *en) {
+    *en = dev->prx_settings.prox_intr_en;
+    return ESP_OK;
+}
+
+esp_err_t apds_set_prox_intr(APDS_DEV dev, uint8_t *en) {
+    esp_err_t err = ESP_OK;
+    uint8_t val = *en;
+
+    if(val ) {
+        err = regSetMask(dev, APDS_REGADDR_ENABLE, APDS_REGBIT_PRX_INT_EN);
+    }
+    else {
+        err = regUnsetMask(dev, APDS_REGADDR_ENABLE, APDS_REGBIT_PRX_INT_EN);
+    }
+ 
+    if(!err) {
+        dev->prx_settings.prox_intr_en = (val) ? 1 : 0;
+    }
+    return err;
+}
+
+esp_err_t apds_get_gst_intr(APDS_DEV dev, uint8_t *en) {
+    *en = dev->gst_settings.gst_int_en;
+    return ESP_OK;
+}
+
+esp_err_t apds_set_gst_intr(APDS_DEV dev, uint8_t *en) {
+    esp_err_t err = ESP_OK;
+    uint8_t val = *en;
+
+    if(val ) {
+        err = regSetMask(dev, APDS_REGADDR_GST_CONFIG_3, APDS_REGBIT_GST_INT_EN);
+    }
+    else {
+        err = regUnsetMask(dev, APDS_REGADDR_GST_CONFIG_3, APDS_REGBIT_GST_INT_EN);
+    }
+ 
+    if(!err) {
+        dev->prx_settings.prox_intr_en = (val) ? 1 : 0;
     }
     return err;
 }
