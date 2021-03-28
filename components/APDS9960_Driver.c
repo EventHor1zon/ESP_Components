@@ -62,13 +62,6 @@ const char *APDS_TAG = "APDS Driver";
 
 /****** Private Functions *************/
 
-
-static IRAM_ATTR void apds_intr_handler(void *args) {
-
-
-}
-
-
 /** Sets the BITS in mask **/
 static esp_err_t regSetMask(APDS_DEV dev, uint8_t regaddr, uint8_t mask) {
 
@@ -99,8 +92,6 @@ static esp_err_t regUnsetMask(APDS_DEV dev, uint8_t regaddr, uint8_t mask) {
 
     return err;   
 }
-
-/************ ISR *********************/
 
 static esp_err_t apds_initialise_device(APDS_DEV dev) {
 
@@ -204,6 +195,15 @@ static void apds_driver_task(void *args) {
         vTaskDelay(pdMS_TO_TICKS(10));
     }
     /** here be dragons **/
+}
+
+
+/************ ISR *********************/
+
+
+static IRAM_ATTR void apds_intr_handler(void *args) {
+
+
 }
 
 
@@ -667,6 +667,8 @@ esp_err_t apds_set_gst_proximity_ext_thr(APDS_DEV dev, uint8_t *d) {
 }
 
 
+
+/*** INTERRUPT SETTINGS **/
 
 esp_err_t apds_get_als_intr(APDS_DEV dev, uint8_t *en) {
     *en = dev->als_settings.asl_intr_en;
