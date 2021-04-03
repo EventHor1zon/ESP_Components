@@ -10,6 +10,7 @@
 
 /********* Includes *******************/
 
+<<<<<<< HEAD
 #include "esp_err.h"
 #include "esp_types.h"
 #include "esp_log.h"
@@ -20,6 +21,8 @@
 #include "driver/spi_common.h"
 #include "driver/spi_master.h"
 #include "Lora_SX1276_Driver.h"
+=======
+>>>>>>> vl0x
 
 /****** Function Prototypes ***********/
 

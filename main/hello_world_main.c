@@ -19,12 +19,20 @@
 #include "genericCommsDriver.h"
 #include "SystemInterface.h"
 <<<<<<< HEAD
+<<<<<<< HEAD
 #include "APDS9960_Driver.h"
 
 #include "HMC5883_Driver.h"
 =======
 #include "DS2321_Driver.h"
 >>>>>>> ds3231
+=======
+#include "HPDL1414_Driver.h"
+#include "Max30102_Driver.h"
+#include "RotaryEncoder_Driver.h"
+#include "MSGEQ7_Driver.h"
+#include "VL53L0X_Driver.h"
+>>>>>>> vl0x
 
 #include "nvs_flash.h"
 
@@ -32,7 +40,11 @@
 #include "lwip/sys.h"
 
 
+<<<<<<< HEAD
 const char *MAIN_TAG = "main";
+=======
+const char *MAIN_TAG = "[Main]";
+>>>>>>> vl0x
 
 
 void envSensor(void *args)
@@ -126,6 +138,7 @@ void app_main(void)
 
     printf("Free heap: %d\n", esp_get_free_heap_size());
 
+<<<<<<< HEAD
     if(gcd_spi_init(5, 27, 19, SPI2_HOST, false) != ESP_OK ||
        gcd_i2c_init(18, 19, 200000, 0, false) != ESP_OK) {
         ESP_LOGE("MAIN", "Error starting comms");
@@ -145,6 +158,13 @@ void app_main(void)
     // gpio_num_t pin = GPIO_NUM_5;
     // WS2812_init(1, &numLeds, &pin);
 
+=======
+    genericI2Cinit(16, 17, 400000, 0, 0);
+
+    VL53L0X_DEV dev = vl53_init();
+
+    // printf("\n\nSetting up a rotary encoder!\n");
+>>>>>>> vl0x
 
     apa102_init_t ini = {0};
     ini.clock_pin = 32;

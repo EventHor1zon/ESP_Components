@@ -74,11 +74,11 @@ typedef enum param_type
     PARAMTYPE_INT32 = 0x04,
     PARAMTYPE_UINT32 = 0x04,
     PARAMTYPE_FLOAT = 0x05,
+    PARAMTYPE_STRING = 0x06,
     PARAMTYPE_DOUBLE = 0x08,
 
     PARAMTYPE_INVALID = 0xFF
 } param_type_t;
-
 
 /** \brief  Peripheral_type
  *          Type of peripheral
@@ -97,7 +97,6 @@ typedef enum peripheral_type
     PTYPE_COMMS,            /** < a comms/bluetooth/radio */
     PTYPE_NONE = 0xFF       /** < blank **/
 } peripheral_type_t;
-
 
 
 typedef enum param_flags {
@@ -200,6 +199,7 @@ typedef struct rsp_data
 typedef struct command_request
 {
     uint32_t cmd_uid;    /** < command unique id **/
+    uint32_t *origin;
     periph_cmd_t pcmd_data;    /** < the command data **/
     
 } cmd_request_t;
@@ -208,6 +208,7 @@ typedef struct command_request
 typedef struct command_response
 {
     uint32_t rsp_uid;
+    uint32_t *origin;
     rsp_data_t rsp_data;
 } cmd_rsp_t;
 
@@ -225,7 +226,6 @@ typedef struct parameter
     uint32_t maxValid;   /** < maximum valid value **/
     uint8_t types;       /** < get/set/act flags **/
 } parameter_t;
-
 
 /** \brief detail struct for each action
  * **/
@@ -251,6 +251,7 @@ typedef struct peripheral
     action_t *actions;
     uint8_t actions_len;
     uint32_t peripheral_id;
+    peripheral_type_t periph_type;
 } peripheral_t;
 
 
