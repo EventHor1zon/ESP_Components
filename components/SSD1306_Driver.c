@@ -115,12 +115,14 @@ esp_err_t ssd1306_write_text(ssd1306_handle_t *screen) {
 
     if(stat == ESP_OK) {
         for(uint8_t i=0; i<screen->text_len; i++) {
+            /** Process newline **/
             if(screen->text[i] == "\n") {
                 uint8_t cmds[4] = 0;
                 memcpy(cmds, screen_text_cmds, sizeof(screen_text_cmds));
                 cmds[3] = ( SSD1306_SEG_SELECT | page++);
                 stat = genericI2CWriteBlock(screen->bus, screen->dev_addr, sizeof(screen_text_cmds), cmds);
             }
+            /** Print character **/
             else {
                 uint8_t cmds[9] = {0};
                 cmds[0] = OLED_CONTROL_BYTE_CMD_STREAM;
