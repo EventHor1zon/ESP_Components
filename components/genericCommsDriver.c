@@ -112,7 +112,6 @@ esp_err_t gcd_i2c_write_block(uint8_t i2cChannel, uint8_t deviceAddr, uint16_t w
     if ((i2cChannel == I2C_NUM_0) || (i2cChannel == I2C_NUM_1))
     {
         // /** if bus using a semaphore, take it first **/
-<<<<<<< HEAD
         if((i2cChannel == I2C_NUM_0) && gcd.i2c0_sem != NULL) {
             sempr = gcd.i2c0_sem;
         }
@@ -126,21 +125,6 @@ esp_err_t gcd_i2c_write_block(uint8_t i2cChannel, uint8_t deviceAddr, uint16_t w
                 txStatus = ESP_ERR_TIMEOUT;
             }
         }
-=======
-        // if((i2cChannel == I2C_NUM_0) && gcd.i2c0_sem != NULL) {
-        //     sempr = gcd.i2c0_sem;
-        // }
-        // else if((i2cChannel == I2C_NUM_1) && gcd.i2c1_sem != NULL) {
-        //     sempr = gcd.i2c1_sem;
-        // }
-
-        // if(sempr != NULL) {
-        //     if(xSemaphoreTake(sempr, pdMS_TO_TICKS(GCD_SEMAPHORE_TIMEOUT)) != pdTRUE) {
-        //         ESP_LOGI(COMMS_TAG, "Could not get i2c %u semaphore in time", i2cChannel);
-        //         txStatus = ESP_ERR_TIMEOUT;
-        //     }
-        // }
->>>>>>> vl0x
         
         if(txStatus == ESP_OK) {
             /** perform the transaction **/
@@ -153,7 +137,7 @@ esp_err_t gcd_i2c_write_block(uint8_t i2cChannel, uint8_t deviceAddr, uint16_t w
             txStatus = i2c_master_cmd_begin(i2cChannel, cmd, pdMS_TO_TICKS(GENERIC_I2C_COMMS_TIMEOUT_MS));
             if (txStatus != ESP_OK)
             {
-                ESP_LOGE("GenericI2CwriteToAddress", "Error during transmission [%u]", txStatus);
+                ESP_LOGE("gcd_i2c_write_address", "Error during transmission [%u]", txStatus);
             }
             i2c_cmd_link_delete(cmd);
 
@@ -211,7 +195,7 @@ esp_err_t gcd_i2c_write_address(uint8_t i2cChannel, uint8_t deviceAddr, uint8_t 
             txStatus = i2c_master_cmd_begin(i2cChannel, cmd, pdMS_TO_TICKS(GENERIC_I2C_COMMS_TIMEOUT_MS));
             if (txStatus != ESP_OK)
             {
-                ESP_LOGE("GenericI2CwriteToAddress", "Error during transmission [%u]", txStatus);
+                ESP_LOGE("gcd_i2c_write_address", "Error during transmission [%u]", txStatus);
             }
             i2c_cmd_link_delete(cmd);
         }

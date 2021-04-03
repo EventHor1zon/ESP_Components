@@ -477,52 +477,6 @@ esp_err_t WS2812_deinit()
     return ESP_OK;
 }
 
-/**
- * Driver control task 
- *  Duties - Check for strand frame refresh 
- *           - Check for update requests & update as needed
- *            - check for led effects r/w requests
- **/
-
-static void WS2812_driverTask(void *args)
-{
-
-    uint32_t colours[6] = {0x00000011, 0x00001100, 0x00110000, 0x00111100, 0x00001111, 0x00110011};
-    uint8_t numstrands = 0;
-
-    while (1)
-    {
-
-        for (uint8_t i = 0; i < ledControl.numStrands; i++)
-        {
-            if (allStrands[i] != NULL)
-            {
-                StrandData_t *strand = allStrands[i];
-
-                /*  for each strand, if there's an animation to run, take the semaphore and run it.
-                *   reset the timer to the next animation refresh    
-                */
-
-                /* if the leds require updating, take the semaphore and write new data */
-                if (strand->updateLeds)
-                {
-                    if (xSemaphoreTake(strand->memSemphr, pdMS_TO_TICKS(WS2812_SEMAPHORE_TIMEOUT)) == pdFALSE)
-                    {
-                        ESP_LOGE(WS2812_TAG, "Semaphore request timed out");
-                    }
-                    else
-                    {
-                        WS2812_transmitLedData(strand);
-                        strand->updateLeds = 0;
-                        xSemaphoreGive(strand->memSemphr);
-                    }
-                }
-            }
-        }
-
-        vTaskDelay(1000);
-    }
-}
 
 /**
  *  ws2812_ledsOff

@@ -58,7 +58,7 @@ static esp_err_t max31_reset_fifo(max31_driver_t *dev) {
     esp_err_t status = ESP_OK;
     uint8_t clear_val = 0;
 
-    status = genericI2CwriteToAddress(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_FIFO_WRTPTR, 3, &clear_val);
+    status = gcd_i2c_write_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_FIFO_WRTPTR, 3, &clear_val);
 
     return status;
 }
@@ -70,7 +70,7 @@ static esp_err_t max31_read_temperature(max31_driver_t *dev, float *val) {
     uint8_t temp[2];
     int8_t int_temp;
     float fract_temp;
-    status = genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_DIETEMP_INT, 2, temp);
+    status = gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_DIETEMP_INT, 2, temp);
 
     int_temp = temp[0];
     fract_temp = (float)temp[1] * 0.0625;
@@ -136,67 +136,67 @@ static esp_err_t test_mode(max31_driver_t *dev) {
     ESP_LOGI(MX_TAG, "done setting up [%u]", status);
     vTaskDelay(pdMS_TO_TICKS(100));
 
-    // genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_INTR_EN1, 1, &val);
+    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_INTR_EN1, 1, &val);
     // ESP_LOGI(MX_TAG, "r 2 [%02x]", val);
     // vTaskDelay(pdMS_TO_TICKS(100));
-    // genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_CONFIG, 1, &val);
+    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_CONFIG, 1, &val);
     // ESP_LOGI(MX_TAG, "r 8 [%02x]", val);
     // vTaskDelay(pdMS_TO_TICKS(100));
-    // genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_MODE_CONFIG, 1, &val);
+    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_MODE_CONFIG, 1, &val);
     // ESP_LOGI(MX_TAG, "r 9 [%02x]", val);
     // vTaskDelay(pdMS_TO_TICKS(100));
-    // genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_SP02_CONFIG, 1, &val);
+    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_SP02_CONFIG, 1, &val);
     // ESP_LOGI(MX_TAG, "r a [%02x]", val);
     // vTaskDelay(pdMS_TO_TICKS(100));
-    // genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_LED1PULSE_AMP, 1, &val);
+    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_LED1PULSE_AMP, 1, &val);
     // ESP_LOGI(MX_TAG, "r c [%02x]", val);
     // vTaskDelay(pdMS_TO_TICKS(100));
-    // genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_LED2PULSE_AMP, 1, &val);
+    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_LED2PULSE_AMP, 1, &val);
     // ESP_LOGI(MX_TAG, "r d [%02x]", val);
     // vTaskDelay(pdMS_TO_TICKS(100));
-    // genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_REV_ID, 1, &val);
+    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_REV_ID, 1, &val);
     // ESP_LOGI(MX_TAG, "r fe [%02x]", val);    
     // vTaskDelay(pdMS_TO_TICKS(100));
-    // genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_PART_ID, 1, &val);
+    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_PART_ID, 1, &val);
     // ESP_LOGI(MX_TAG, "r ff [%02x]", val);
     // vTaskDelay(pdMS_TO_TICKS(100));
 
 
     // vTaskDelay(pdMS_TO_TICKS(100));
-    // genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_OVRFLW_CNTR, 1, &val);
+    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_OVRFLW_CNTR, 1, &val);
     // ESP_LOGI(MX_TAG, "r 5 [%02x]", val);    
     // vTaskDelay(pdMS_TO_TICKS(100));
-    // genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_RDPTR, 1, &val);
+    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_RDPTR, 1, &val);
     // ESP_LOGI(MX_TAG, "r 6 [%02x]", val);
-    // genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_DATA, 1, &val);
+    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_DATA, 1, &val);
     // vTaskDelay(pdMS_TO_TICKS(100));
     // ESP_LOGI(MX_TAG, "r 7 [%02x]", val);    
     // vTaskDelay(pdMS_TO_TICKS(100));
-    // genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_RDPTR, 1, &val);
+    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_RDPTR, 1, &val);
     // ESP_LOGI(MX_TAG, "r 5 [%02x]", val);    
     // vTaskDelay(pdMS_TO_TICKS(100));
-    // genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_DATA, 1, &val);
+    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_DATA, 1, &val);
     // ESP_LOGI(MX_TAG, "r 7 [%02x]", val);
     // vTaskDelay(pdMS_TO_TICKS(100));
-    // genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_RDPTR, 1, &val);
+    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_RDPTR, 1, &val);
     // ESP_LOGI(MX_TAG, "r 5 [%02x]", val);    
     // vTaskDelay(pdMS_TO_TICKS(100));
-    // genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_DATA, 1, &val);
+    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_DATA, 1, &val);
     // ESP_LOGI(MX_TAG, "r 7 [%02x]", val); 
     // vTaskDelay(pdMS_TO_TICKS(100));
-    // genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_RDPTR, 1, &val);
+    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_RDPTR, 1, &val);
     // ESP_LOGI(MX_TAG, "r 5 [%02x]", val);    
     // vTaskDelay(pdMS_TO_TICKS(100));
-    // genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_DATA, 1, &val);
+    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_DATA, 1, &val);
     // ESP_LOGI(MX_TAG, "r 7 [%02x]", val); 
     // vTaskDelay(pdMS_TO_TICKS(100));
-    // genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_RDPTR, 1, &val);
+    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_RDPTR, 1, &val);
     // ESP_LOGI(MX_TAG, "r 5 [%02x]", val);    
     // vTaskDelay(pdMS_TO_TICKS(100));
-    // genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_DATA, 1, &val);
+    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_DATA, 1, &val);
     // ESP_LOGI(MX_TAG, "r 7 [%02x]", val);
     // vTaskDelay(pdMS_TO_TICKS(100));
-    // genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_INTR_STATUS1, 1, &val);
+    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_INTR_STATUS1, 1, &val);
     // ESP_LOGI(MX_TAG, "r 0 [%02x]", val);
     dev->configured = true;
     return status;
@@ -217,7 +217,7 @@ static void max31_task(void *args) {
             ESP_LOGI(MX_TAG, "In task");
             ulTaskNotifyTake(pdTRUE, portMAX_DELAY); 
             ESP_LOGI(MX_TAG, "got notify");
-            genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_INTR_STATUS1, 1, &val);
+            gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_INTR_STATUS1, 1, &val);
             ESP_LOGI(MX_TAG, "r 0 [%02x]", val); 
             max31_read_fifo(dev);
         // showmem(dev->fifo_buffer, 200);
@@ -316,7 +316,7 @@ esp_err_t max31_get_device_id(max31_driver_t *dev, uint8_t *val) {
 
     esp_err_t status = ESP_OK;
     uint8_t reg= 0;
-    status = genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, (uint8_t)MAX31_REGADDR_PART_ID, 1, &reg);
+    status = gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, (uint8_t)MAX31_REGADDR_PART_ID, 1, &reg);
     *val = reg;
     return status;
 }
@@ -334,9 +334,9 @@ esp_err_t max31_set_interrupt1(max31_driver_t *dev, uint8_t *intr_mask) {
         status = ESP_ERR_INVALID_ARG;
     } else {
         /** get the existing interrupts **/
-        status = genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_INTR_EN1, 1, &regval);
+        status = gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_INTR_EN1, 1, &regval);
         ESP_LOGI(MX_TAG, "Intr1: 0x%02x, writing 0x%02x", regval, *intr_mask);
-        status = genericI2CwriteToAddress(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_INTR_EN1, 1, &v);
+        status = gcd_i2c_write_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_INTR_EN1, 1, &v);
     }
 
     if(status == ESP_OK) {
@@ -356,9 +356,9 @@ esp_err_t max31_set_interrupt2(max31_driver_t *dev, uint8_t *intr_mask) {
         status = ESP_ERR_INVALID_ARG;
     } else {
         /** get the existing interrupts **/
-        status = genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_INTR_EN2, 1, &regval);
+        status = gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_INTR_EN2, 1, &regval);
         regval |= val;
-        status = genericI2CwriteToAddress(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_INTR_EN2, 1, &regval);
+        status = gcd_i2c_write_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_INTR_EN2, 1, &regval);
     }
 
     if(status == ESP_OK) {
@@ -376,9 +376,9 @@ esp_err_t max31_set_sample_average(max31_driver_t *dev, max31_sampleavg_t *val) 
     if(v > MAX31_SAMPLE_AVG_32) {
         status = ESP_ERR_INVALID_ARG;
     } else {
-        status = genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_FIFO_CONFIG, 1, &regval);
+        status = gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_FIFO_CONFIG, 1, &regval);
         regval |= ((v) << 5);
-        status = genericI2CwriteToAddress(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_FIFO_CONFIG, 1, &regval);
+        status = gcd_i2c_write_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_FIFO_CONFIG, 1, &regval);
         if(status == ESP_OK) {
             dev->smpavg = v;
         }
@@ -396,14 +396,14 @@ esp_err_t max31_set_fifo_rollover(max31_driver_t *dev, uint8_t *val) {
     uint8_t v = *val;
 
     write = (1 << 5);
-    status = genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_FIFO_CONFIG, 1, &regval);
+    status = gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_FIFO_CONFIG, 1, &regval);
     if(status == ESP_OK) {
         if(v) {
             regval |= write;
         } else {
             regval &= ~(write);
         }
-        status = genericI2CwriteToAddress(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_FIFO_CONFIG, 1, &regval);
+        status = gcd_i2c_write_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_FIFO_CONFIG, 1, &regval);
         if(status == ESP_OK) {
             dev->fifo_ovr = write ? 1 : 0;
         }
@@ -419,9 +419,9 @@ esp_err_t max31_set_almost_full_val(max31_driver_t *dev, uint8_t *val) {
     if(v > MAX31_ALMOSTFULL_MAX) {
         status = ESP_ERR_INVALID_ARG;
     } else {
-        status = genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_FIFO_CONFIG, 1, &regval);
+        status = gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_FIFO_CONFIG, 1, &regval);
         regval |= v;
-        status = genericI2CwriteToAddress(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_FIFO_CONFIG, 1, &regval);
+        status = gcd_i2c_write_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_FIFO_CONFIG, 1, &regval);
     }
     if(status == ESP_OK) {
         dev->almostfull = *val;
@@ -439,14 +439,14 @@ esp_err_t max31_set_shutdown(max31_driver_t *dev, uint8_t *val) {
 
     write = (1 << 7);
 
-    status = genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_MODE_CONFIG, 1, &regval);
+    status = gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_MODE_CONFIG, 1, &regval);
     
     if(v) {
         regval |= write;
     } else {
         regval &= ~(write);
     }
-    status = genericI2CwriteToAddress(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_MODE_CONFIG, 1, &regval);
+    status = gcd_i2c_write_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_MODE_CONFIG, 1, &regval);
     if(status == ESP_OK) {
         dev->shutdown = v ? 1 : 0;
     }
@@ -466,7 +466,7 @@ esp_err_t max31_set_mode(max31_driver_t *dev, max31_mode_t *val) {
        regval== MAX31_MODE_MULTILED_RIR) {
         write = regval;
 
-        status = genericI2CwriteToAddress(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_MODE_CONFIG, 1, &write);
+        status = gcd_i2c_write_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_MODE_CONFIG, 1, &write);
         ESP_LOGI(MX_TAG, "wrote mode %u", write);
     } else {
         ESP_LOGI(MX_TAG, "failed to write mode %u", write);
@@ -488,9 +488,9 @@ esp_err_t max31_set_spo2_samplerate(max31_driver_t *dev, uint8_t *val) {
     if(*val > MAX31_SAMPLERATE_3200) {
         status = ESP_ERR_INVALID_ARG;
     } else {
-        status = genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_SP02_CONFIG, 1, &regval);
+        status = gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_SP02_CONFIG, 1, &regval);
         regval |= (*val << 2);
-        status = genericI2CwriteToAddress(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_SP02_CONFIG, 1, &regval);
+        status = gcd_i2c_write_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_SP02_CONFIG, 1, &regval);
     }
 
     if(status == ESP_OK) {
@@ -508,9 +508,9 @@ esp_err_t max31_set_ledpwm(max31_driver_t *dev, uint8_t *val) {
     if(*val > MAX31_LED_PWM_411) {
         status = ESP_ERR_INVALID_ARG;
     } else {
-        status = genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_SP02_CONFIG, 1, &regval);
+        status = gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_SP02_CONFIG, 1, &regval);
         regval |= (*val);
-        status = genericI2CwriteToAddress(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_SP02_CONFIG, 1, &regval);
+        status = gcd_i2c_write_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_SP02_CONFIG, 1, &regval);
     }
 
     if(status == ESP_OK) {
@@ -527,7 +527,7 @@ esp_err_t max31_set_redledamplitude(max31_driver_t *dev, uint8_t *val) {
     uint8_t write = 0;
 
     regval = *val;
-    status = genericI2CwriteToAddress(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_LED1PULSE_AMP, 1, &regval);
+    status = gcd_i2c_write_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_LED1PULSE_AMP, 1, &regval);
 
     if(status == ESP_OK) {
         dev->red_lvl = *val;
@@ -543,7 +543,7 @@ esp_err_t max31_set_irledamplitude(max31_driver_t *dev, uint8_t *val) {
     uint8_t write = 0;
 
     regval = *val;
-    status = genericI2CwriteToAddress(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_LED2PULSE_AMP, 1, &regval);
+    status = gcd_i2c_write_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_LED2PULSE_AMP, 1, &regval);
 
     if(status == ESP_OK) {
         dev->red_lvl = *val;
@@ -571,8 +571,8 @@ esp_err_t max31_read_fifo(max31_driver_t *dev) {
     if(dev->use_fifo == false) {
         status = ESP_ERR_INVALID_STATE;
     } else {
-        status = genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_FIFO_WRTPTR, 1, &regvals[0]);
-        status = genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_FIFO_RDPTR, 1, &regvals[2]);
+        status = gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_FIFO_WRTPTR, 1, &regvals[0]);
+        status = gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_FIFO_RDPTR, 1, &regvals[2]);
 
         /** get number of bytes **/
         if(status == ESP_OK) {
@@ -583,8 +583,8 @@ esp_err_t max31_read_fifo(max31_driver_t *dev) {
         }
         if(avail_bytes) {
             for(uint8_t i=0; i<avail_bytes; i++) {
-                status = genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_FIFO_DATA, 1, &data);
-                status = genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_FIFO_RDPTR, 1, &regvals[2]);        
+                status = gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_FIFO_DATA, 1, &data);
+                status = gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_FIFO_RDPTR, 1, &regvals[2]);        
                 ESP_LOGI(MX_TAG, "Got %02x; rd_ptr %02x", data, regvals[2]);
                 //dev->bytes_in_buffer++;
                 if(dev->bytes_in_buffer > 192) {
@@ -606,9 +606,9 @@ esp_err_t max31_reset_device(max31_driver_t *dev) {
     uint8_t regval = 0;
     uint8_t  write = (1 << 6);
 
-    status = genericI2CReadFromAddress(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_MODE_CONFIG, 1, &regval);
+    status = gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_MODE_CONFIG, 1, &regval);
     regval |= write;
-    status = genericI2CwriteToAddress(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_MODE_CONFIG, 1, &regval);
+    status = gcd_i2c_write_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_MODE_CONFIG, 1, &regval);
 
     return status;
 }
@@ -618,7 +618,7 @@ esp_err_t max31_sample_temp(max31_driver_t *dev) {
     esp_err_t status = ESP_OK;
     uint8_t  write = 1;
 
-    status = genericI2CwriteToAddress(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_DIETEMP_SAMPLE, 1, &write);
+    status = gcd_i2c_write_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_DIETEMP_SAMPLE, 1, &write);
     dev->temp_sampling = true;
     return status;
 }

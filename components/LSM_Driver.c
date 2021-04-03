@@ -514,7 +514,7 @@ esp_err_t LSM_setAccelODRMode(LSM_DriverHandle_t *dev, LSM_AccelODR_t *m)
 =======
         regVal |= (mode << 4);
 >>>>>>> vl0x
-        status = genericI2CwriteToAddress(dev->commsChannel, dev->devAddr, LSM_CTRL1_XL_REG, 1, &regVal);
+        status = gcd_i2c_write_address(dev->commsChannel, dev->devAddr, LSM_CTRL1_XL_REG, 1, &regVal);
 =======
         regVal |= (mode << 4);
         status = gcd_i2c_write_address(dev->commsChannel, dev->devAddr, LSM_CTRL1_XL_REG, 1, &regVal);
@@ -686,9 +686,9 @@ esp_err_t LSM_setFIFOwatermark(LSM_DriverHandle_t *dev, uint16_t *watermark)
         writeval[0] = (uint8_t) val;
         writeval[1] = (uint8_t)(val >> 8);
 
-        esp_err_t status = genericI2CReadFromAddress(dev->commsChannel, dev->devAddr, LSM_FIFO_CTRL2_REG, 1, &regval);
+        esp_err_t status = gcd_i2c_read_address(dev->commsChannel, dev->devAddr, LSM_FIFO_CTRL2_REG, 1, &regval);
         writeval[1] |= regval; 
-        status = genericI2CwriteToAddress(dev->commsHandle, dev->devAddr, LSM_FIFO_CTRL1_REG, 2, writeval);
+        status = gcd_i2c_write_address(dev->commsHandle, dev->devAddr, LSM_FIFO_CTRL1_REG, 2, writeval);
     }
     return status;
 }
