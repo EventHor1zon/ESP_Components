@@ -1,8 +1,15 @@
 /****************************************
+<<<<<<< HEAD
 * \file     APDS9960_Driver.h
 * \brief    header file 
 * \date     March 2021
 * \author   RJAM
+=======
+* \file
+* \brief
+* \date
+* \author
+>>>>>>> HMC5883
 ****************************************/
 
 #ifndef APDS9960_DRIVER_H
@@ -10,6 +17,7 @@
 
 /********* Includes ********************/
 
+<<<<<<< HEAD
 #include "esp_err.h"
 #include "esp_log.h"
 #include "driver/gpio.h"
@@ -153,11 +161,20 @@ const peripheral_t apds_periph_mapping[apds_periph_len];
 /** GST STAT **/
 #define APDS_REGBIT_GST_FIFO_OVR    (1 << 1)
 #define APDS_REGBIT_GST_DATA_AVAIL  (1 << 0)
+=======
+#include "esp_types.h"
+#include "esp_err.h"
+#include "driver/gpio.h"
+
+/********* Definitions *****************/
+
+>>>>>>> HMC5883
 
 
 /********** Types **********************/
 
 
+<<<<<<< HEAD
 typedef enum {
     APDS_GST_PLSLEN_4US,
     APDS_GST_PLSLEN_8US,
@@ -334,10 +351,29 @@ typedef struct APDS9960_Driver
 
 typedef adps_handle_t * APDS_DEV;
 
+=======
+typedef struct APDS9960_Init
+{
+    /* data */
+    uint8_t i2c_bus;
+    gpio_num_t isr_pin;
+} apds_init_t;
+
+
+typedef struct APDS9960_Driver
+{
+    /* data */
+} apds_driver_t;
+
+
+
+typedef apds_driver_t * APDS_DEV; 
+>>>>>>> HMC5883
 
 /******** Function Definitions *********/
 
 
+<<<<<<< HEAD
 
 APDS_DEV apds_init(apds_init_t *init);
 
@@ -461,5 +497,8 @@ esp_err_t apds_get_proximity_data(APDS_DEV dev, uint8_t *d);
 
 
 
+=======
+APDS_DEV apds_init(apds_init_t *ini);
+>>>>>>> HMC5883
 
 #endif /* APDS9960_DRIVER_H */
