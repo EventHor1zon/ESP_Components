@@ -14,9 +14,9 @@
 
 #include "driver/spi_common.h"
 #include "driver/spi_master.h"
-#include "../inc/APA102_Driver.h"
-#include "../inc/LedEffects.h"
-#include "../inc/Utilities.h"
+#include "APA102_Driver.h"
+#include "LedEffects.h"
+#include "Utilities.h"
 #include "esp_err.h"
 #include "esp_log.h"
 
@@ -29,9 +29,9 @@
 const parameter_t apa_param_mappings[apa_param_len] = {
     {"NumLeds", 1, &apa_getNumleds, NULL, PARAMTYPE_UINT32, 0, (GET_FLAG) },
     {"Mode", 2, &apa_getMode, &apa_setMode, PARAMTYPE_UINT8, LEDFX_NUM_EFFECTS, (GET_FLAG | SET_FLAG) },
-    {"Colour", 3, &apa_getColour, &apa_setColour, PARAMTYPE_UINT32, UINT32_MAX, (GET_FLAG | SET_FLAG ) },
+    {"Colour", 3, &apa_getColour, &apa_setMode, PARAMTYPE_UINT32, UINT32_MAX, (GET_FLAG | SET_FLAG ) },
     {"Brightness", 4, &apa_getBrightness, &apa_setBrightness, PARAMTYPE_UINT8, 31, (GET_FLAG | SET_FLAG )},
-};
+}
 #endif
 
 /****** Function Prototypes ***********/
@@ -176,7 +176,6 @@ static void apaControlTask(void *args) {
 
 
     while(1) {
-        ESP_LOGI(APA_TAG, "update Leds = %u", strand->updateLeds);
 
         if(strand->updateLeds) {
             if(xSemaphoreTake(strand->memSemphr, APA_SEMTAKE_TIMEOUT) != pdTRUE) {
@@ -184,8 +183,6 @@ static void apaControlTask(void *args) {
             } else {
                 if(send_frame_polling(strand) != ESP_OK) {
                     ESP_LOGE(APA_TAG, "Failed to write to leds");                
-                } else {
-                    strand->updateLeds = 0;
                 }
                 if( xSemaphoreGive(strand->memSemphr) != pdTRUE) {
                     ESP_LOGE(APA_TAG, "error giving sem");
@@ -202,13 +199,13 @@ static void apaControlTask(void *args) {
         xTimerStart(strand->refreshTimer, portMAX_DELAY);
         ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(10000));
         
+        ESP_LOGI(APA_TAG, "Calling animation...");
         if(xSemaphoreTake(strand->memSemphr, pdMS_TO_TICKS(1000)) != pdTRUE) {
             ESP_LOGE(APA_TAG, "Failed to get mem semaphore");
         }
         else
         {
-            ESP_LOGI(APA_TAG, "Calling animation...");
-            strand->fxData->func(strand);
+            strand->fxData->func((void *)strand);
             xSemaphoreGive(strand->memSemphr);
         }
         vTaskDelay(10);
@@ -230,10 +227,11 @@ const uint32_t onedata = 0xFFFFFFFF;
 
 esp_err_t apa_getNumleds(StrandData_t *strand, uint32_t *var) {
     esp_err_t status = ESP_OK;
+
     *var = strand->numLeds;
+
     return status;
 }
-
 
 esp_err_t apa_getMode(StrandData_t *strand, uint32_t *var) {
     esp_err_t status = ESP_OK;
@@ -241,22 +239,16 @@ esp_err_t apa_getMode(StrandData_t *strand, uint32_t *var) {
     return status;
 }
 
-
 esp_err_t apa_setMode(StrandData_t *strand, uint8_t  *mode) {
     esp_err_t status = ESP_OK;
-    ESP_LOGI(APA_TAG, "In setMode");
     if(*mode > LEDFX_NUM_EFFECTS) {
         status = ESP_ERR_INVALID_ARG;
-        ESP_LOGI(APA_TAG, "Error mode num");
     } else {
-        ESP_LOGI(APA_TAG, "setting Mode %u", *mode);
-
         strand->fxData->effect = *mode;
         ledFx_updateMode(strand);
     }
     return status;
 }
-
 
 esp_err_t apa_getColour(StrandData_t *strand, uint32_t *var) {
 
@@ -265,15 +257,12 @@ esp_err_t apa_getColour(StrandData_t *strand, uint32_t *var) {
     return status;
 }
 
-
 esp_err_t apa_setColour(StrandData_t *strand, uint32_t *var) {
     esp_err_t status = ESP_OK;
-    ESP_LOGI(APA_TAG, "Setting colour to %06x", *var);
     strand->fxData->colour = *var;
     strand->updateLeds = true;
     return status;
 }
-
 
 esp_err_t apa_getBrightness(StrandData_t *strand, uint8_t *var) {
     esp_err_t status = ESP_OK;
@@ -281,19 +270,16 @@ esp_err_t apa_getBrightness(StrandData_t *strand, uint8_t *var) {
     return status;
 }
 
-
 esp_err_t apa_setBrightness(StrandData_t *strand, uint8_t *var) {
     esp_err_t status = ESP_OK;
-    ESP_LOGI("APA", "In function");
+
     if(*var > APA_CTRL_MAX_BR) {
         status = ESP_ERR_INVALID_ARG;
     } else {
         strand->fxData->brightness = *var;
-        ESP_LOGI("APA", "good function");
     }
     return status;
 }
-
 
 StrandData_t *APA102_init(apa102_init_t *init_data)
 {

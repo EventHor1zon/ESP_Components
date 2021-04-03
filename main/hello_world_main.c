@@ -26,9 +26,7 @@
 
 #include "lwip/err.h"
 #include "lwip/sys.h"
-<<<<<<< HEAD
 
-=======
 
 const char *MAIN_TAG = "main";
 
@@ -99,7 +97,10 @@ void envSensor(void *args)
 //         vTaskDelay(10);
 //     }
 // }
->>>>>>> HMC5883
+
+#include "WS2812_Driver.h"
+#include "APA102_Driver.h"
+
 
 void app_main(void)
 {
@@ -121,35 +122,8 @@ void app_main(void)
 
     printf("Free heap: %d\n", esp_get_free_heap_size());
 
-    // esp_err_t ret = nvs_flash_init();
-    // if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
-    // {
-    //     ESP_ERROR_CHECK(nvs_flash_erase());
-    //     ret = nvs_flash_init();
-    // }
-    // ESP_ERROR_CHECK(ret);
-
-    // ESP_LOGI("MAIN", "ESP_WIFI_MODE_STA");
-    //wifi_init_sta();
-
-
-<<<<<<< HEAD
     if(gcd_spi_init(5, 27, 19, SPI2_HOST, false) != ESP_OK ||
        gcd_i2c_init(18, 19, 200000, 0, false) != ESP_OK) {
-=======
-    /** CONFIG FOR TTGO LORA32 **/
-    // if(gcd_spi_init(5, 27, 19, SPI2_HOST) != ESP_OK ||
-    //    gcd_i2c_init(4, 15, 200000, 0) != ESP_OK) {
-    //     ESP_LOGE("MAIN", "Error starting comms");
-    //     while(1) {
-    //         ESP_LOGI("MAIN", "Chillin...");
-    //         vTaskDelay(1000);
-    //     }
-    // }
-
-    if(gcd_spi_init(5, 27, 19, SPI2_HOST, false) != ESP_OK ||
-       gcd_i2c_init(16, 17, 100000, 0, false) != ESP_OK) {
->>>>>>> HMC5883
         ESP_LOGE("MAIN", "Error starting comms");
         while(1) {
             ESP_LOGI("MAIN", "Chillin...");
@@ -157,26 +131,28 @@ void app_main(void)
         }
     }
 
-<<<<<<< HEAD
     apds_init_t ini = {0};
     ini.i2c_bus = 0;
     APDS_DEV d = apds_init(&ini);
-=======
-    /** Let's try what we have so far... **/
 
-    hmc_init_t ini = {0};
-    ini.i2c_bus = 0;
-    ini.drdy_pin = 25;
+    printf("Starting LEDSs\n");
+    uint16_t numLeds = 16;
+    // gpio_num_t pin = GPIO_NUM_5;
+    // WS2812_init(1, &numLeds, &pin);
 
-    HMC_DEV dev = hmc_init(&ini);
-    if(dev == NULL ) {
-        ESP_LOGI("main", ":(");
-    }
->>>>>>> HMC5883
+
+    apa102_init_t ini = {0};
+    ini.clock_pin = 32;
+    ini.data_pin = 33;
+    ini.numleds = 16;
+    ini.spi_bus = 2;
+    ini.init_spi = 1;
+
+    StrandData_t *handle = APA102_init(&ini);
 
     while (1)
     {
-        //dump_system_info();
-        vTaskDelay(1000);
+        ESP_LOGI("MAIN", "ping");
+        vTaskDelay(2000);
     }
 }

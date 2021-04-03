@@ -173,9 +173,10 @@ void fxCallbackFunction(TimerHandle_t timer)
 static esp_err_t WS2812_transmitLedData(StrandData_t *ledStrand)
 {
     esp_err_t transmitStatus;
-    transmitStatus = rmt_write_sample(ledStrand->dataChannel, ledStrand->strandMem, ledStrand->strandMemLength, true);
+    transmitStatus = rmt_write_sample(ledStrand->dataChannel, (uint8_t *)ledStrand->strandMem, ledStrand->strandMemLength, true);
     return transmitStatus;
 }
+
 
 #ifdef DRIVER_DEVELOPMENT_MODE
 /** 
@@ -195,7 +196,7 @@ static esp_err_t WS2812_loadTestImage(StrandData_t *strand)
 
     for (i = 0; i < strand->numLeds; i++)
     {
-        pixelAddr = strand->strandMem + (i * WS2812_BYTES_PER_PIXEL);
+        pixelAddr = (uint8_t *)strand->strandMem + (i * WS2812_BYTES_PER_PIXEL);
         pixelIndex = i % testPixelsLen;
         pixelData = &testFrame[pixelIndex][0];
         ESP_LOGI(WS2812_TAG, "Writing %06x to %p", *pixelData, pixelAddr);
@@ -210,10 +211,60 @@ static esp_err_t WS2812_loadTestImage(StrandData_t *strand)
 }
 
 #endif
+
+/**
+ * Driver control task 
+ *  Duties - Check for strand frame refresh 
+ *           - Check for update requests & update as needed
+ *            - check for led effects r/w requests
+ **/
+
+static void WS2812_driverTask(void *args)
+{
+
+    uint32_t colours[6] = {0x00000011, 0x00001100, 0x00110000, 0x00111100, 0x00001111, 0x00110011};
+    uint8_t counter = 0;
+
+    while (1)
+    {
+
+        for (uint8_t i = 0; i < ledControl.numStrands; i++)
+        {
+            if (allStrands[i] != NULL)
+            {
+                StrandData_t *strand = allStrands[i];
+
+                /*  for each strand, if there's an animation to run, take the semaphore and run it.
+                *   reset the timer to the next animation refresh    
+                */
+
+                /* if the leds require updating, take the semaphore and write new data */
+                if (strand->updateLeds)
+                {
+                    if (xSemaphoreTake(strand->memSemphr, pdMS_TO_TICKS(WS2812_SEMAPHORE_TIMEOUT)) == pdFALSE)
+                    {
+                        ESP_LOGE(WS2812_TAG, "Semaphore request timed out");
+                    }
+                    else
+                    {
+                        WS2812_transmitLedData(strand);
+                        strand->updateLeds = 0;
+                        xSemaphoreGive(strand->memSemphr);
+                    }
+                }
+            }
+        }
+
+        vTaskDelay(1000);
+    }
+}
+
 /****** Global Functions *************/
 
 /** Driver Init function
  *  initialises driver structures/tasks from init arguments
+ *  TODO: Pass Handle in return INIT!
+ *  TODO: Init_data_t!
  * 
  **/
 StrandData_t *WS2812_init(uint8_t numStrands, uint16_t *numLeds, gpio_num_t *dataPin)

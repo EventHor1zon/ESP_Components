@@ -1,32 +1,19 @@
 /***************************************
-<<<<<<< HEAD
 * \file     ADPS9960_Driver.c
 * \brief    Driver for the RGB, Gesture & proximity detector
 *           Going to cover most of the device's features
 *           TBH not going to do the offsets unless needed.
 *           (Aint nobody got time for that)
 *           
-=======
-* \file     APDS9960_Driver.c
-* \brief    Driver for the APDS Gesture/RGB/Distancce/Light-level sensor
-*
->>>>>>> HMC5883
 * \date     March 2021
 * \author   RJAM
 ****************************************/
 
 /********* Includes *******************/
-<<<<<<< HEAD
 #include "esp_err.h"
 #include "esp_log.h"
 #include "esp_heap_caps.h"
 #include "driver/gpio.h"
-=======
-#include "esp_types.h"
-#include "esp_err.h"
-#include "esp_log.h"
-#include "esp_heap_caps.h"
->>>>>>> HMC5883
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -34,7 +21,6 @@
 #include "genericCommsDriver.h"
 #include "APDS9960_Driver.h"
 
-<<<<<<< HEAD
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
 
@@ -221,29 +207,11 @@ static IRAM_ATTR void apds_intr_handler(void *args) {
 }
 
 
-=======
-/****** Function Prototypes ***********/
-
-/************ ISR *********************/
-
-/****** Private Data ******************/
-
-static void APSD9960_driver_task(void *args) {
- 
-   while(1) {
-       vTaskDelay(pdMS_TO_TICKS(10));
-   }
-   /** here be dragons **/
-}
-
-/****** Private Functions *************/
->>>>>>> HMC5883
 
 /****** Global Data *******************/
 
 /****** Global Functions *************/
 
-<<<<<<< HEAD
 APDS_DEV apds_init(apds_init_t *init) {
 
     esp_err_t err = ESP_OK;
@@ -767,17 +735,3 @@ esp_err_t apds_set_gst_intr(APDS_DEV dev, uint8_t *en) {
     }
     return err;
 }
-=======
-APDS_DEV apds_init(apds_init_t *ini) {
-    esp_err_t status = ESP_OK;
-    
-
-    if(!gcd_check_i2c_bus(ini->i2c_bus)) {
-        ESP_LOGE();
-    }
-
-
-    return status;
-}
-
->>>>>>> HMC5883

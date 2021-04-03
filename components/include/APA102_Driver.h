@@ -8,22 +8,15 @@
 #ifndef APA102_DRIVER_H
 #define APA102_DRIVER_H
 
-#define CONFIG_USE_PERIPH_MANAGER 1
-
 #ifdef CONFIG_USE_PERIPH_MANAGER
 #include "CommandAPI.h"
-
-#define apa_param_len 4
-const parameter_t apa_param_mappings[apa_param_len];
-
-/** define the peripheral type **/
-#define APA_PERIPH_TYPE PTYPE_ADDR_LEDS
-
-#endif 
+#endif
 
 /********* Includes ********************/
 
-#include "LedEffects.h"
+#include "./LedEffects.h"
+#include "freertos/semphr.h"
+#include "freertos/timers.h"
 
 
 /********* Definitions *****************/
@@ -37,9 +30,15 @@ const parameter_t apa_param_mappings[apa_param_len];
 
 #define APA_SEMTAKE_TIMEOUT 500
 
+//#define CONFIG_USE_PERIPH_MANAGER 0
 
 /********** Types **********************/
 const char *APA_TAG;
+
+#ifdef CONFIG_USE_PERIPH_MANAGER
+#define apa_param_len 5
+const parameter_t apa_param_mappings[apa_param_len];
+#endif 
 
 typedef struct apa102_init 
 {

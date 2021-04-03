@@ -45,12 +45,7 @@ typedef struct genericCommsDriver
 
 /******** Function Definitions *********/
 
-<<<<<<< HEAD
 bool gdc_i2c_check_bus(uint8_t bus);
-=======
-
-bool gcd_check_i2c_bus(uint8_t bus);
->>>>>>> HMC5883
 
 /** \brief  gcd_i2c_read_address
  *          Perform a read from an address on an i2c channel
@@ -86,7 +81,6 @@ esp_err_t gcd_i2c_write_address(uint8_t i2cChannel, uint8_t deviceAddr, uint8_t 
  *  \return ESP_OK or error
  * **/
 esp_err_t gcd_i2c_init(int16_t dataPin, int16_t clockPin, uint32_t clockSpeed, uint8_t busNum, bool use_smphr);
-<<<<<<< HEAD
 
 
 /** \brief: gcd_spi_init 
@@ -100,17 +94,4 @@ esp_err_t gcd_i2c_init(int16_t dataPin, int16_t clockPin, uint32_t clockSpeed, u
 esp_err_t gcd_spi_init(int16_t clk_pin, int16_t mosi_pin, int16_t miso_pin, uint8_t spi_bus,  bool use_smphr);
 
 
-=======
-
-
-/** \brief: generic_spi_init 
- *          initialise an spi bus
- *  \param clk_pin
- *  \param mosi_pin
- *  \param miso_pin
- *  \param spi_bus - 1 or 2
- *  \return ESP_OK or error
- **/
-esp_err_t gcd_spi_init(int16_t clk_pin, int16_t mosi_pin, int16_t miso_pin, uint8_t spi_bus, bool use_semphr);
->>>>>>> HMC5883
 #endif /* GENERIC_COMMS_DRIVER_H */

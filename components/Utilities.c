@@ -1,16 +1,15 @@
 /***************************************
-* \file .c
-* \brief
+* \file     Utilities.c
+* \brief    some useful functions
 *
-* \date
-* \author
+* \date     Aug 2020
+* \author   RJAM
 ****************************************/
 
 /********* Includes *******************/
-#include <stdio.h>
-#include <stdlib.h>
 #include <stdint.h>
-#include <string.h>
+
+#include "esp_log.h"
 #include "esp_err.h"
 #include "esp_log.h"
 
@@ -25,6 +24,7 @@
 /****** Global Data *******************/
 
 /****** Global Functions *************/
+
 void showmem(uint8_t *memptr, int len)
 {
     for (int i = 0; i < len; i++)
@@ -54,4 +54,5 @@ void printByteBits(uint8_t num)
         num = num >> 1;
     }
     printf("]");
+}
 }
