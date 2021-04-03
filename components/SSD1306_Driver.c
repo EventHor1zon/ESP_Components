@@ -100,7 +100,7 @@ esp_err_t ssd1306_clear_screen(ssd1306_handle_t *screen) {
 
     fo(uint8_t i=0; i<8; i++) {
         screen_clear_cmds[1] = (SSD1306_SEG_SELECT | i);
-        stat = genericI2CWriteBlock(screen->bus, screen->dev_addr, sizeof(screen_clear_cmds), screen_clear_cmds);
+        stat = gcd_i2c_write_block(screen->bus, screen->dev_addr, sizeof(screen_clear_cmds), screen_clear_cmds);
     }
     return stat;
 }
@@ -111,7 +111,7 @@ esp_err_t ssd1306_write_text(ssd1306_handle_t *screen) {
     uint8_t page = 0;
 
     /** reset the cursor position **/
-    stat = genericI2CWriteBlock(screen->bus, screen->dev_addr, sizeof(screen_text_cmds), screen_text_cmds);
+    stat = gcd_i2c_write_block(screen->bus, screen->dev_addr, sizeof(screen_text_cmds), screen_text_cmds);
 
     if(stat == ESP_OK) {
         for(uint8_t i=0; i<screen->text_len; i++) {
@@ -120,14 +120,14 @@ esp_err_t ssd1306_write_text(ssd1306_handle_t *screen) {
                 uint8_t cmds[4] = 0;
                 memcpy(cmds, screen_text_cmds, sizeof(screen_text_cmds));
                 cmds[3] = ( SSD1306_SEG_SELECT | page++);
-                stat = genericI2CWriteBlock(screen->bus, screen->dev_addr, sizeof(screen_text_cmds), cmds);
+                stat = gcd_i2c_write_block(screen->bus, screen->dev_addr, sizeof(screen_text_cmds), cmds);
             }
             /** Print character **/
             else {
                 uint8_t cmds[9] = {0};
                 cmds[0] = OLED_CONTROL_BYTE_CMD_STREAM;
                 memcpy(&cmds[1], font8x8_basic_tr[(uint8_t)screen->text[i]], 8);
-                stat = genericI2CWriteBlock(screen->bus, screen->dev_addr, 9, cmds);
+                stat = gcd_i2c_write_block(screen->bus, screen->dev_addr, 9, cmds);
             }
         }
     }
@@ -172,7 +172,7 @@ ssd1306_handle_t *ssd1306_init(ssd1306_init_t *init) {
 
     if(err == ESP_OK) {
         /** initialise the screen **/
-        err = genericI2CWriteBlock(handle->bus, handle->dev_addr, sizeof(screen_initconfig_cmds), screen_initconfig_cmds);
+        err = gcd_i2c_write_block(handle->bus, handle->dev_addr, sizeof(screen_initconfig_cmds), screen_initconfig_cmds);
         if(err != ESP_OK) {
             ESP_LOGE(COMMS_TAG, "Error sending initial commands");
         }

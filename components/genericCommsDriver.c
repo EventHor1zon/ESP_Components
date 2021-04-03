@@ -104,7 +104,7 @@ esp_err_t gcd_i2c_read_address(uint8_t i2cChannel, uint8_t deviceAddr, uint8_t r
 }
 
 
-esp_err_t genericI2CWriteBlock(uint8_t i2cChannel, uint8_t deviceAddr, uint16_t writeLen, uint8_t *txBuffer) {
+esp_err_t gcd_i2c_write_block(uint8_t i2cChannel, uint8_t deviceAddr, uint16_t writeLen, uint8_t *txBuffer) {
 
     esp_err_t txStatus = ESP_OK;
     SemaphoreHandle_t sempr = NULL;
