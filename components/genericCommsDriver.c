@@ -210,6 +210,18 @@ esp_err_t gcd_i2c_write_address(uint8_t i2cChannel, uint8_t deviceAddr, uint8_t 
 }
 
 
+esp_err_t gcd_i2c_read_mod_write(uint8_t i2cChannel, uint8_t deviceAddr, uint8_t regAddr, uint8_t xor_data) {
+
+    uint8_t regval = 0;
+    esp_err_t err = gcd_i2c_read_address(i2cChannel, deviceAddr, regAddr, 1, &regval);
+    if(!err) {
+        regval ^= xor_data;
+        err = gcd_i2c_write_address(i2cChannel, deviceAddr, regAddr, 1, &regval);
+    }
+    return err;
+}
+
+
 esp_err_t gcd_i2c_init(int16_t dataPin, int16_t clockPin, uint32_t clockSpeed, uint8_t busNum, bool use_smphr)
 {
     ESP_LOGI("GenericI2C Init", "Initialsing i2c bus");

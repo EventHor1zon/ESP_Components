@@ -4,6 +4,7 @@ set(srcs
     "Utilities.c"
     "SystemInterface.c"
 <<<<<<< HEAD
+<<<<<<< HEAD
     "APDS9960_Driver.c"
 =======
 
@@ -18,6 +19,9 @@ set(srcs
     "APA102_Driver.c"
     "Utilities.c"
 >>>>>>> apa102Driver
+=======
+    "DS2321_Driver.c"
+>>>>>>> ds3231
     )
 
 set(includes "include")

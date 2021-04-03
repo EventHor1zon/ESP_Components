@@ -18,9 +18,13 @@
 #include "../inc/WifiDriver.h"
 #include "genericCommsDriver.h"
 #include "SystemInterface.h"
+<<<<<<< HEAD
 #include "APDS9960_Driver.h"
 
 #include "HMC5883_Driver.h"
+=======
+#include "DS2321_Driver.h"
+>>>>>>> ds3231
 
 #include "nvs_flash.h"
 
@@ -131,6 +135,7 @@ void app_main(void)
         }
     }
 
+<<<<<<< HEAD
     apds_init_t ini = {0};
     ini.i2c_bus = 0;
     APDS_DEV d = apds_init(&ini);
@@ -150,6 +155,24 @@ void app_main(void)
 
     StrandData_t *handle = APA102_init(&ini);
 
+=======
+    ds2321_init_t i = {0};
+    i.i2c_bus = 0;
+
+    uint8_t t_m = 2;
+    uint8_t t_h = 21;
+    uint8_t t_d = 22;
+    uint8_t t_mnt = 3;
+    uint8_t t_y = 21;
+    DS2321_DEV ds = ds2321_init(&i);
+    ds2321_set_minutes(ds, &t_m);
+    ds2321_set_hours(ds, &t_h);
+    ds2321_set_date(ds, &t_d);
+    ds2321_set_month(ds, &t_mnt);
+    ds2321_set_year(ds, &t_y);
+
+
+>>>>>>> ds3231
     while (1)
     {
         ESP_LOGI("MAIN", "ping");
