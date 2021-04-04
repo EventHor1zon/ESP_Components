@@ -46,14 +46,15 @@ typedef struct RGB_Driver
 {
     /* data */
 
-    gpio_num_t r_pin;   /**< r pin **/
-    gpio_num_t g_pin;   /**< g pin **/
-    gpio_num_t b_pin;   /**< b pin **/
+    gpio_num_t r_channel;   /**< r channel **/
+    gpio_num_t g_channel;   /**< g channel **/
+    gpio_num_t b_channel;   /**< b channel **/
 
     bool active_level;  /**< active high(1)/low(0) **/
 
     uint32_t resolution;    /**< pwm resolution **/
     uint32_t frequency;     /**< pwm frequency **/
+    uint32_t max_duty;      
 
     uint32_t r_duty;    /**< r duty **/
     uint32_t g_duty;    /**< g duty **/

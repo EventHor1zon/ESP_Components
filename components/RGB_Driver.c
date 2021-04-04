@@ -105,10 +105,11 @@ RGB_HANDLE rgb_driver_init(rgb_init_t *init) {
             handle->r_duty = 0;
             handle->g_duty = 0;
             handle->frequency = init->freq;
-            handle->r_pin = init->r_pin;
-            handle->g_pin = init->g_pin;
-            handle->b_pin = init->b_pin;
-            handle->resolution = 12;
+            handle->r_channel = 0;
+            handle->g_channel = 1;
+            handle->b_channel = 2;
+            handle->resolution = 12;        /** TODO: don't hardwire values! **/
+            handle->max_duty = 4095;
         }
     }
 
@@ -135,8 +136,18 @@ RGB_HANDLE rgb_driver_init(rgb_init_t *init) {
 
 }
 
-esp_err_t set_r_duty(RGB_HANDLE *handle, uint32_t *val);
+esp_err_t set_r_duty(RGB_HANDLE *handle, uint32_t *val) {
+    esp_err_t status = ESP_OK;
 
-esp_err_t set_g_duty(RGB_HANDLE *handle, uint32_t *val);
+    
 
-esp_err_t set_b_duty(RGB_HANDLE *handle, uint32_t *val);
+    return status;
+}
+
+esp_err_t set_g_duty(RGB_HANDLE *handle, uint32_t *val) {
+
+}
+
+esp_err_t set_b_duty(RGB_HANDLE *handle, uint32_t *val) {
+
+}
