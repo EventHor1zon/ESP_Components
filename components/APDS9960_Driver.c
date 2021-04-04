@@ -54,7 +54,13 @@ const peripheral_t apds_periph_mapping[apds_periph_len] {
 const char *APDS_TAG = "APDS Driver";
 
 /****** Function Prototypes ***********/
+/************ ISR *********************/
 
+
+static IRAM_ATTR void apds_intr_handler(void *args) {
+
+
+}
 
 
 
@@ -129,7 +135,7 @@ static esp_err_t apds_config_intr_pin(APDS_DEV dev) {
         ESP_LOGE(APDS_TAG, "Error configuring GPIO pin!");
     }
     else {
-        err = gpio_isr_handler_add(dev->intr_pin, apds_intr_handler, dev);
+        err = gpio_isr_handler_add(dev->intr_pin, (gpio_isr_handle_t)apds_intr_handler, dev);
     }
     return err;
 }
@@ -198,13 +204,7 @@ static void apds_driver_task(void *args) {
 }
 
 
-/************ ISR *********************/
 
-
-static IRAM_ATTR void apds_intr_handler(void *args) {
-
-
-}
 
 
 
@@ -362,7 +362,7 @@ esp_err_t apds_set_alsintr_low_thr(APDS_DEV dev, uint16_t *thr) {
         (uint8_t )val,
         ((uint8_t )val >> 8),
     };
-    esp_err_t err = gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_ALS_THR_LOW_LSB, 2, &bytes);
+    esp_err_t err = gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_ALS_THR_LOW_LSB, 2, bytes);
     if(!err) {
         dev->als_settings.als_thresh_l = val;
     }
@@ -380,7 +380,7 @@ esp_err_t apds_set_alsintr_hi_thr(APDS_DEV dev, uint16_t *thr) {
         (uint8_t )val,
         ((uint8_t )val >> 8),
     };
-    esp_err_t err = gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_ALS_THR_HIGH_LSB, 2, &bytes);
+    esp_err_t err = gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_ALS_THR_HIGH_LSB, 2, bytes);
     if(!err) {
         dev->als_settings.als_thresh_h = val;
     }
