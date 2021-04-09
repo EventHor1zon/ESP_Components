@@ -31,14 +31,51 @@ const char *RGB_TAG = "RGB_Driver";
 
 /****** Private Functions *************/
 
+
+static esp_err_t update_duty(uint32_t duty, uint8_t channel) {
+    esp_err_t err = ESP_OK;
+
+    switch (channel)
+    {
+    /** TODO: This,better - dont pass in a handle, pass a duty? **/
+    case 0:
+        err = ledc_set_duty_and_update(LEDC_HIGH_SPEED_MODE, (ledc_channel_t )channel, duty, 0);
+        break;
+    case 1:
+        err = ledc_set_duty_and_update(LEDC_HIGH_SPEED_MODE, (ledc_channel_t )channel, duty, 0);
+        break;
+    case 2:
+        err = ledc_set_duty_and_update(LEDC_HIGH_SPEED_MODE, (ledc_channel_t )channel, duty, 0);
+        break;
+    default:
+        err = ESP_ERR_INVALID_ARG;
+        break;
+    }
+
+    return err;
+}
+
+
 static void rgb_driver_task(void *args) {
  
     RGB_HANDLE handle = (RGB_HANDLE)args;
 
-   while(1) {
-       vTaskDelay(pdMS_TO_TICKS(10));
-   }
-   /** here be dragons **/
+    static uint32_t duty = 100; 
+    static int8_t dir = 1;
+    while(1) {
+        if(duty < 3999 && duty > 99) {
+            duty = duty + (100 * dir);
+            ledc_set_duty_and_update(LEDC_HIGH_SPEED_MODE, 0, duty, 0);
+        }
+        else {
+            dir *= -1;
+            duty = duty + (100 * dir);
+            ledc_set_duty_and_update(LEDC_HIGH_SPEED_MODE, 0, duty, 0);
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
+    /** here be dragons **/
 }
 
 /****** Global Data *******************/
@@ -136,18 +173,25 @@ RGB_HANDLE rgb_driver_init(rgb_init_t *init) {
 
 }
 
-esp_err_t set_r_duty(RGB_HANDLE *handle, uint32_t *val) {
+esp_err_t set_r_duty(RGB_HANDLE handle, uint32_t *val) {
     esp_err_t status = ESP_OK;
-
-    
+    uint32_t d = *val;
+    if(d > handle->max_duty) {
+        status = ESP_ERR_INVALID_ARG;
+        ESP_LOGE(RGB_TAG, "Duty too high!");
+    }
+    else {
+        handle->r_duty = d;
+        update_duty(handle, RGB_RED_CHANNEL);
+    }
 
     return status;
 }
 
-esp_err_t set_g_duty(RGB_HANDLE *handle, uint32_t *val) {
+esp_err_t set_g_duty(RGB_HANDLE handle, uint32_t *val) {
 
 }
 
-esp_err_t set_b_duty(RGB_HANDLE *handle, uint32_t *val) {
+esp_err_t set_b_duty(RGB_HANDLE handle, uint32_t *val) {
 
 }

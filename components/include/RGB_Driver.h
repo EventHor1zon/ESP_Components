@@ -21,7 +21,13 @@
 
 /********* Definitions *****************/
 
+#define RGB_RED_CHANNEL 0
+#define RGB_GRN_CHANNEL 1
+#define RGB_BLU_CHANNEL 2
+
+
 /********** Types **********************/
+
 
 
 
@@ -72,11 +78,11 @@ typedef rgb_driver_t * RGB_HANDLE;
 
 RGB_HANDLE rgb_driver_init(rgb_init_t *init);
 
-esp_err_t set_r_duty(RGB_HANDLE *handle, uint32_t *val);
+esp_err_t set_r_duty(RGB_HANDLE handle, uint32_t *val);
 
-esp_err_t set_g_duty(RGB_HANDLE *handle, uint32_t *val);
+esp_err_t set_g_duty(RGB_HANDLE handle, uint32_t *val);
 
-esp_err_t set_b_duty(RGB_HANDLE *handle, uint32_t *val);
+esp_err_t set_b_duty(RGB_HANDLE handle, uint32_t *val);
 
 
 
