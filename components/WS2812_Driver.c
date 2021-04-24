@@ -271,6 +271,7 @@ static void WS2812_driverTask(void *args)
 
 /****** Global Functions *************/
 
+
 /** Driver Init function
  *  initialises driver structures/tasks from init arguments
  *  TODO: Pass Handle in return INIT!
@@ -295,13 +296,6 @@ StrandData_t *WS2812_init(ws2812_initdata_t *initdata)
     rmtConfig.tx_config.idle_output_en = true;
     rmtConfig.tx_config.idle_level = RMT_IDLE_LEVEL_LOW;
     rmtConfig.tx_config.carrier_level = RMT_CARRIER_LEVEL_LOW;
-
-    /* check number of strands */
-    if (numstrands == WS2812_MAX_STRANDS)
-    {
-        initStatus = ESP_ERR_INVALID_ARG;
-        ESP_LOGE(WS2812_TAG, "Too many Strands!");
-    }
 
 
     /* assign memory and add the pointer to allStrands */
@@ -399,7 +393,8 @@ StrandData_t *WS2812_init(ws2812_initdata_t *initdata)
 
     if (initStatus == ESP_OK)
     {
-        if (xTaskCreatePinnedToCore(WS2812_driverTask, "WS2812_driverTask", 5012, NULL, 3, &ledControl.driverTaskHandle, 0) == pdTRUE)
+        /** only initialise the task on the first strand **/
+        if (numstrands == 0 && xTaskCreatePinnedToCore(WS2812_driverTask, "WS2812_driverTask", 5012, NULL, 3, &ledControl.driverTaskHandle, 0) == pdTRUE)
         {
             ESP_LOGI(WS2812_TAG, "Initialised driver task!");
         }
@@ -410,7 +405,6 @@ StrandData_t *WS2812_init(ws2812_initdata_t *initdata)
         }
     }
 
-    /** set up the led effects section **/
     if(initStatus == ESP_OK) {
         ESP_LOGI(WS2812_TAG, "Success! Strand %u initialised at %p ", numstrands, strand);
                 /* finish setup of Driver structure */
