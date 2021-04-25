@@ -2,7 +2,7 @@ set(srcs
     "genericCommsDriver.c"
     "Utilities.c"
     "LedEffects.c"
-    "SystemInterface.c"
+    "SystemComponent.c"
     "APA102_Driver.c"
     "APDS9960_Driver.c"
     "BME280_Driver.c"

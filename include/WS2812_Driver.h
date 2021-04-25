@@ -86,11 +86,6 @@ const size_t WS2812_BYTES_PER_PIXEL;  /** <number of bytes per LED */
 const char *WS2812_TAG;               /** <esp-log tag */
 const ws2812b_timing_t ws2812Timings; /** <ws2812 bit timings  */
 
-const uint8_t ws2812_black_pixel[3]; /** < black (off) pixel */
-const uint8_t ws2812_white_pixel[3]; /** < white pixel */
-const uint8_t ws2812_blue_pixel[3];  /** < blue pixel */
-const uint8_t ws2812_red_pixel[3];   /** < red pixel */
-const uint8_t ws2812_green_pixel[3]; /** < green pixel */
 
 static uint8_t testFrame[3][3] = {
     /** < some standard frames */

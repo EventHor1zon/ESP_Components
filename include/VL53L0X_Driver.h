@@ -10,8 +10,8 @@
 
 #include "esp_err.h"
 
-#include "vl53l0x_api.h"
-#include "vl53l0x_platform.h"
+#include "../VL53L0X/include/vl53l0x_api.h"
+#include "../VL53L0X/include/vl53l0x_platform.h"
 
 
 /********* Includes ********************/

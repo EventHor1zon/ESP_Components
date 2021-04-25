@@ -123,7 +123,7 @@ DS2321_DEV ds2321_init(ds2321_init_t *ini) {
     esp_err_t err = ESP_OK;
     DS2321_DEV dev = NULL;
     
-    if(!gdc_i2c_check_bus(ini->i2c_bus)) {
+    if(!gcd_i2c_check_bus(ini->i2c_bus)) {
         ESP_LOGE(DS_TAG, "Invalid I2C bus");
         err = ESP_ERR_INVALID_ARG;
     }

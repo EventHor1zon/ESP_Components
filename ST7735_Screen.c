@@ -49,7 +49,7 @@ screen_handle_t *init_screen(uint8_t spi_bus, gpio_num_t cs)
 
     spi_bus_add_device(spi_bus, &dev_cfg, &handle);
 
-    handle = (screen_handle_t *)heap_caps_calloc(1, sizeof(screen_handle_t), MALLOC_CAP_8BIT);
+    screen = (screen_handle_t *)heap_caps_calloc(1, sizeof(screen_handle_t), MALLOC_CAP_8BIT);
 
     return handle;
 }

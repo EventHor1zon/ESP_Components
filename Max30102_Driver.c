@@ -484,7 +484,6 @@ esp_err_t max31_set_mode(max31_driver_t *dev, max31_mode_t *val) {
 esp_err_t max31_set_spo2_samplerate(max31_driver_t *dev, uint8_t *val) {
     esp_err_t status = ESP_OK;
     uint8_t regval = 0;
-    uint8_t write = 0;
     if(*val > MAX31_SAMPLERATE_3200) {
         status = ESP_ERR_INVALID_ARG;
     } else {
@@ -504,7 +503,6 @@ esp_err_t max31_set_spo2_samplerate(max31_driver_t *dev, uint8_t *val) {
 esp_err_t max31_set_ledpwm(max31_driver_t *dev, uint8_t *val) {
     esp_err_t status = ESP_OK;
     uint8_t regval = 0;
-    uint8_t write = 0;
     if(*val > MAX31_LED_PWM_411) {
         status = ESP_ERR_INVALID_ARG;
     } else {
@@ -524,7 +522,6 @@ esp_err_t max31_set_ledpwm(max31_driver_t *dev, uint8_t *val) {
 esp_err_t max31_set_redledamplitude(max31_driver_t *dev, uint8_t *val) {
     esp_err_t status = ESP_OK;
     uint8_t regval = 0;
-    uint8_t write = 0;
 
     regval = *val;
     status = gcd_i2c_write_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_LED1PULSE_AMP, 1, &regval);
@@ -540,7 +537,6 @@ esp_err_t max31_set_redledamplitude(max31_driver_t *dev, uint8_t *val) {
 esp_err_t max31_set_irledamplitude(max31_driver_t *dev, uint8_t *val) {
     esp_err_t status = ESP_OK;
     uint8_t regval = 0;
-    uint8_t write = 0;
 
     regval = *val;
     status = gcd_i2c_write_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_LED2PULSE_AMP, 1, &regval);

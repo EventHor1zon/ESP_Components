@@ -80,7 +80,7 @@ typedef struct
 typedef struct
 {
     uint8_t spi_bus;
-    spi_device_handle_t *devhandle; /** < screen's spi handle **/
+    spi_device_handle_t devhandle; /** < screen's spi handle **/
     uint32_t trx_count;
     bool pwr_state;
 } screen_handle_t;

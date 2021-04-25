@@ -19,8 +19,8 @@
 #include "freertos/task.h"
 
 #include "VL53L0X_Driver.h"
-#include "vl53l0x_api.h"
-#include "vl53l0x_platform.h"
+#include "./VL53L0X/include/vl53l0x_api.h"
+#include "./VL53L0X/include/vl53l0x_platform.h"
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
 const parameter_t vl53_param_map[vl53_param_len] = {
@@ -169,12 +169,10 @@ static void vl53_driver_task(void *arg) {
 
     VL53L0X_DEV Dev = (VL53L0X_DEV)arg;
     esp_err_t ret = ESP_OK;
-    uint8_t rdy;
     ESP_LOGI(VL53_TAG, "Starting VL53L0X Driver Task");
 
     while(1) {
-        
-        
+
         ret = vl53_UpdateMeasurement(Dev);
 
         if(ret != ESP_OK) {

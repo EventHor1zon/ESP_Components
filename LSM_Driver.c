@@ -276,7 +276,7 @@ LSM_DriverHandle_t *LSM_init(LSM_initData_t *initData)
         else
         {
 
-            device->commsHandle = NULL;
+            device->commsHandle = 0;
 
             if ((initData->commMode == LSM_DEVICE_COMM_MODE_SPI || initData->commMode == LSM_DEVICE_COMM_MODE_SPI_3))
             {
@@ -508,17 +508,9 @@ esp_err_t LSM_setAccelODRMode(LSM_DriverHandle_t *dev, LSM_AccelODR_t *m)
         /** get register value, clear mode & set new **/
         status = gcd_i2c_read_address(dev->commsChannel, dev->devAddr, LSM_CTRL1_XL_REG, 1, &regVal);
         regVal &= 0b1111;
-<<<<<<< HEAD
-<<<<<<< HEAD
-        regVal |= (*mode << 4);
-=======
-        regVal |= (mode << 4);
->>>>>>> vl0x
-        status = gcd_i2c_write_address(dev->commsChannel, dev->devAddr, LSM_CTRL1_XL_REG, 1, &regVal);
-=======
+
         regVal |= (mode << 4);
         status = gcd_i2c_write_address(dev->commsChannel, dev->devAddr, LSM_CTRL1_XL_REG, 1, &regVal);
->>>>>>> LORA_Sx1276
         ESP_LOGI("LSM_Driver", "Set ACCEL CTRL1 to %02x", regVal);
     }
     return status;

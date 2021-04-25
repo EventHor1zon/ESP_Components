@@ -55,4 +55,4 @@ void printByteBits(uint8_t num)
     }
     printf("]");
 }
-}
+

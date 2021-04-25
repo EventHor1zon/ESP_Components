@@ -218,7 +218,7 @@ APDS_DEV apds_init(apds_init_t *init) {
     APDS_DEV dev = NULL;
     TaskHandle_t t_handle = NULL;
 
-    if(!gdc_i2c_check_bus(init->i2c_bus)) {
+    if(!gcd_i2c_check_bus(init->i2c_bus)) {
         err = ESP_ERR_INVALID_ARG;
         ESP_LOGE(APDS_TAG, "Error - invalid i2c bus");
     }

@@ -49,12 +49,6 @@ QueueHandle_t commandsQueue;
 const size_t WS2812_BYTES_PER_PIXEL = 3;    /** <number of bytes per LED */
 const char *WS2812_TAG = "[WS2812 Driver]"; /** <esp-log tag */
 
-const uint8_t ws2812_black_pixel[3] = {0x00, 0x00, 0x00}; /** < black (off) pixel */
-const uint8_t ws2812_white_pixel[3] = {0xff, 0xff, 0xff}; /** < white pixel */
-const uint8_t ws2812_blue_pixel[3] = {0xff, 0x00, 0x00};  /** < blue pixel */
-const uint8_t ws2812_red_pixel[3] = {0x00, 0x00, 0xff};   /** < red pixel */
-const uint8_t ws2812_green_pixel[3] = {0x00, 0xff, 0x00}; /** < green pixel */
-
 const ws2812b_timing_t ws2812Timings = {
     400,
     800,

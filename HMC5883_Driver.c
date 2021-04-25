@@ -25,13 +25,15 @@
 
 const char *HMC_TAG = "HMC5883";
 
-const char *hmc_id_bytes[3] = { "H", "C", "4" };
+const uint8_t hmc_id_bytes[3] = { 0x48, 0x43, 0x34 };
 
 
 /****** Function Prototypes ***********/
 
 
-static esp_err_t perform_self_test(HMC_DEV dev);
+static esp_err_t perform_self_test(HMC_DEV dev) {
+    return ESP_ERR_NOT_SUPPORTED;
+}
 
 static void hmc_driver_task(void *args);
 
@@ -63,7 +65,7 @@ HMC_DEV hmc_init(hmc_init_t *ini) {
     TaskHandle_t t_handle = NULL;
 
     /** EC the i2c bus **/
-    if(!gcd_check_i2c_bus(ini->i2c_bus)) {
+    if(!gcd_i2c_check_bus(ini->i2c_bus)) {
         ESP_LOGE(HMC_TAG, "Error: Invalid i2c Bus");
         err = ESP_ERR_INVALID_ARG;
     }

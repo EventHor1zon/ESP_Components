@@ -32,26 +32,6 @@ const char *LORA_TAG = "SX1276";
 
 
 /****** Private Functions *************/
-static void reset_device(SX1276_DEV Dev) {
-
-    ESP_LOGI(LORA_TAG, "Resetting device");
-    gpio_set_level(Dev->rst_pin, 0);
-    vTaskDelay(pdMS_TO_TICKS(5));
-    gpio_set_level(Dev->rst_pin, 1);
-
-}
-
-
-static esp_err_t sx_modem_status(SX1276_DEV Dev, uint8_t *val) {
-
-    esp_err_t err = ESP_OK;
-    uint8_t regval = 0;
-    err = sx_read_address_byte(Dev, SX1276_REGADDR_MODEM_STAT, &regval);
-    if(!err) {
-        *val = regval;
-    }
-    return err;
-}
 
 
 static esp_err_t sx_spi_write_address_byte(SX1276_DEV Dev, uint8_t addr, uint8_t byte) {
@@ -115,6 +95,28 @@ static esp_err_t sx_spi_read_mod_write_byte(SX1276_DEV Dev, uint8_t addr, uint8_
     if(!err) {
         reg |= or_data;
         err = sx_spi_write_address_byte(Dev, addr, reg);
+    }
+    return err;
+}
+
+
+static void reset_device(SX1276_DEV Dev) {
+
+    ESP_LOGI(LORA_TAG, "Resetting device");
+    gpio_set_level(Dev->rst_pin, 0);
+    vTaskDelay(pdMS_TO_TICKS(5));
+    gpio_set_level(Dev->rst_pin, 1);
+
+}
+
+
+static esp_err_t sx_modem_status(SX1276_DEV Dev, uint8_t *val) {
+
+    esp_err_t err = ESP_OK;
+    uint8_t regval = 0;
+    err = sx_read_address_byte(Dev, SX1276_REGADDR_MODEM_STAT, &regval);
+    if(!err) {
+        *val = regval;
     }
     return err;
 }
@@ -221,7 +223,7 @@ static esp_err_t spreadingfactor_set(SX1276_DEV Dev, uint8_t sf) {
         err = sx_read_address_byte(Dev, SX1276_REGADDR_MODEM_CONFIG2, &reg);
         if(!err) {
             reg |= (sf << 4);
-            err = sx_spi_write_address_byte(Dev, SX1276_REGADDR_MODEM_CONFIG2, &reg);
+            err = sx_spi_write_address_byte(Dev, SX1276_REGADDR_MODEM_CONFIG2, reg);
         }
    }
     if(!err) {

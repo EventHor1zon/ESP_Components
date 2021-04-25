@@ -30,7 +30,11 @@ void ccs_interrupt_handler(void *args) {
     return;
 }
 
-static esp_err_t ccs_is_new_data(ccs811_Device_t *dev, bool *data);
+static esp_err_t ccs_is_new_data(ccs811_Device_t *dev, bool *data) {
+
+    return ESP_ERR_NOT_SUPPORTED;
+
+}
 
 static esp_err_t ccs_config_pins(gpio_num_t rst, gpio_num_t wake) {
 
@@ -91,8 +95,19 @@ static esp_err_t ccs_config_intr_pins(gpio_num_t intr_gpio, ccs_intr_t type, boo
 }
 
 
+static void ccs811_driver_task(void *args) {
+ 
+    ccs811_Device_t *dev = (ccs811_Device_t *)args;
+
+   while(1) {
+       vTaskDelay(pdMS_TO_TICKS(10));
+   }
+   /** here be dragons **/
+}
+
 
 /****** Private Functions *************/
+
 
 /****** Global Data *******************/
 
@@ -108,6 +123,11 @@ ccs811_Device_t *css811_init(ccs811_init_t *init) {
         ESP_LOGI(CCS_TAG, "Error initialising struct memory");
         status = ESP_ERR_NO_MEM;
     }
+    else {
+        handle->comms_channel = init->i2c_channel;
+        handle->dev_addr = init->addr_pin_lvl > 0 ? CCS_DEVICE_ADDRESS_HIGH : CCS_DEVICE_ADDRESS_LOW;
+        handle->mode = CCS_MODE_IDLE;
+    }
 
     if(status == ESP_OK && init->intr_type) {
         status = ccs_config_intr_pins(init->gpio_intr, init->intr_type, false);
@@ -117,7 +137,17 @@ ccs811_Device_t *css811_init(ccs811_init_t *init) {
         status = ccs_config_pins(init->gpio_nreset, init->gpio_nwake);        
     }
 
+    if(status == ESP_OK && xTaskCreate(ccs811_driver_task, "ccs811_driver_task", configMINIMAL_STACK_SIZE, (void *)handle, 3, handle->t_handle) != pdTRUE) {
+        ESP_LOGE(CCS_TAG, "Error initialising the driver task!");
+        status = ESP_ERR_NO_MEM;
+    }
 
+    if(status != ESP_OK) {
+        ESP_LOGI(CCS_TAG, "Error starting the CCS driver :(");
+        if(handle != NULL ) {
+            heap_caps_free(handle);
+        }
+    }
 
-
+    return handle;
 }

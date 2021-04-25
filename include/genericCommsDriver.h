@@ -45,7 +45,12 @@ typedef struct genericCommsDriver
 
 /******** Function Definitions *********/
 
-bool gdc_i2c_check_bus(uint8_t bus);
+
+/** \brief - Checks if valid i2c bus
+ *  \param bus - the bus number
+ *  \return true for good bus, false for bad bus
+ **/
+bool gcd_i2c_check_bus(uint8_t bus);
 
 /** \brief  gcd_i2c_read_address
  *          Perform a read from an address on an i2c channel
@@ -70,6 +75,16 @@ esp_err_t gcd_i2c_read_address(uint8_t i2cChannel, uint8_t deviceAddr, uint8_t r
  *  \return ESP_OK or error
  * **/
 esp_err_t gcd_i2c_write_address(uint8_t i2cChannel, uint8_t deviceAddr, uint8_t regAddr, uint16_t writeLen, uint8_t *txBuffer);
+
+
+/** \brief gcd_i2c_write_block
+ *          Writes a block of data. yup.
+ *   
+ * 
+ * 
+ **/
+esp_err_t gcd_i2c_write_block(uint8_t i2cChannel, uint8_t deviceAddr, uint16_t writeLen, uint8_t *txBuffer);
+
 
 /** \brief  gcd_i2c_init()
  *          initialise an i2c bus

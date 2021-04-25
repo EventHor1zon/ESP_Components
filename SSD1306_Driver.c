@@ -15,6 +15,9 @@
 #include "esp_heap_caps.h"
 #include "genericCommsDriver.h"
 
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
 #include "font8x8_basic.h"
 
 #include "SSD1306_Driver.h"
@@ -81,14 +84,14 @@ esp_err_t ssd1306_set_text(ssd1306_handle_t *screen, char *text) {
 
     esp_err_t err = ESP_OK;
 
-    uint16_t strlen = strlen(text); 
-    if(strlen > SSD_MAX_STRLEN-1) {
+    uint16_t length = strlen(text); 
+    if(length > SSD_MAX_STRLEN-1) {
         err = ESP_ERR_INVALID_SIZE;
     }
     else {
         memset(screen->text, '\0', SSD_MAX_STRLEN);
-        memcpy(screen->text, text, strlen);
-        screen->text_len = strlen;
+        memcpy(screen->text, text, length);
+        screen->text_len = length;
     }
     return err;
 }
@@ -98,7 +101,7 @@ esp_err_t ssd1306_clear_screen(ssd1306_handle_t *screen) {
 
     esp_err_t stat = ESP_OK;
 
-    fo(uint8_t i=0; i<8; i++) {
+    for(uint8_t i=0; i<8; i++) {
         screen_clear_cmds[1] = (SSD1306_SEG_SELECT | i);
         stat = gcd_i2c_write_block(screen->bus, screen->dev_addr, sizeof(screen_clear_cmds), screen_clear_cmds);
     }
@@ -116,8 +119,8 @@ esp_err_t ssd1306_write_text(ssd1306_handle_t *screen) {
     if(stat == ESP_OK) {
         for(uint8_t i=0; i<screen->text_len; i++) {
             /** Process newline **/
-            if(screen->text[i] == "\n") {
-                uint8_t cmds[4] = 0;
+            if(screen->text[i] == 0x0A) {
+                uint8_t cmds[4] = {0};
                 memcpy(cmds, screen_text_cmds, sizeof(screen_text_cmds));
                 cmds[3] = ( SSD1306_SEG_SELECT | page++);
                 stat = gcd_i2c_write_block(screen->bus, screen->dev_addr, sizeof(screen_text_cmds), cmds);
@@ -142,7 +145,7 @@ ssd1306_handle_t *ssd1306_init(ssd1306_init_t *init) {
     ssd1306_handle_t *handle = NULL;
     TaskHandle_t ssd_taskhandle = NULL;
 
-    if(init->i2c_bus != I2C_NUM_0 && init->i2c_bus != I2C_NUM_1) {
+    if(!(gcd_i2c_check_bus(init->i2c_bus))) {
         err = ESP_ERR_INVALID_ARG;
     }
 
@@ -158,23 +161,23 @@ ssd1306_handle_t *ssd1306_init(ssd1306_init_t *init) {
         }
     }
 
-    if(err == ESP_OK && !(genericI2C_is_bus_init(init->i2c_bus))) {
-        uint32_t wait_counter = 0;
-        while(!(genericI2C_is_bus_init(init->i2c_bus))){
-            vTaskDelay(pdMS_TO_TICKS(100));
-            wait_counter++;
-            if(wait_counter > 10) {
-                ESP_LOGE(SSD_TAG, "Error - I2C bus was not initialised");
-                err = ESP_ERR_TIMEOUT;
-            }
-        }
-    }
+    // if(err == ESP_OK && !(genericI2C_is_bus_init(init->i2c_bus))) {
+    //     uint32_t wait_counter = 0;
+    //     while(!(genericI2C_is_bus_init(init->i2c_bus))){
+    //         vTaskDelay(pdMS_TO_TICKS(100));
+    //         wait_counter++;
+    //         if(wait_counter > 10) {
+    //             ESP_LOGE(SSD_TAG, "Error - I2C bus was not initialised");
+    //             err = ESP_ERR_TIMEOUT;
+    //         }
+    //     }
+    // }
 
     if(err == ESP_OK) {
         /** initialise the screen **/
         err = gcd_i2c_write_block(handle->bus, handle->dev_addr, sizeof(screen_initconfig_cmds), screen_initconfig_cmds);
         if(err != ESP_OK) {
-            ESP_LOGE(COMMS_TAG, "Error sending initial commands");
+            ESP_LOGE(SSD_TAG, "Error sending initial commands");
         }
     }
 
