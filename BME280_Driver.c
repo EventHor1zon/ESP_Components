@@ -11,16 +11,14 @@
 /********* Includes *******************/
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "genericCommsDriver.h"
+#include "esp_types.h"
 #include "esp_err.h"
 #include "esp_log.h"
 #include "Utilities.h"
-
+#include "genericCommsDriver.h"
 #include "BME280_Driver.h"
 
 /****** Function Prototypes ***********/
@@ -34,11 +32,41 @@ static esp_err_t bm280_getDeviceStatus(bm_controlData_t *bmCtrl);
 
 /****** Global Data *******************/
 
-// #define DEBUG 1
+#ifdef CONFIG_USE_PERIPH_MANAGER
+const parameter_t bm_param_mappings[bm_param_len] = {
+    {"Sample Interval", 1, &bm280_getSampleInterval, &bm280_setSampleInterval, PARAMTYPE_UINT8, 7, (GET_FLAG | SET_FLAG)},
+    {"Filter Setting", 2, &bm280_getFilterSetting, &bm280_setFilterSetting, PARAMTYPE_UINT8, 4, (GET_FLAG | SET_FLAG)},
+    {"Device ID", 3, &bm280_getDeviceID, NULL, PARAMTYPE_UINT8, 0, (GET_FLAG)},
+    {"Temperature", 4, &bm280_getTemperature, NULL, PARAMTYPE_FLOAT, 0, (GET_FLAG | STREAM_FLAG)},
+    {"Pressure", 5, &bm280_getPressure, NULL, PARAMTYPE_FLOAT, 0, (GET_FLAG | STREAM_FLAG)},
+    {"Humidity", 6, &bm280_getHumidity, NULL, PARAMTYPE_FLOAT, 0, (GET_FLAG | STREAM_FLAG)},
+    {"Temperature OSample", 7, &bm280_getTemperatureOS, &bm280_setTemperatureOS, PARAMTYPE_UINT8, 5, (GET_FLAG | SET_FLAG)},
+    {"Pressure OSample", 8, &bm280_getPressureOS, &bm280_setPressureOS, PARAMTYPE_UINT8, 5, (GET_FLAG | SET_FLAG)},
+    {"Humidity OSample", 9, &bm280_getHumidityOS, &bm280_setHumidityOS, PARAMTYPE_UINT8, 5, (GET_FLAG | SET_FLAG)},
+    {"Sample Mode", 10, &bm280_getSampleMode, &bm280_setSampleMode, PARAMTYPE_UINT8, 3, (GET_FLAG | SET_FLAG)},
+    {"Sample Type", 11, &bm280_getSampleType, NULL, PARAMTYPE_UINT8, 7, (GET_FLAG)},
+    {"Update Measurements", 12, &bm280_updateMeasurements, NULL, 0xFF, 0, (ACT_FLAG)},
+};
+
+
+peripheral_t bme_peripheral_template = {
+    .actions = NULL,
+    .actions_len = 0,
+    .handle = NULL,
+    .param_len = bm_param_len,
+    .params = bm_param_mappings,
+    .peripheral_name = "BME280",
+    .peripheral_id = 0
+};
+
+#endif
+
 const int wait_sample_fin = 10;
 const int wait_new_sample = 50;
 const int wait_idle = 1000;
 const char *BM_DRIVER_TAG = "[BM280 DRIVER]";
+
+
 
 /****** Private Functions *************/
 
@@ -274,6 +302,7 @@ static esp_err_t bm280_InitDeviceSettings(bm_controlData_t *bmCtrl)
         ESP_LOGE(BM_DRIVER_TAG, "Error - incorrect sample mode type selected");
         break;
     }
+
     switch (sampleType)
     {
     case BM_MODE_TEMP:
@@ -313,6 +342,7 @@ static esp_err_t bm280_InitDeviceSettings(bm_controlData_t *bmCtrl)
         bmCtrl->devSettings.sampleMode = sampleMode;
         bmCtrl->devSettings.sampleType = sampleType;
     }
+
     return trxStatus;
 }
 
@@ -485,7 +515,8 @@ esp_err_t bm280_getTemperatureOS(bm_controlData_t *bmCtrl, uint8_t *tempOS)
 esp_err_t bm280_getPressureOS(bm_controlData_t *bmCtrl, uint8_t *presOS)
 {
     esp_err_t status = ESP_OK;
-    *presOS = bmCtrl->devSettings.humidOS;
+    uint8_t p = *presOS;
+    p = bmCtrl->devSettings.humidOS;
     return status;
 }
 
@@ -509,18 +540,19 @@ esp_err_t bm280_setHumidityOS(bm_controlData_t *bmCtrl, BM_overSample_t *os)
 esp_err_t bm280_setTemperatureOS(bm_controlData_t *bmCtrl, BM_overSample_t *os)
 {
     esp_err_t status = ESP_OK;
+    uint8_t _os = *os;
 
     uint8_t reg = 0;
     status = gcd_i2c_read_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg);
     if (status == ESP_OK)
     {
         reg &= 0b00011111;        /* clear the top 3 bits */
-        uint8_t level = *os << 5; /** shift level over 5 bits */
+        uint8_t level = _os << 5; /** shift level over 5 bits */
         reg &= level;             /* set the new value in reg */
         status = gcd_i2c_write_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg);
     }
-    bmCtrl->devSettings.tempOS = *os;
-    if (*os > 0)
+    bmCtrl->devSettings.tempOS = _os;
+    if (_os > 0)
     {
         bmCtrl->devSettings.sampleType |= BM_MODE_TEMP;
     }
@@ -534,18 +566,18 @@ esp_err_t bm280_setTemperatureOS(bm_controlData_t *bmCtrl, BM_overSample_t *os)
 esp_err_t bm280_setPressureOS(bm_controlData_t *bmCtrl, BM_overSample_t *os)
 {
     esp_err_t status = ESP_OK;
-
+    uint8_t _os = *os;
     uint8_t reg = 0;
     status = gcd_i2c_read_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg);
     if (status == ESP_OK)
     {
         reg &= 0b11100011;        /* clear the mid 3 bits */
-        uint8_t level = *os << 2; /** shift level over 2 bits */
+        uint8_t level = _os << 2; /** shift level over 2 bits */
         reg &= level;             /* set the new value in reg */
         status = gcd_i2c_write_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg);
     }
     bmCtrl->devSettings.pressOS = *os;
-    if (*os > 0)
+    if (_os > 0)
     {
         bmCtrl->devSettings.sampleType |= BM_MODE_PRESSURE;
     }
@@ -568,15 +600,22 @@ esp_err_t bm280_getSampleMode(bm_controlData_t *bmCtrl, uint8_t *sampleMode)
 esp_err_t bm280_setSampleMode(bm_controlData_t *bmCtrl, BM_sampleMode_t *sampleMode)
 {
     esp_err_t status = ESP_OK;
-
-    uint8_t reg = 0;
-    if (gcd_i2c_read_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg) == ESP_OK)
-    {
-        reg &= 0b11111100;
-        reg |= *sampleMode;
-        status = gcd_i2c_write_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg);
+    uint8_t sm = *sampleMode;
+    ESP_LOGI(BM_DRIVER_TAG, "Got request to set mode to %u", sm);
+    if(sm > 3 || sm == 2) {
+        ESP_LOGI(BM_DRIVER_TAG, "Bad value");        
     }
-    bmCtrl->devSettings.sampleMode = *sampleMode;
+    else {
+        uint8_t reg = 0;
+        if (gcd_i2c_read_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg) == ESP_OK)
+        {
+            reg &= 0b11111100;
+            reg |= sm;
+            printf("0x%02x", reg);
+            status = gcd_i2c_write_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg);
+        }
+        bmCtrl->devSettings.sampleMode = sm;
+    }
     return status;
 }
 
@@ -600,12 +639,13 @@ esp_err_t bm280_setFilterSetting(bm_controlData_t *bmCtrl, bm_filter_t *filter)
 {
     esp_err_t status = ESP_OK;
     uint8_t reg = 0;
+    uint8_t f = *filter;
     if (gcd_i2c_read_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CONFIG, 1, &reg) == ESP_OK)
     {
         reg &= 0b11100011;
-        reg |= (*filter << 2);
+        reg |= (f << 2);
         status = gcd_i2c_write_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CONFIG, 1, &reg);
-        bmCtrl->devSettings.filterCoefficient = *filter;
+        bmCtrl->devSettings.filterCoefficient = f;
     }
     return status;
 }
@@ -621,12 +661,20 @@ esp_err_t bm280_setSampleInterval(bm_controlData_t *bmCtrl, BM_standbyT_t *dT)
 {
     esp_err_t status = ESP_OK;
     uint8_t reg = 0;
-    if (gcd_i2c_read_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CONFIG, 1, &reg) == ESP_OK)
+    uint8_t _dt = *dT;
+
+    if(_dt >= BM_T_STDBY_END) {
+        status = ESP_ERR_INVALID_ARG;
+    } 
+    else if(gcd_i2c_read_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CONFIG, 1, &reg) == ESP_OK)
     {
         reg &= 0b00011111;
-        reg |= (*dT << 5);
+        reg |= (_dt << 5);
         status = gcd_i2c_write_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CONFIG, 1, &reg);
-        bmCtrl->devSettings.sampleInterval = *dT;
+        bmCtrl->devSettings.sampleInterval = _dt;
+    }
+    else{
+        status = ESP_ERR_TIMEOUT;
     }
     return status;
 }
@@ -643,14 +691,21 @@ void bmCtrlTask(void *args)
 
     while (1)
     {
-
+#ifdef DEBUG
+        ESP_LOGI(BM_DRIVER_TAG, "Mode: %u", bmCtrl->devSettings.sampleMode);
+#endif
         if (bmCtrl->devSettings.sampleMode == BM_FORCE_MODE)
         {
             /** wait for task notify  to sample**/
-            ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-            ESP_LOGI(BM_DRIVER_TAG, "Sampling device");
-
-            bm280_updateMeasurements(bmCtrl);
+            uint32_t trigd= ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(1000));
+            if (trigd > 0) {
+                bm280_updateMeasurements(bmCtrl);
+            }
+#ifdef DEBUG
+            else {
+                ESP_LOGI(BM_DRIVER_TAG, "Not sampling");                
+            }
+#endif        
         }
         else if (bmCtrl->devSettings.sampleMode == BM_NORMAL_MODE)
         {
@@ -664,6 +719,7 @@ void bmCtrlTask(void *args)
                     vTaskDelay(pdMS_TO_TICKS(wait_sample_fin));
                 }
             }
+            ESP_LOGI(BM_DRIVER_TAG, "updating");
             bm280_updateMeasurements(bmCtrl);
             sleep_time = bm280_sleepTime(bmCtrl);
 
@@ -699,7 +755,6 @@ bm_controlData_t *bm280_init(bm_initData_t *initData)
         bmCtrl->devSettings.tempOS = 0;
         bmCtrl->devSettings.pressOS = 0;
         bmCtrl->initData = initData;
-
         bmCtrl->i2cChannel = initData->i2cChannel;
 
         if (initData->addressPinState)
@@ -710,7 +765,9 @@ bm_controlData_t *bm280_init(bm_initData_t *initData)
         {
             bmCtrl->deviceAddress = (uint8_t)BM_I2C_ADDRESS_SDLOW;
         }
-
+#ifdef CONFIG_USE_PERIPH_MANAGER
+        bmCtrl->peripheral_template = &bme_peripheral_template;
+#endif
         ESP_LOGI(BM_DRIVER_TAG, "Device address - %u", bmCtrl->deviceAddress);
     }
 

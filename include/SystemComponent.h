@@ -77,8 +77,7 @@ void uptime_timer_callback(void *timer);
 
 /** TODO: Sort these **/
 #ifdef CONFIG_USE_PERIPH_MANAGER
-#include "../../main/inc/CommandAPI.h"
-#include "../../main/inc/device_config.h"
+#include "CommandAPI.h"
 #define sys_cmd_len 1
 #define sys_act_len 1
 peripheral_t sys_peripheral_template;

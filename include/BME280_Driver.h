@@ -9,15 +9,27 @@
 #ifndef BM280_DRIVER_H
 #define BM280_DRIVER_H
 
+
+#ifdef CONFIG_USE_PERIPH_MANAGER
+/** PM structures **/
+#include "CommandAPI.h"
+#define bm_action_len 1
+#define bm_param_len 12
+const parameter_t bm_param_mappings[bm_param_len];
+const action_t bm_action_mappings[bm_action_len];
+
+peripheral_t bme_peripheral_template;
+
+#endif
+
 /********* Includes ********************/
 
-#include "SysConfig.h"
 #include "esp_types.h"
+
+
 
 /********* Definitions *****************/
 
-#define DEVICE_TYPE BME_280
-#define BME_280
 
 #define BM_I2C_ADDRESS_SDLOW 0x76
 #define BM_I2C_ADDRESS_SDHIGH 0x77
@@ -122,6 +134,9 @@
 
 /********** Types **********************/
 
+
+
+
 typedef enum bm_devTypes
 {
     BMP_280_DEVICE,
@@ -156,12 +171,12 @@ typedef enum bme_standbyT
     BM_T_STDBY_1000MS = 0x05,
 #ifdef BME_280
     BM_T_STDBY_10MS = 0x06,
-    BM_T_STDBY_20MS = 0x07
+    BM_T_STDBY_20MS = 0x07,
 #else
     BM_T_STDBY_2000MS = 0x06,
-    BM_T_STDBY_4000MS = 0x07
+    BM_T_STDBY_4000MS = 0x07,
 #endif
-
+    BM_T_STDBY_END
 } BM_standbyT_t;
 
 /** bm_filter_t
@@ -173,7 +188,8 @@ typedef enum bm_Filter
     BM_FILTER_2 = 1,
     BM_FILTER_4 = 2,
     BM_FILTER_8 = 3,
-    BM_FILTER_16 = 4
+    BM_FILTER_16 = 4,
+    BM_FILTER_END
 } bm_filter_t;
 
 /** bm_sampleType_t
@@ -265,19 +281,22 @@ typedef struct bm_deviceSettings
 
 typedef struct bm_controlData
 {
-    bm_calibrationData_t calibrationData;
-    bm_sensorData_t sensorData;
-    bm_deviceSettings_t devSettings;
-    bm_initData_t *initData;
+    bm_calibrationData_t calibrationData;   /**< the device calibrationdata **/
+    bm_sensorData_t sensorData;             /**< the device sensor data **/
+    bm_deviceSettings_t devSettings;        /**< the device settings **/
+    bm_initData_t *initData;    /**< pointer to the init data **/
 
-    uint8_t peripheralID;
-    uint8_t deviceAddress;
-    uint8_t i2cChannel;
+    uint8_t peripheralID;   /**< the periph_id **/
+    uint8_t deviceAddress; /**< the device's I2C address **/
+    uint8_t i2cChannel; /**< the i2c channel used **/
 
-    bool calibrationAquired;
+    bool calibrationAquired;    /**< calibration data aquired  **/
+    uint8_t sampleMask; /**< sample mask **/
+    uint8_t configMask; /**< config mask **/
+#ifdef CONFIG_USE_PERIPH_MANAGER
+    peripheral_t *peripheral_template;
+#endif
 
-    uint8_t sampleMask;
-    uint8_t configMask;
 
 } bm_controlData_t;
 
@@ -374,5 +393,6 @@ esp_err_t bm280_getSampleType(bm_controlData_t *bmCtrl, uint8_t *sampleType);
 
 esp_err_t bm280_getFilterSetting(bm_controlData_t *bmCtrl, uint8_t *filter);
 esp_err_t bm280_setFilterSetting(bm_controlData_t *bmCtrl, bm_filter_t *filter);
+
 
 #endif /* BM280_DRIVER_H */

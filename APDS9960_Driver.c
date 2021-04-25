@@ -135,7 +135,7 @@ static esp_err_t apds_config_intr_pin(APDS_DEV dev) {
         ESP_LOGE(APDS_TAG, "Error configuring GPIO pin!");
     }
     else {
-        err = gpio_isr_handler_add(dev->intr_pin, (gpio_isr_handle_t)apds_intr_handler, dev);
+        err = gpio_isr_handler_add(dev->intr_pin, (gpio_isr_t)apds_intr_handler, dev);
     }
     return err;
 }
