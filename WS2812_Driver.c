@@ -68,7 +68,7 @@ const parameter_t availableCommands[ws2812_param_len] = {
 };
 
 
-peripheral_t ws_peripheral_template = {
+const peripheral_t ws_peripheral_template = {
     .actions = NULL,
     .actions_len = 0,
     .handle = NULL,
