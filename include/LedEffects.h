@@ -94,7 +94,6 @@ typedef struct StrandData
     TimerHandle_t refreshTimer;       /** < handle for the effect refresh timer **/
     rmt_channel_t dataChannel;        /** < TODO: replace this & next with union/bitfield **/
     spi_device_handle_t ledSPIHandle; /** < spi device handle **/
-    peripheral_t *periph_template;      
 } StrandData_t;
 
 /******** Function Definitions *********/

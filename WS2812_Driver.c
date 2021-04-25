@@ -298,7 +298,6 @@ StrandData_t *WS2812_init(ws2812_initdata_t *initdata)
     {
         strand->strandIndex = numstrands;
         strand->updateLeds = 0;
-        strand->periph_template = &ws_peripheral_template;
         allStrands[numstrands] = strand;
     }
     else
