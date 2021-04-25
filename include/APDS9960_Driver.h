@@ -17,13 +17,11 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#ifdef CONFIG_USE_PERIPH_MANAGER
 
 #include "CommandAPI.h"
-#define apds_periph_len    20
-
-const peripheral_t apds_periph_mapping[apds_periph_len];
-
+#define apds_param_len    20
+const parameter_t apds_parameter_map[apds_param_len];
+const peripheral_t apds_periph_template;
 #endif
 
 

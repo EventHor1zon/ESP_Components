@@ -15,10 +15,8 @@
 #include "CommandAPI.h"
 #define bm_action_len 1
 #define bm_param_len 12
-const parameter_t bm_param_mappings[bm_param_len];
-const action_t bm_action_mappings[bm_action_len];
-
-peripheral_t bme_peripheral_template;
+const parameter_t bm_param_map[bm_param_len];
+const peripheral_t bme_peripheral_template;
 
 #endif
 

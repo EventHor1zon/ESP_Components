@@ -19,7 +19,6 @@
 #include "freertos/task.h"
 #include "LedEffects.h"
 
-#define CONFIG_USE_PERIPH_MANAGER
 #define WS2812_PERIPH_TYPE PTYPE_ADDR_LEDS
 
 

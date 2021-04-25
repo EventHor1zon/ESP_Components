@@ -33,7 +33,7 @@ static esp_err_t bm280_getDeviceStatus(bm_controlData_t *bmCtrl);
 /****** Global Data *******************/
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
-const parameter_t bm_param_mappings[bm_param_len] = {
+const parameter_t bm_param_map[bm_param_len] = {
     {"Sample Interval", 1, &bm280_getSampleInterval, &bm280_setSampleInterval, PARAMTYPE_UINT8, 7, (GET_FLAG | SET_FLAG)},
     {"Filter Setting", 2, &bm280_getFilterSetting, &bm280_setFilterSetting, PARAMTYPE_UINT8, 4, (GET_FLAG | SET_FLAG)},
     {"Device ID", 3, &bm280_getDeviceID, NULL, PARAMTYPE_UINT8, 0, (GET_FLAG)},
@@ -50,11 +50,9 @@ const parameter_t bm_param_mappings[bm_param_len] = {
 
 
 peripheral_t bme_peripheral_template = {
-    .actions = NULL,
-    .actions_len = 0,
     .handle = NULL,
     .param_len = bm_param_len,
-    .params = bm_param_mappings,
+    .params = bm_param_map,
     .peripheral_name = "BME280",
     .peripheral_id = 0
 };
