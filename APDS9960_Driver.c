@@ -23,8 +23,6 @@
 
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
-
-
 const peripheral_t apds_parameter_map[apds_param_len] {
     { "Power status", 1, &apds_get_pwr_on_status, &apds_set_pwr_on_status, PARAMTYPE_BOOL, 1, (GET_FLAG | SET_FLAG)},
     { "Proximity status", 2, &apds_get_proximity_status, &apds_set_proximity_status, PARAMTYPE_BOOL, 1, (GET_FLAG | SET_FLAG)},

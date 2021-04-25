@@ -214,7 +214,11 @@ static esp_err_t bm280_getCalibrationData(bm_controlData_t *bmCtrl)
 {
     esp_err_t trxStatus = ESP_OK;
 
+#ifdef BME_280
     uint8_t buffer[BM_CALIBR_DATA_BANK1_LEN] = {0};
+#else
+    uint8_t buffer[BM_CALIBR_DATA_LEN] = {0};
+#endif
 
     /* check the status register for calibration load complete */
     uint8_t statusReg = 0;
@@ -232,7 +236,7 @@ static esp_err_t bm280_getCalibrationData(bm_controlData_t *bmCtrl)
     trxStatus = gcd_i2c_read_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, (uint8_t)BM_REG_ADDR_DIGT1_LSB, BM_CALIBR_DATA_BANK1_LEN, buffer);
     trxStatus = gcd_i2c_read_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, (uint8_t)BM_REG_ADDR_DIGH2_LSB, BM_CALIBR_DATA_BANK2_LEN, bufferB);
 #else
-    trxStatus = gcd_i2c_read_address(bmCtrl, (uint8_t)BM_REG_ADDR_DIGT1_LSB, BM_CALIBR_DATA_BANK1_LEN, buffer);
+    trxStatus = gcd_i2c_read_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, (uint8_t)BM_REG_ADDR_DIGT1_LSB, BM_CALIBR_DATA_LEN, buffer);
 #endif
 
     if (trxStatus == ESP_OK)
@@ -370,7 +374,6 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
 
     esp_err_t trxStatus = ESP_OK;
     uint8_t forcedMeasure = bmCtrl->sampleMask | BM_CTRL_MODE_FORCED;
-    uint8_t reg = 0;
     uint8_t rxBuffer[BM_MEASURE_READ_LEN] = {0};
 
     if (bmCtrl->devSettings.sampleMode == BM_FORCE_MODE)
@@ -487,6 +490,8 @@ esp_err_t bm280_getPressure(bm_controlData_t *bmCtrl, float *realPressure)
     return status;
 }
 
+
+#ifdef BME_280
 esp_err_t bm280_getHumidity(bm_controlData_t *bmCtrl, float *realHumidity)
 {
     esp_err_t status = ESP_OK;
@@ -496,6 +501,7 @@ esp_err_t bm280_getHumidity(bm_controlData_t *bmCtrl, float *realHumidity)
     return status;
 }
 
+
 esp_err_t bm280_getHumidityOS(bm_controlData_t *bmCtrl, uint8_t *humidOS)
 {
     esp_err_t status = ESP_OK;
@@ -503,20 +509,6 @@ esp_err_t bm280_getHumidityOS(bm_controlData_t *bmCtrl, uint8_t *humidOS)
     return status;
 }
 
-esp_err_t bm280_getTemperatureOS(bm_controlData_t *bmCtrl, uint8_t *tempOS)
-{
-    esp_err_t status = ESP_OK;
-    *tempOS = bmCtrl->devSettings.humidOS;
-    return status;
-}
-
-esp_err_t bm280_getPressureOS(bm_controlData_t *bmCtrl, uint8_t *presOS)
-{
-    esp_err_t status = ESP_OK;
-    uint8_t p = *presOS;
-    p = bmCtrl->devSettings.humidOS;
-    return status;
-}
 
 esp_err_t bm280_setHumidityOS(bm_controlData_t *bmCtrl, BM_overSample_t *os)
 {
@@ -534,6 +526,24 @@ esp_err_t bm280_setHumidityOS(bm_controlData_t *bmCtrl, BM_overSample_t *os)
     }
     return status;
 }
+
+#endif /** BME_280 **/
+
+esp_err_t bm280_getTemperatureOS(bm_controlData_t *bmCtrl, uint8_t *tempOS)
+{
+    esp_err_t status = ESP_OK;
+    *tempOS = bmCtrl->devSettings.humidOS;
+    return status;
+}
+
+esp_err_t bm280_getPressureOS(bm_controlData_t *bmCtrl, uint8_t *presOS)
+{
+    esp_err_t status = ESP_OK;
+    uint8_t p = *presOS;
+    p = bmCtrl->devSettings.humidOS;
+    return status;
+}
+
 
 esp_err_t bm280_setTemperatureOS(bm_controlData_t *bmCtrl, BM_overSample_t *os)
 {

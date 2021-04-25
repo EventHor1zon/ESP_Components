@@ -11,7 +11,7 @@
 ****************************************/
 
 /********* Includes *******************/
-#include <stdint.h>
+#include "esp_types.h"
 
 #include "LSM_Driver.h"
 
@@ -25,6 +25,28 @@
 #include "freertos/task.h"
 
 /****** Function Prototypes ***********/
+
+
+#ifdef CONFIG_USE_PERIPH_MANAGER
+
+#include "CommandAPI.h"
+
+// const parameter_t lsm_parameter_mappings[lsm_param_mappings_len] = {
+//     {"Gyro X", 1, &LSM_getGyroX, NULL, PARAMTYPE_INT16, 0, (GET_FLAG) },
+//     {"Gyro Y", 2, &LSM_getGyroY, NULL, PARAMTYPE_INT16, 0, (GET_FLAG) },
+//     {"Gyro Z", 3, &LSM_getGyroZ, NULL, PARAMTYPE_INT16, 0, (GET_FLAG) },
+//     {"Accel X", 4, &LSM_getAccelX, NULL, PARAMTYPE_INT16, 0, (GET_FLAG) },
+//     {"Accel Y", 5, &LSM_getAccelY, NULL, PARAMTYPE_INT16, 0, (GET_FLAG) },
+//     {"Accel Z", 6, &LSM_getAccelZ, NULL, PARAMTYPE_INT16, 0, (GET_FLAG) },
+//     {"Op Mode", 7, &LSM_getOpMode, &LSM_setOpMode, PARAMTYPE_UIN8, 2, (GET_FLAG | SET_FLAG)},
+// };
+
+
+const peripheral_t lsm_periph_template;
+
+
+#endif
+
 
 static void ISR_int1(void *args);
 static void ISR_int2(void *args);
@@ -482,6 +504,8 @@ esp_err_t LSM_setOpMode(LSM_DriverHandle_t *dev, LSM_OperatingMode_t *mode)
 
     return status;
 }
+
+
 
 esp_err_t LSM_setAccelODRMode(LSM_DriverHandle_t *dev, LSM_AccelODR_t *m)
 {

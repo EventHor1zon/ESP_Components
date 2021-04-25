@@ -17,7 +17,6 @@
 /********* Includes ********************/
 
 #include "esp_types.h"
-#include "SysConfig.h"
 #include "driver/gpio.h"
 #include "esp_err.h"
 #include "esp_log.h"
@@ -34,6 +33,7 @@
 #define lsm_param_mappings_len 10
 
 const parameter_t lsm_parameter_mappings[lsm_param_mappings_len]; 
+const peripheral_t lsm_periph_template;
 
 #endif
 

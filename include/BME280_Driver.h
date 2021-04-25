@@ -13,7 +13,6 @@
 #ifdef CONFIG_USE_PERIPH_MANAGER
 /** PM structures **/
 #include "CommandAPI.h"
-#define bm_action_len 1
 #define bm_param_len 12
 const parameter_t bm_param_map[bm_param_len];
 const peripheral_t bme_peripheral_template;
@@ -117,7 +116,6 @@ const peripheral_t bme_peripheral_template;
 
 #define BM_DRIVER_I2C_TRX_TIMEOUT 100
 
-#define DEBUG_MODE
 
 #ifdef DEBUG_MODE
 #define DEBUG_I2C_CLOCK_PIN 25
@@ -363,6 +361,8 @@ esp_err_t bm280_getTemperature(bm_controlData_t *bmCtrl, float *realTemp);
  **/
 esp_err_t bm280_getPressure(bm_controlData_t *bmCtrl, float *realPressure);
 
+
+#ifdef BME_280
 /** \brief  getHumidity - gets the humidity measuremennt retrieved: in %
  *  \param  bmCtrl - device handle
  *  \param   realHumidity- storage for return value
@@ -377,10 +377,17 @@ esp_err_t bm280_getHumidity(bm_controlData_t *bmCtrl, float *realHumidity);
  **/
 esp_err_t bm280_getHumidityOS(bm_controlData_t *bmCtrl, uint8_t *humidOS);
 
+/** \brief setHumidityOS - set the sample rate of humidity
+ *  \param bmCtrl - handle
+ *  \param os       value to set
+ *  \return ESP_OK or FAIL
+ **/
+esp_err_t bm280_setHumidityOS(bm_controlData_t *bmCtrl, BM_overSample_t *os);
+#endif
+
 esp_err_t bm280_getTemperatureOS(bm_controlData_t *bmCtrl, uint8_t *tempOS);
 esp_err_t bm280_getPressureOS(bm_controlData_t *bmCtrl, uint8_t *presOS);
 
-esp_err_t bm280_setHumidityOS(bm_controlData_t *bmCtrl, BM_overSample_t *os);
 esp_err_t bm280_setTemperatureOS(bm_controlData_t *bmCtrl, BM_overSample_t *os);
 esp_err_t bm280_setPressureOS(bm_controlData_t *bmCtrl, BM_overSample_t *os);
 

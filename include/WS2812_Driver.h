@@ -25,8 +25,8 @@
 #ifdef CONFIG_USE_PERIPH_MANAGER
 #include "CommandAPI.h"
 #define ws2812_param_len 4
-parameter_t ws2812_param_mapping[ws2812_param_len];
-
+const parameter_t ws2812_param_mapping[ws2812_param_len];
+const peripheral_t ws_peripheral_template;
 
 #endif
 

@@ -18,6 +18,7 @@
 #include "freertos/task.h"
 
 
+#ifdef CONFIG_USE_PERIPH_MANAGER
 #include "CommandAPI.h"
 #define apds_param_len    20
 const parameter_t apds_parameter_map[apds_param_len];
