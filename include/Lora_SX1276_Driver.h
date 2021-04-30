@@ -18,6 +18,16 @@
 /** registers have overlapping addresses as function changes 
  *  between LoRa / fsk/ook mode  
  **/
+#define CONFIG_USE_PERIPH_MANAGER
+#ifdef CONFIG_USE_PERIPH_MANAGER
+
+#include "CommandAPI.h"
+#define LORA_PERIPH_LEN 12
+
+const parameter_t lora_parameter_map[LORA_PERIPH_LEN];
+const peripheral_t lora_peripheral_template;
+
+#endif 
 
 /** TODO: put these in a couple of arrays or prefix lora/fsk 
  ***/ 
@@ -519,6 +529,13 @@ typedef enum {
     SX1276_LOWBAT_TRIM_2_2V,
 } low_batt_trim_t;
 
+
+typedef struct {
+    gpio_num_t rst_pin;
+    gpio_num_t cs_pin;
+    uint8_t spi_bus;
+
+} sx1276_init_t;
 
 
 typedef struct SX1276_Device_Settings

@@ -21,6 +21,22 @@
 #include "driver/spi_master.h"
 #include "Lora_SX1276_Driver.h"
 
+
+#ifdef CONFIG_USE_PERIPH_MANAGER
+
+#include "CommandAPI.h"
+
+const parameter_t lora_parameter_map[LORA_PERIPH_LEN] = {
+
+    {"Operating Mode", 1, sx1276_get_opmode_LoRa, sx1276_set_opmode_LoRa, 
+
+
+};
+const peripheral_t lora_peripheral_template;
+
+
+#endif
+
 /****** Function Prototypes ***********/
 
 /************ ISR *********************/
@@ -335,7 +351,7 @@ static void sx1276_driver_task(void *args) {
 #define LORA_IRQ_PIN 26
 #define LORA_CS_PIN 17
 
-SX1276_DEV sx1276_init() {
+SX1276_DEV sx1276_init(sx1276_init_t *init) {
     
 
     esp_err_t err = ESP_OK;
@@ -344,7 +360,7 @@ SX1276_DEV sx1276_init() {
     SX1276_DEV dev_handle = NULL;
     TaskHandle_t t_handle = NULL;
     conf.mode = GPIO_MODE_OUTPUT;
-    conf.pin_bit_mask = (1 << LORA_RST_PIN);
+    conf.pin_bit_mask = (1 << init->rst_pin);
     conf.pull_up_en = GPIO_PULLUP_DISABLE;
 
     err = gpio_config(&conf);
@@ -356,19 +372,24 @@ SX1276_DEV sx1276_init() {
         gpio_set_level(LORA_RST_PIN, 1);
 
         /** initialise the spi device **/
-
-        spi_host_device_t dev = SPI2_HOST;
-        spi_device_interface_config_t dconf = {0};
-        dconf.address_bits = 0;
-        dconf.clock_speed_hz = 100000;
-        dconf.command_bits = 0;
-        dconf.cs_ena_posttrans = 2;
-        dconf.cs_ena_pretrans = 2;
-        dconf.dummy_bits = 0;
-        dconf.duty_cycle_pos = 128;
-        dconf.mode = 0;
-        dconf.spics_io_num = LORA_CS_PIN;
-        err = spi_bus_add_device(dev, &dconf, &spi_handle);
+        if(init->spi_bus != SPI1_HOST && init->spi_bus != SPI2_HOST) {
+            ESP_LOGE(LORA_TAG, "Error, invalid SPI Bus");
+            err = ESP_ERR_INVALID_ARG;
+        } 
+        if(!err) {
+            spi_host_device_t dev = init->spi_bus;
+            spi_device_interface_config_t dconf = {0};
+            dconf.address_bits = 0;
+            dconf.clock_speed_hz = 100000;
+            dconf.command_bits = 0;
+            dconf.cs_ena_posttrans = 2;
+            dconf.cs_ena_pretrans = 2;
+            dconf.dummy_bits = 0;
+            dconf.duty_cycle_pos = 128;
+            dconf.mode = 0;
+            dconf.spics_io_num = init->cs_pin;
+            err = spi_bus_add_device(dev, &dconf, &spi_handle);
+        }
 
         if(err != ESP_OK) {
             ESP_LOGE(LORA_TAG, "Error adding device to the bus!");
