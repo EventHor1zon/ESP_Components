@@ -23,7 +23,38 @@
 
 const char *RGB_TAG = "RGB_Driver";
 
+
+
+
+#ifdef CONFIG_USE_PERIPH_MANAGER
+
+const parameter_t rgb_param_map[rgb_param_len] = {
+    {"Red Duty", 1, &rgb_get_r_duty, &rgb_set_r_duty, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
+    {"Green Duty", 2, &rgb_get_g_duty, &rgb_set_g_duty, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
+    {"Blue Duty", 3, &rgb_get_b_duty, &rgb_set_b_duty, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
+    {"Red (percent)", 4, NULL, &rgb_set_r_duty_percent, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
+    {"Green (percent)", 5, NULL, &rgb_set_g_duty_percent, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
+    {"Blue (percent)", 6, NULL, &rgb_set_b_duty_percent, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
+};
+
+const peripheral_t rgb_periph_template = {
+    .handle = NULL,
+    .param_len = rgb_param_len,
+    .params = rgb_parameter_map,
+    .peripheral_name = "RGB",
+    .peripheral_id = 0,
+    .periph_type = PTYPE_IO,
+};
+
+#endif /* CONFIG_USE_PERIPH_MANAGER */
+
 /****** Function Prototypes ***********/
+
+
+static esp_err_t update_duty(uint32_t duty, uint8_t channel);
+
+static uint32_t percent_to_duty(uint8_t percent, uint32_t max_duty);
+
 
 /************ ISR *********************/
 
@@ -53,6 +84,15 @@ static esp_err_t update_duty(uint32_t duty, uint8_t channel) {
     }
 
     return err;
+}
+
+
+
+static uint32_t percent_to_duty(uint8_t percent, uint32_t max_duty) {
+
+    uint32_t p = max_duty / 100;
+    p *= percent;
+    return p;
 }
 
 
@@ -173,7 +213,7 @@ RGB_HANDLE rgb_driver_init(rgb_init_t *init) {
 
 }
 
-esp_err_t set_r_duty(RGB_HANDLE handle, uint32_t *val) {
+esp_err_t rgb_set_r_duty(RGB_HANDLE handle, uint32_t *val) {
     esp_err_t status = ESP_OK;
     uint32_t d = *val;
     if(d > handle->max_duty) {
@@ -188,10 +228,98 @@ esp_err_t set_r_duty(RGB_HANDLE handle, uint32_t *val) {
     return status;
 }
 
-esp_err_t set_g_duty(RGB_HANDLE handle, uint32_t *val) {
+esp_err_t rgb_set_g_duty(RGB_HANDLE handle, uint32_t *val) {
+    esp_err_t status = ESP_OK;
+    uint32_t d = *val;
+    if(d > handle->max_duty) {
+        status = ESP_ERR_INVALID_ARG;
+        ESP_LOGE(RGB_TAG, "Duty too high!");
+    }
+    else {
+        handle->g_duty = d;
+        update_duty(handle, RGB_RED_CHANNEL);
+    }
 
+    return status;
 }
 
-esp_err_t set_b_duty(RGB_HANDLE handle, uint32_t *val) {
 
+esp_err_t rgb_get_r_duty(RGB_HANDLE handle, uint32_t *val) {
+   esp_err_t status = ESP_OK;
+   *val = handle->r_duty;
+   return status;
+}
+
+esp_err_t rgb_get_g_duty(RGB_HANDLE handle, uint32_t *val) {
+   esp_err_t status = ESP_OK;
+   *val = handle->g_duty;
+   return status;
+}
+
+esp_err_t rgb_get_b_duty(RGB_HANDLE handle, uint32_t *val) {
+   esp_err_t status = ESP_OK;
+   *val = handle->b_duty;
+   return status;
+}
+
+
+esp_err_t rgb_set_b_duty(RGB_HANDLE handle, uint32_t *val) {
+    esp_err_t status = ESP_OK;
+    uint32_t d = *val;
+    if(d > handle->max_duty) {
+        status = ESP_ERR_INVALID_ARG;
+        ESP_LOGE(RGB_TAG, "Duty too high!");
+    }
+    else {
+        handle->b_duty = d;
+        update_duty(handle, RGB_RED_CHANNEL);
+    }
+
+    return status;
+}
+
+
+esp_err_t rgb_set_r_duty_percent(RGB_HANDLE handle, uint32_t *val) {
+    esp_err_t status = ESP_OK;
+    uint32_t d = *val;
+    if(d > 100) {
+        status = ESP_ERR_INVALID_ARG;
+        ESP_LOGE(RGB_TAG, "Duty too high!");
+    }
+    else {
+        handle->r_duty = percent_to_duty(d, handle->max_duty);
+        update_duty(handle, RGB_RED_CHANNEL);
+    }
+
+    return status;
+}
+
+esp_err_t rgb_set_g_duty_percent(RGB_HANDLE handle, uint32_t *val) {
+    esp_err_t status = ESP_OK;
+    uint32_t d = *val;
+    if(d > 100) {
+        status = ESP_ERR_INVALID_ARG;
+        ESP_LOGE(RGB_TAG, "Duty too high!");
+    }
+    else {
+        handle->g_duty =  percent_to_duty(d, handle->max_duty);
+        update_duty(handle, RGB_RED_CHANNEL);
+    }
+
+    return status;
+}
+
+esp_err_t rgb_set_b_duty_percent(RGB_HANDLE handle, uint32_t *val) {
+    esp_err_t status = ESP_OK;
+    uint32_t d = *val;
+    if(d > 100) {
+        status = ESP_ERR_INVALID_ARG;
+        ESP_LOGE(RGB_TAG, "Duty too high!");
+    }
+    else {
+        handle->b_duty = percent_to_duty(d, handle->max_duty);
+        update_duty(handle, RGB_RED_CHANNEL);
+    }
+
+    return status;
 }
