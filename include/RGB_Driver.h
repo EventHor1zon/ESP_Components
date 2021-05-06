@@ -1,5 +1,5 @@
 /****************************************
-* \file         RGB_Driver.c
+* \file         RGB_Driver.h
 * \brief        Header file 
 * \date         April 2021
 * \author       RJAM
@@ -18,6 +18,7 @@
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#define CONFIG_USE_PERIPH_MANAGER
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
 #include "CommandAPI.h"
@@ -66,6 +67,8 @@ typedef struct RGB_Driver
 
     bool active_level;  /**< active high(1)/low(0) **/
 
+    uint32_t fade_time;
+
     uint32_t resolution;    /**< pwm resolution **/
     uint32_t frequency;     /**< pwm frequency **/
     uint32_t max_duty;      
@@ -86,13 +89,22 @@ typedef rgb_driver_t * RGB_HANDLE;
 
 RGB_HANDLE rgb_driver_init(rgb_init_t *init);
 
-esp_err_t set_r_duty(RGB_HANDLE handle, uint32_t *val);
+esp_err_t rgb_set_r_duty(RGB_HANDLE handle, uint32_t *val);
 
-esp_err_t set_g_duty(RGB_HANDLE handle, uint32_t *val);
+esp_err_t rgb_set_g_duty(RGB_HANDLE handle, uint32_t *val);
 
-esp_err_t set_b_duty(RGB_HANDLE handle, uint32_t *val);
+esp_err_t rgb_set_b_duty(RGB_HANDLE handle, uint32_t *val);
 
+esp_err_t rgb_get_r_duty(RGB_HANDLE handle, uint32_t *val);
 
+esp_err_t rgb_get_g_duty(RGB_HANDLE handle, uint32_t *val);
 
+esp_err_t rgb_get_b_duty(RGB_HANDLE handle, uint32_t *val);
+
+esp_err_t rgb_set_r_duty_percent(RGB_HANDLE handle, uint32_t *val);
+
+esp_err_t rgb_set_g_duty_percent(RGB_HANDLE handle, uint32_t *val);
+
+esp_err_t rgb_set_b_duty_percent(RGB_HANDLE handle, uint32_t *val);
 
 #endif /* RGB_DRIVER_H */

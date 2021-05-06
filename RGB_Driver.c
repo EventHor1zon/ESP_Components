@@ -9,6 +9,8 @@
 ****************************************/
 
 /********* Includes *******************/
+
+#include <math.h>
 #include "esp_err.h"
 #include "esp_types.h"
 #include "esp_log.h"
@@ -25,9 +27,8 @@ const char *RGB_TAG = "RGB_Driver";
 
 
 
-
 #ifdef CONFIG_USE_PERIPH_MANAGER
-
+#include "CommandAPI.h"
 const parameter_t rgb_param_map[rgb_param_len] = {
     {"Red Duty", 1, &rgb_get_r_duty, &rgb_set_r_duty, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
     {"Green Duty", 2, &rgb_get_g_duty, &rgb_set_g_duty, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
@@ -40,7 +41,7 @@ const parameter_t rgb_param_map[rgb_param_len] = {
 const peripheral_t rgb_periph_template = {
     .handle = NULL,
     .param_len = rgb_param_len,
-    .params = rgb_parameter_map,
+    .params = rgb_param_map,
     .peripheral_name = "RGB",
     .peripheral_id = 0,
     .periph_type = PTYPE_IO,
@@ -51,7 +52,7 @@ const peripheral_t rgb_periph_template = {
 /****** Function Prototypes ***********/
 
 
-static esp_err_t update_duty(uint32_t duty, uint8_t channel);
+static esp_err_t update_duty(uint32_t duty, uint8_t channel, uint32_t fade_t);
 
 static uint32_t percent_to_duty(uint8_t percent, uint32_t max_duty);
 
@@ -63,20 +64,22 @@ static uint32_t percent_to_duty(uint8_t percent, uint32_t max_duty);
 /****** Private Functions *************/
 
 
-static esp_err_t update_duty(uint32_t duty, uint8_t channel) {
+static esp_err_t update_duty(uint32_t duty, uint8_t channel, uint32_t fade_t) {
     esp_err_t err = ESP_OK;
+
+    ESP_LOGI(RGB_TAG, "Setting channel %u duty to %u", channel, duty);
 
     switch (channel)
     {
     /** TODO: This,better - dont pass in a handle, pass a duty? **/
     case 0:
-        err = ledc_set_duty_and_update(LEDC_HIGH_SPEED_MODE, (ledc_channel_t )channel, duty, 0);
+        err = ledc_set_fade_time_and_start(LEDC_HIGH_SPEED_MODE, (ledc_channel_t)channel, duty, fade_t, LEDC_FADE_NO_WAIT);
         break;
     case 1:
-        err = ledc_set_duty_and_update(LEDC_HIGH_SPEED_MODE, (ledc_channel_t )channel, duty, 0);
+        err = ledc_set_fade_time_and_start(LEDC_HIGH_SPEED_MODE, (ledc_channel_t)channel, duty, fade_t, LEDC_FADE_NO_WAIT);
         break;
     case 2:
-        err = ledc_set_duty_and_update(LEDC_HIGH_SPEED_MODE, (ledc_channel_t )channel, duty, 0);
+        err = ledc_set_fade_time_and_start(LEDC_HIGH_SPEED_MODE, (ledc_channel_t)channel, duty, fade_t, LEDC_FADE_NO_WAIT);
         break;
     default:
         err = ESP_ERR_INVALID_ARG;
@@ -100,20 +103,10 @@ static void rgb_driver_task(void *args) {
  
     RGB_HANDLE handle = (RGB_HANDLE)args;
 
-    static uint32_t duty = 100; 
-    static int8_t dir = 1;
-    while(1) {
-        if(duty < 3999 && duty > 99) {
-            duty = duty + (100 * dir);
-            ledc_set_duty_and_update(LEDC_HIGH_SPEED_MODE, 0, duty, 0);
-        }
-        else {
-            dir *= -1;
-            duty = duty + (100 * dir);
-            ledc_set_duty_and_update(LEDC_HIGH_SPEED_MODE, 0, duty, 0);
-        }
 
-        vTaskDelay(pdMS_TO_TICKS(10));
+    while(1) {
+        ESP_LOGI(RGB_TAG, "RGB Task");
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
     /** here be dragons **/
 }
@@ -128,7 +121,9 @@ RGB_HANDLE rgb_driver_init(rgb_init_t *init) {
     esp_err_t err = ESP_OK;
     ledc_channel_config_t cfg = {0};
     RGB_HANDLE handle = NULL;
-    TaskHandle_t t_handle = NULL;
+    TaskHandle_t t_handle;
+
+    ESP_LOGI(RGB_TAG, "Starting RGB driver");
 
     if(init->freq > 100000) {
         err = ESP_ERR_INVALID_ARG;
@@ -141,6 +136,7 @@ RGB_HANDLE rgb_driver_init(rgb_init_t *init) {
     tmrcfg.timer_num = LEDC_TIMER_0;
     tmrcfg.speed_mode = LEDC_HIGH_SPEED_MODE;
     tmrcfg.duty_resolution = LEDC_TIMER_12_BIT;
+    ESP_LOGI(RGB_TAG, "Setting up LedCtrl timer at freq %u", tmrcfg.freq_hz);
 
     err = ledc_timer_config(&tmrcfg);
 
@@ -177,6 +173,7 @@ RGB_HANDLE rgb_driver_init(rgb_init_t *init) {
             err = ESP_ERR_NO_MEM;
         }
         else {
+            handle->fade_time = 1000;
             handle->active_level = init->active_level;
             handle->b_duty = 0;
             handle->r_duty = 0;
@@ -190,7 +187,7 @@ RGB_HANDLE rgb_driver_init(rgb_init_t *init) {
         }
     }
 
-    if(!err && xTaskCreate(rgb_driver_task, "rgb_driver_task", 5012, handle, 3, t_handle) != pdTRUE) {
+    if(!err && xTaskCreate(rgb_driver_task, "rgb_driver_task", 5012, handle, 3, &t_handle) != pdTRUE) {
         ESP_LOGE(RGB_TAG, "Error creating driver task!");
         err = ESP_ERR_NO_MEM;
     }
@@ -198,6 +195,9 @@ RGB_HANDLE rgb_driver_init(rgb_init_t *init) {
         handle->t_handle = t_handle;
     }
 
+    if(!err) {
+        err = ledc_fade_func_install(ESP_INTR_FLAG_LOWMED);
+    }
 
     if(!err) {
         ESP_LOGI(RGB_TAG, "Succesfully started the RGB driver!");
@@ -213,6 +213,8 @@ RGB_HANDLE rgb_driver_init(rgb_init_t *init) {
 
 }
 
+
+
 esp_err_t rgb_set_r_duty(RGB_HANDLE handle, uint32_t *val) {
     esp_err_t status = ESP_OK;
     uint32_t d = *val;
@@ -222,7 +224,7 @@ esp_err_t rgb_set_r_duty(RGB_HANDLE handle, uint32_t *val) {
     }
     else {
         handle->r_duty = d;
-        update_duty(handle, RGB_RED_CHANNEL);
+        update_duty(d, RGB_RED_CHANNEL, handle->fade_time);
     }
 
     return status;
@@ -237,11 +239,27 @@ esp_err_t rgb_set_g_duty(RGB_HANDLE handle, uint32_t *val) {
     }
     else {
         handle->g_duty = d;
-        update_duty(handle, RGB_RED_CHANNEL);
+        update_duty(d, RGB_GRN_CHANNEL, handle->fade_time);
     }
 
     return status;
 }
+
+esp_err_t rgb_set_b_duty(RGB_HANDLE handle, uint32_t *val) {
+    esp_err_t status = ESP_OK;
+    uint32_t d = *val;
+    if(d > handle->max_duty) {
+        status = ESP_ERR_INVALID_ARG;
+        ESP_LOGE(RGB_TAG, "Duty too high!");
+    }
+    else {
+        handle->b_duty = d;
+        update_duty(d, RGB_BLU_CHANNEL, handle->fade_time);
+    }
+
+    return status;
+}
+
 
 
 esp_err_t rgb_get_r_duty(RGB_HANDLE handle, uint32_t *val) {
@@ -263,20 +281,6 @@ esp_err_t rgb_get_b_duty(RGB_HANDLE handle, uint32_t *val) {
 }
 
 
-esp_err_t rgb_set_b_duty(RGB_HANDLE handle, uint32_t *val) {
-    esp_err_t status = ESP_OK;
-    uint32_t d = *val;
-    if(d > handle->max_duty) {
-        status = ESP_ERR_INVALID_ARG;
-        ESP_LOGE(RGB_TAG, "Duty too high!");
-    }
-    else {
-        handle->b_duty = d;
-        update_duty(handle, RGB_RED_CHANNEL);
-    }
-
-    return status;
-}
 
 
 esp_err_t rgb_set_r_duty_percent(RGB_HANDLE handle, uint32_t *val) {
@@ -288,7 +292,7 @@ esp_err_t rgb_set_r_duty_percent(RGB_HANDLE handle, uint32_t *val) {
     }
     else {
         handle->r_duty = percent_to_duty(d, handle->max_duty);
-        update_duty(handle, RGB_RED_CHANNEL);
+        update_duty(handle->r_duty, RGB_RED_CHANNEL, handle->fade_time);
     }
 
     return status;
@@ -303,7 +307,7 @@ esp_err_t rgb_set_g_duty_percent(RGB_HANDLE handle, uint32_t *val) {
     }
     else {
         handle->g_duty =  percent_to_duty(d, handle->max_duty);
-        update_duty(handle, RGB_RED_CHANNEL);
+        update_duty(handle->g_duty, RGB_GRN_CHANNEL, handle->fade_time);
     }
 
     return status;
@@ -318,7 +322,7 @@ esp_err_t rgb_set_b_duty_percent(RGB_HANDLE handle, uint32_t *val) {
     }
     else {
         handle->b_duty = percent_to_duty(d, handle->max_duty);
-        update_duty(handle, RGB_RED_CHANNEL);
+        update_duty(handle->b_duty, RGB_BLU_CHANNEL, handle->fade_time);
     }
 
     return status;
