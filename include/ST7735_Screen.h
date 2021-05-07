@@ -59,8 +59,8 @@
 #define ST_CMD_PGAMMAC       0xE0;//Positive Gamma Correction Setting				_CMD_POSGAMUT
 #define ST_CMD_NGAMMAC       0xE1;//Negative Gamma Correction Setting	
 
-#define ST_CMD_TRX          0b0
-#define ST_DATA_TRX         0b1
+#define ST_CMD_TRX          0x0
+#define ST_DATA_TRX         0x01
 
 #define ST_MAC_CTRL_DATA    0b11000000
 
@@ -127,6 +127,7 @@ typedef struct st7735_init
     gpio_num_t spi_sda;
     gpio_num_t spi_cs;
     gpio_num_t rst_pin;
+    gpio_num_t cmd_pin;
     uint8_t spi_bus;
 
 } st7735_init_t;
@@ -137,7 +138,7 @@ typedef struct
 {
     bool pwr_state;        
     gpio_num_t rst_pin;
-    
+    gpio_num_t cmd_pin;
     uint8_t spi_bus;
     spi_device_handle_t devhandle; /** < screen's spi handle **/
 

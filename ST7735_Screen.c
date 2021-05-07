@@ -45,9 +45,10 @@ static esp_err_t screen_write(screen_handle_t *screen, screen_transaction_t *trx
 {
     spi_transaction_t transaction = {0};
 
-    transaction.cmd = trx->mode;
     transaction.length = trx->s_len;
     transaction.tx_buffer = trx->send;
+
+    gpio_set_level(screen->cmd_pin, trx->mode);
 
     esp_err_t status = spi_device_polling_transmit(screen->devhandle, &transaction);
     if(status != ESP_OK) {
@@ -449,7 +450,7 @@ static esp_err_t screen_init_commands(screen_handle_t *screen) {
 
     vTaskDelay(pdMS_TO_TICKS(5));
 
-    ESP_LOGI(SCRN_TAG, "Screen on... [%u]", err);
+    ESP_LOGI(SCRN_TAG, "Rotati on... [%u]", err);
 
     if(!err) {
         byte = ST_CMD_MADCTL;
@@ -514,20 +515,21 @@ screen_handle_t *init_screen(st7735_init_t *init)
 
     if(!err) {
         /** initialise the rst pin **/
-        gpio_config_t rst = {0};
-        rst.intr_type = GPIO_INTR_DISABLE;
-        rst.mode = GPIO_MODE_OUTPUT;
-        rst.pin_bit_mask = (1 << init->rst_pin);
-        rst.pull_down_en = GPIO_PULLDOWN_DISABLE;
-        rst.pull_up_en = GPIO_PULLUP_DISABLE;
+        gpio_config_t pins = {0};
+        pins.intr_type = GPIO_INTR_DISABLE;
+        pins.mode = GPIO_MODE_OUTPUT;
+        pins.pin_bit_mask = ((1 << init->rst_pin) | (1 << init->cmd_pin));
+        pins.pull_down_en = GPIO_PULLDOWN_DISABLE;
+        pins.pull_up_en = GPIO_PULLUP_DISABLE;
 
-        err = gpio_config(&rst);
+        err = gpio_config(&pins);
         if(err) {
             ESP_LOGE(SCRN_TAG, "Error setting up gpio! [%u]", err);
         }
         else {
             screen->rst_pin = init->rst_pin;
             gpio_set_level(screen->rst_pin, 1);
+            gpio_set_level(screen->cmd_pin, 0);
         }
     }
 
