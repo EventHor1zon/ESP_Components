@@ -528,6 +528,7 @@ screen_handle_t *init_screen(st7735_init_t *init)
         }
         else {
             screen->rst_pin = init->rst_pin;
+            screen->cmd_pin = init->cmd_pin;
             gpio_set_level(screen->rst_pin, 1);
             gpio_set_level(screen->cmd_pin, 0);
         }
