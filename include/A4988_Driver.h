@@ -21,6 +21,17 @@
 
 /********* Definitions *****************/
 
+#define CONFIG_USE_PERIPH_MANAGER 
+#ifdef CONFIG_USE_PERIPH_MANAGER
+
+#include "CommandAPI.h"
+#define a4988_param_len 9
+
+const parameter_t a4988_param_map[a4988_param_len];
+const peripheral_t a4988_periph_template;
+
+#endif
+
 
 #define A4988_DEFAULT_STEP_PULSE_LEN 1
 #define A4988_DEFAULT_STEP_DELAY 100
@@ -99,11 +110,13 @@ A4988_DEV a4988_init(a4988_init_t *init);
 
 esp_err_t a4988_step(A4988_DEV dev);
 
-esp_err_t a5988_reset(A4988_DEV dev);
+esp_err_t a4988_reset(A4988_DEV dev);
 
 esp_err_t a4988_clear_step_queue(A4988_DEV dev);
 
-esp_err_t a4988_queue_steps(A4988_DEV dev, uint16_t *steps);
+esp_err_t a4988_get_queued_steps(A4988_DEV dev, uint16_t *steps);
+
+esp_err_t a4988_set_queued_steps(A4988_DEV dev, uint16_t *steps);
 
 esp_err_t a4988_get_stepsize(A4988_DEV dev, uint8_t *sz);
 

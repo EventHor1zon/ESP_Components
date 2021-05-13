@@ -20,6 +20,38 @@
 
 const char *DEV_TAG = "A4988 Driver";
 static TaskHandle_t toNotify = NULL;
+
+
+#ifdef CONFIG_USE_PERIPH_MANAGER
+
+
+const parameter_t a4988_param_map[a4988_param_len] = {
+    {"step size", 1, &a4988_get_stepsize, &a4988_set_stepsize, PARAMTYPE_UINT8, 7, (GET_FLAG | SET_FLAG)},
+    {"step wait", 2, &a4988_get_step_delay, &a4988_set_step_delay, PARAMTYPE_UINT16, 0xFFFF, (GET_FLAG | SET_FLAG)},
+    {"queued steps", 3, &a4988_get_queued_steps, &a4988_set_queued_steps, PARAMTYPE_UINT16, 0xFFFF, (GET_FLAG | SET_FLAG)},
+    {"sleep state", 4, &a4988_get_sleepstate, &a4988_set_sleepstate, PARAMTYPE_BOOL, 1, (GET_FLAG | SET_FLAG)},
+    {"enable", 5, &a4988_get_enable, &a4988_set_enable, PARAMTYPE_BOOL, 1, (GET_FLAG | SET_FLAG)},
+    {"direction", 6, &a4988_get_direction, &a4988_set_direction, PARAMTYPE_BOOL, 1, (GET_FLAG | SET_FLAG)},
+    {"clear queue", 7, &a4988_clear_step_queue, NULL, PARAMTYPE_NONE, 0, (ACT_FLAG)},
+    {"step", 8, &a4988_step, NULL, PARAMTYPE_NONE, 0, (ACT_FLAG)},
+    {"reset", 9, &a4988_reset, NULL, PARAMTYPE_NONE, 0, (ACT_FLAG)},
+};
+
+const peripheral_t a4988_periph_template = {
+    .actions = NULL,
+    .actions_len = 0,
+    .handle = NULL,
+    .param_len = a4988_param_len,
+    .params = a4988_param_map,
+    .peripheral_name = "A4988",
+    .peripheral_id = 0,
+    .periph_type = PTYPE_IO,
+};
+
+#endif /** CONFIG_USE_PERIPH_MANAGER **/
+
+
+
 /****** Function Prototypes ***********/
 
 /************ ISR *********************/
@@ -58,14 +90,11 @@ static void a4988_driver_task(void *args) {
                 }
                 last_t = dev->step_wait;
             }
-            ESP_LOGI(DEV_TAG, "starting timer");
             if(xTimerStart(dev->timer, 0) != pdPASS) {
                 ESP_LOGE(DEV_TAG, "Error starting timer");
             }
             ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         }
-
-        vTaskDelay(pdMS_TO_TICKS(10));
     }
     /** here be dragons **/
 }
@@ -217,7 +246,7 @@ esp_err_t a4988_step(A4988_DEV dev) {
     return err;
 }
 
-esp_err_t a5988_reset(A4988_DEV dev) {
+esp_err_t a4988_reset(A4988_DEV dev) {
     esp_err_t err = ESP_OK;
 
     err = gpio_set_level(dev->rst, 0);
@@ -231,10 +260,16 @@ esp_err_t a4988_clear_step_queue(A4988_DEV dev) {
     return ESP_OK;
 }
 
-esp_err_t a4988_queue_steps(A4988_DEV dev, uint16_t *steps) {
+esp_err_t a4988_set_queued_steps(A4988_DEV dev, uint16_t *steps) {
     dev->steps_queued = *steps;
     return ESP_OK;
 }
+
+esp_err_t a4988_get_queued_steps(A4988_DEV dev, uint16_t *steps) {
+    *steps = dev->steps_queued;
+    return ESP_OK;
+}
+
 
 esp_err_t a4988_get_stepsize(A4988_DEV dev, uint8_t *sz) {
     *sz = dev->step_size;
