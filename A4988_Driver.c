@@ -95,6 +95,9 @@ static void a4988_driver_task(void *args) {
             }
             ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         }
+        else {
+            vTaskDelay(pdMS_TO_TICKS(100));
+        }
     }
     /** here be dragons **/
 }
