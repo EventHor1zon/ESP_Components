@@ -15,12 +15,15 @@
 #include "esp_types.h"
 
 #include "driver/gpio.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/timers.h"
 
 /********* Definitions *****************/
 
 
-#define A4988_DEFAULT_STEP_DELAY 5
-
+#define A4988_DEFAULT_STEP_PULSE_LEN 1
+#define A4988_DEFAULT_STEP_DELAY 100
 /********** Types **********************/
 
 typedef enum {
@@ -28,7 +31,7 @@ typedef enum {
     HALF_STEP_T,
     QURT_STEP_T,
     EGTH_STEP_T,
-    SXTN_STEP_T,
+    SXTN_STEP_T = 7,
 
 } step_size_t;
 
@@ -61,8 +64,10 @@ typedef struct A4988_Driver
     gpio_num_t ms2;         /**< ms2 pin  - optional **/
     gpio_num_t ms3;         /**< ms3 pin  - optional **/
 
-    uint32_t step_wait;
+    uint32_t step_pulse_len;
     uint32_t steps_queued;
+    uint16_t step_wait;
+
 
     bool is_sleeping;
     bool is_enabled;
@@ -72,6 +77,8 @@ typedef struct A4988_Driver
     bool _ms;
 
     step_size_t step_size;
+    TimerHandle_t timer;
+    TaskHandle_t t_handle;
 
 } a4988_handle_t;
 
@@ -105,13 +112,10 @@ esp_err_t a4988_get_enable(A4988_DEV dev, bool *en);
 
 esp_err_t a4988_set_enable(A4988_DEV dev, bool *en);
 
-esp_err_t a4988_get_step_delay(A4988_DEV dev, uint8_t *sz);
+esp_err_t a4988_get_step_delay(A4988_DEV dev, uint16_t *sz);
 
-esp_err_t a4988_set_step_delay(A4988_DEV dev, uint8_t *sz);
+esp_err_t a4988_set_step_delay(A4988_DEV dev, uint16_t *sz);
 
-esp_err_t a4988_get_microstep_delay(A4988_DEV dev, uint8_t *sz);
-
-esp_err_t a4988_set_microstep_delay(A4988_DEV dev, uint8_t *sz);
 
 
 #endif /* A4988_DRIVER_H */

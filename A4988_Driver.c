@@ -29,6 +29,41 @@ const char *DEV_TAG = "A4988 Driver";
 /****** Private Functions *************/
 
 
+static void a4988_timer_callback(TimerHandle_t tmr) {
+
+    A4988_DEV dev = (a4988_handle_t *)tmr;
+    BaseType_t higherPrioWoken = pdFALSE;
+
+    vTaskNotifyGiveFromISR(dev->t_handle, &higherPrioWoken);
+    return; 
+} 
+
+
+static void a4988_driver_task(void *args) {
+ 
+
+    A4988_DEV dev = args;
+    uint16_t last_t = dev->step_wait;
+
+    while(1) {
+
+        if(dev->steps_queued > 0) {
+            /** take the queued step, then start the timer & wait for notify **/
+            a4988_step(dev);
+            if(last_t != dev->step_wait) {
+                xTimerChangePeriod(dev->timer, pdMS_TO_TICKS(dev->step_wait), portMAX_DELAY);
+                last_t = dev->step_wait;
+            }
+            xTimerStart(dev->timer, portMAX_DELAY);
+            ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
+    /** here be dragons **/
+}
+
+
 /****** Global Data *******************/
 
 /****** Global Functions *************/
@@ -38,7 +73,8 @@ A4988_DEV a4988_init(a4988_init_t *init) {
 
     A4988_DEV dev = NULL;
     esp_err_t err = ESP_OK;
-
+    TaskHandle_t t_handle = NULL;
+    TimerHandle_t timer = NULL;
     gpio_config_t pins = {0};
 
 
@@ -49,6 +85,7 @@ A4988_DEV a4988_init(a4988_init_t *init) {
         err = ESP_ERR_NO_MEM;
     }
     else {
+        dev->step_pulse_len = A4988_DEFAULT_STEP_PULSE_LEN;
         dev->step_wait = A4988_DEFAULT_STEP_DELAY;
         dev->is_enabled = true;
         dev->is_sleeping = false;
@@ -131,6 +168,21 @@ A4988_DEV a4988_init(a4988_init_t *init) {
         }
     }
 
+    /** Try something - make the timer ID = pointer to our dev struct **/
+    if(!err && xTaskCreate(a4988_driver_task, "a4988_driver_task", 5012, (void *)dev, 3, t_handle) != pdTRUE) {
+        ESP_LOGE(DEV_TAG, "Error starting dev task!");
+        err = ESP_ERR_NO_MEM;
+    }
+    else {
+        dev->t_handle = t_handle;
+    }
+
+    if(!err ) {
+        timer = xTimerCreate("a4988_timer", pdMS_TO_TICKS(dev->step_wait), true, dev, &a4988_timer_callback);
+        if(timer == NULL) {
+
+        }
+    }
 
     if(!err) {
         ESP_LOGI(DEV_TAG, "Succesfully started the A4988 Driver!");
@@ -145,8 +197,11 @@ esp_err_t a4988_step(A4988_DEV dev) {
     esp_err_t err = ESP_OK;
 
     err = gpio_set_level(dev->step, 1);
-    vTaskDelay(pdMS_TO_TICKS(dev->step_wait));
+    vTaskDelay(pdMS_TO_TICKS(dev->step_pulse_len));
     err = gpio_set_level(dev->step, 0);
+    if(dev->steps_queued > 0) {
+        dev->steps_queued--;
+    }
     return err;
 }
 
@@ -182,15 +237,22 @@ esp_err_t a4988_set_stepsize(A4988_DEV dev, uint8_t *sz) {
         ESP_LOGE(DEV_TAG, "Driver does not control step size!");
         return ESP_ERR_NOT_SUPPORTED;
     }
-    if(val > SXTN_STEP_T) {
+    
+    if( val != FULL_STEP_T &&
+        val != HALF_STEP_T &&
+        val != QURT_STEP_T &&
+        val != EGTH_STEP_T &&
+        val != SXTN_STEP_T 
+    ){
         return ESP_ERR_INVALID_ARG;
     }
-    else {
-        /** write the pins **/
-        gpio_set_level(dev->ms1, (val & 0b001));
-        gpio_set_level(dev->ms1, (val & 0b010));
-        gpio_set_level(dev->ms1, (val & 0b100));
-    }
+
+    /** write the pins **/
+    gpio_set_level(dev->ms1, (val & 0b001));
+    gpio_set_level(dev->ms1, (val & 0b010));
+    gpio_set_level(dev->ms1, (val & 0b100));
+
+    return ESP_OK;
 }
 
 esp_err_t a4988_get_sleepstate(A4988_DEV dev, bool *slp) {
@@ -217,16 +279,33 @@ esp_err_t a4988_set_sleepstate(A4988_DEV dev, bool *slp) {
 }
 
 esp_err_t a4988_get_enable(A4988_DEV dev, bool *en) {
-
+    *en = dev->is_enabled;
+    return ESP_OK;
 }
 
-esp_err_t a4988_set_enable(A4988_DEV dev, bool *en);
+esp_err_t a4988_set_enable(A4988_DEV dev, bool *en) {
+    if(!(dev->_en)) {
+        return ESP_ERR_NOT_SUPPORTED;
+    }
+    else {
+        uint32_t e = (uint32_t)*en;
+        gpio_set_level(dev->enable, e);
+    }
+    return ESP_OK;
+}
 
-esp_err_t a4988_get_step_delay(A4988_DEV dev, uint8_t *sz);
+esp_err_t a4988_get_step_delay(A4988_DEV dev, uint16_t *t) {
+    *t = dev->step_wait;
+    return ESP_OK;
+}
 
-esp_err_t a4988_set_step_delay(A4988_DEV dev, uint8_t *sz);
+esp_err_t a4988_set_step_delay(A4988_DEV dev, uint16_t *t) {
 
-esp_err_t a4988_get_microstep_delay(A4988_DEV dev, uint8_t *sz);
+    dev->step_wait = *t;
+    return ESP_OK;
+}
 
-esp_err_t a4988_set_microstep_delay(A4988_DEV dev, uint8_t *sz);
+
+
+
 
