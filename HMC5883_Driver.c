@@ -97,7 +97,7 @@ HMC_DEV hmc_init(hmc_init_t *ini) {
             dev->drdy_pin = ini->drdy_pin;
             dev->i2c_bus = ini->i2c_bus;
             dev->i2c_address = HMC_I2C_ADDR;
-            dev->mode = HMC_MODE_SINGLE_MEASURE;
+            dev->mode = HMC_MODE_STANDBY;
         }
     }
     /** create the driver task ***/
@@ -152,12 +152,179 @@ esp_err_t hmc_set_mode(HMC_DEV dev, uint8_t *val) {
     return err;
 }
 
-esp_err_t hmc_get_avg_samples(HMC_DEV dev, uint8_t *val);
 
-esp_err_t hmc_set_avg_samples(HMC_DEV dev, uint8_t *val);
+esp_err_t hmc_get_scale(HMC_DEV dev, uint8_t *val) {
+   esp_err_t status = ESP_OK;
+   *val = dev->scale;
+   return status;
+}
+
+
+esp_err_t hmc_set_scale(HMC_DEV dev, uint8_t *val) {
+   esp_err_t err = ESP_OK;
+   
+   uint8_t byte = *val;
+   if(byte > 1) {
+       ESP_LOGE(HMC_TAG, "Invalid scale value");
+       err = ESP_ERR_INVALID_ARG;
+   }
+   else {
+        err = gcd_i2c_read_address(dev->i2c_bus, dev->i2c_address, HMC_REGADDR_CTRL_A, 1, regval);
+        if(!err) {
+            regval &= ~(0b110000); // clear the lowest 2 bits
+            regval |= (byte << 4);
+            err = gcd_i2c_write_address(dev->i2c_bus, dev->i2c_address, HMC_REGADDR_CTRL_A, 1, &regval);
+        }
+
+   }
+   return err;
+}
+
+
+esp_err_t hmc_get_data_rate(HMC_DEV dev, uint8_t *val) {
+   esp_err_t status = ESP_OK;
+   *val = dev->d_rate;
+   return status;
+}
+
+
+esp_err_t hmc_set_data_rate(HMC_DEV dev, uint8_t *val) {
+   esp_err_t err = ESP_OK;
+   
+   uint8_t byte = *val;
+   if(byte > HMC_DOR_200HZ) {
+       ESP_LOGE(HMC_TAG, "Invalid scale value");
+       err = ESP_ERR_INVALID_ARG;
+   }
+   else {
+        err = gcd_i2c_read_address(dev->i2c_bus, dev->i2c_address, HMC_REGADDR_CTRL_A, 1, regval);
+        if(!err) {
+            regval &= ~(0b1100); // clear the lowest 2 bits
+            regval |= (byte << 2);
+            err = gcd_i2c_write_address(dev->i2c_bus, dev->i2c_address, HMC_REGADDR_CTRL_A, 1, &regval);
+        }
+
+   }
+   return err;
+}
+
+
+esp_err_t hmc_get_oversample_ratio(HMC_DEV dev, uint8_t *val) {
+   esp_err_t status = ESP_OK;
+   *val = dev->d_rate;
+   return status;
+}
+
+
+esp_err_t hmc_set_oversample_register(HMC_DEV dev, uint8_t *val) {
+   esp_err_t err = ESP_OK;
+   
+   uint8_t byte = *val;
+   if(byte > HMC_DOR_200HZ) {
+       ESP_LOGE(HMC_TAG, "Invalid scale value");
+       err = ESP_ERR_INVALID_ARG;
+   }
+   else {
+        err = gcd_i2c_read_address(dev->i2c_bus, dev->i2c_address, HMC_REGADDR_CTRL_A, 1, regval);
+        if(!err) {
+            regval &= ~(0b11000000); // clear the lowest 2 bits
+            regval |= (byte << 6);
+            err = gcd_i2c_write_address(dev->i2c_bus, dev->i2c_address, HMC_REGADDR_CTRL_A, 1, &regval);
+        }
+
+   }
+   return err;
+}
 
 
 
+esp_err_t hmc_get_interupt_enabled(HMC_DEV dev, uint8_t *val) {
+   esp_err_t status = ESP_OK;
+   *val = dev->isr_en;
+   return status;
+}
 
 
-esp_err_t hmc_update_measurements(HMC_DEV dev);
+esp_err_t hmc_set_oversample_register(HMC_DEV dev, bool *val) {
+    esp_err_t err = ESP_OK;
+    
+    uint8_t regval = 0; 
+    bool en = *val;
+    err = gcd_i2c_read_address(dev->i2c_bus, dev->i2c_address, HMC_REGADDR_CTRL_B, 1, regval);
+    if(!err) {
+        if(en && (regval & HMC_INTR_EN_MASK) == 0) {
+            regval |= HMC_INTR_EN_MASK;
+            err = gcd_i2c_write_address(dev->i2c_bus, dev->i2c_address, HMC_REGADDR_CTRL_B, 1, &regval);        
+        }
+        else if(!en && (regval & HMC_INTR_EN_MASK)) {
+            regval &= ~(0b1);
+            err = gcd_i2c_write_address(dev->i2c_bus, dev->i2c_address, HMC_REGADDR_CTRL_B, 1, &regval);        
+        }
+    }
+
+   return err;
+}
+
+esp_err_t hmc_get_x_gaus(HMC_DEV dev, float *val) {
+   esp_err_t status = ESP_OK;
+   *val = dev->results.x_val;
+   return status;
+}
+
+esp_err_t hmc_get_y_gaus(HMC_DEV dev, float *val) {
+   esp_err_t status = ESP_OK;
+   *val = dev->results.y_val;
+   return status;
+}
+
+esp_err_t hmc_get_z_gaus(HMC_DEV dev, float *val) {
+   esp_err_t status = ESP_OK;
+   *val = dev->results.z_val;
+   return status;
+}
+
+esp_err_t hmc_get_x_raw(HMC_DEV dev, int16_t *val) {
+   esp_err_t status = ESP_OK;
+   *val = dev->results.x_raw;
+   return status;
+}
+
+esp_err_t hmc_get_y_raw(HMC_DEV dev, int16_t *val) {
+   esp_err_t status = ESP_OK;
+   *val = dev->results.y_raw;
+   return status;
+}
+
+esp_err_t hmc_get_z_raw(HMC_DEV dev, int16_t *val) {
+   esp_err_t status = ESP_OK;
+   *val = dev->results.z_raw;
+   return status;
+}
+
+
+esp_err_t hmc_read_measurements(HMC_DEV dev) {
+
+    esp_err_t err = ESP_OK;
+    float mod = 0.0;
+    uint8_t buffer[6] = {0};
+
+    err = gcd_i2c_read_address(dev->i2c_bus, dev->i2c_address, HMC_REGADDR_XDATA_LSB, 6, buffer);
+
+    if(!err) {
+        dev->results.x_raw = ((int16_t )(buffer[1] << 8) || ((int16_t ) buffer[0]));
+        dev->results.y_raw = ((int16_t )(buffer[3] << 8) || ((int16_t ) buffer[2]));
+        dev->results.z_raw = ((int16_t )(buffer[5] << 8) || ((int16_t ) buffer[4]));
+    
+        if(dev->scale) {
+            mod = 2 / HMC_MAX_VALUE;
+        }
+        else {
+            mod = 8 / HMC_MAX_VALUE;
+        }
+        dev->results.x_val = mod * (float)dev->results.x_raw;
+        dev->results.y_val = mod * (float)dev->results.y_raw;
+        dev->results.z_val = mod * (float)dev->results.z_raw;
+    }
+
+    return err;
+}

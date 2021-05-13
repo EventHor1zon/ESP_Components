@@ -33,18 +33,17 @@
 #define HMC_REGADDR_CTRL_A      0x09
 #define HMC_REGADDR_CTRL_B      0x0A
 
+#define HMC_INTR_EN_MASK        (1 << 0)
+#define HMC_ROLLOVER_MASK       (1 << 6)
+#define HMC_RESET_MASK          (1 << 7)
 
-#define HMC_AVG_SAMPLES_OFFSET      5
-#define HMC_D_OUTPUT_RATE_OFFSET    2
-#define HMC_GAIN_CONFIG_OFFSET      5
-
-#define HMC_ERR_MEASURE_VAL     -4096
-
+#define HMC_MAX_VALUE           32767
+#define HMC_MIN_VALUE           -32768
 
 /********** Types **********************/
 
 typedef enum {
-    HMC_MODE_SINGLE_MEASURE,
+    HMC_MODE_STANDBY,
     HMC_MODE_CONTINUOUS,
 } hmc_mode_t;
 
@@ -58,34 +57,23 @@ typedef enum {
 } hmc_avg_samples_t;
 
 typedef enum {
-    HMC_DOR_0_75HZ,
-    HMC_DOR_1_5HZ,
-    HMC_DOR_3HZ,
-    HMC_DOR_7_5HZ,
-    HMC_DOR_15HZ,   /** default **/
-    HMC_DOR_30HZ,    
-    HMC_DOR_75HZ,
-    HMC_DOR_MAX,
-} hmc_dor_t;
+    HMC_DOR_10HZ,
+    HMC_DOR_50HZ,
+    HMC_DOR_100HZ,
+    HMC_DOR_200HZ,
+} hmc_odr_t;
 
 typedef enum {
-    HMC_MEASURE_NORMAL,
-    HMC_MEASURE_POS_BIAS,
-    HMC_MEASURE_NEG_BIAS,
-    HMC_MEASURE_MAX,    
-} hmc_measure_t;
+    HMC_OSR_512,
+    HMC_OSR_256,
+    HMC_OSR_128,
+    HMC_OSR_64,
+} hmc_osr_t;
 
 typedef enum {
-    HMC_GAIN_0_88,
-    HMC_GAIN_1_3,
-    HMC_GAIN_1_9,
-    HMC_GAIN_2_5,
-    HMC_GAIN_4,
-    HMC_GAIN_4_7,
-    HMC_GAIN_5_6,
-    HMC_GAIN_8_1,
-    HMC_GAIN_MAX
-} hmc_gain_t;
+    HMC_SCALE_2G,
+    HMC_SCALE_8G,
+} hmc_scale_t;
 
 typedef struct HMC5883_init
 {
@@ -96,19 +84,35 @@ typedef struct HMC5883_init
 } hmc_init_t;
 
 
+typedef struct HMC_Measurements {
+
+    float x_val;
+    float y_val;
+    float z_val;
+
+    int16_t x_raw;
+    int16_t y_raw;
+    int16_t z_raw;
+} hmc_measure_t;
+
 
 typedef struct HMC5883_Driver
 {
     /* data */
     uint8_t i2c_bus;
     uint8_t i2c_address;
+    bool isr_en;
     gpio_num_t drdy_pin;
 
     hmc_mode_t mode;
-    hmc_
-    hmc_drate_t data_rate;
-    
+    hmc_scale_t scale;
+    hmc_odr_t d_rate;
+    hmc_osr_t osr;
+    hmc_measure_t results;
+
     TaskHandle_t t_handle;
+
+
 
 } hmc_driver_t;
 
