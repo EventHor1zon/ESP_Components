@@ -18,7 +18,7 @@
 
 /********* Definitions *****************/
 
-#define HMC_I2C_ADDR            0x0D
+#define HMC_I2C_ADDR            0x1A
 
 
 #define HMC_REGADDR_XDATA_MSB   0x00
@@ -159,5 +159,5 @@ esp_err_t hmc_get_y_raw(HMC_DEV dev, int16_t *val);
 
 esp_err_t hmc_get_z_raw(HMC_DEV dev, int16_t *val);
 
-esp_err_t hmc_update_measurements(HMC_DEV dev);
+esp_err_t hmc_read_measurements(HMC_DEV dev);
 #endif /* HMC5883_DRIVER_H */

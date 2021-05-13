@@ -42,7 +42,7 @@
 /**  TESTING: incomming command from api manger **/
 
 const char *incommingCommand = "{\"command_type: 1\",\n\"command_id\" : 4,\n\"command_value\" : 2,}";
-const char *PM_TAG = "PERIPHERAL_MANAGER";
+const char *PM_TAG = "PERIPH_MANAGER";
 
 /****** Function Prototypes ***********/
 
@@ -366,30 +366,6 @@ esp_err_t peripheral_manager_init()
 {
     esp_err_t initStatus = ESP_OK;
 
-    /** peripheral init code goes here **/
-    /** use a random peripheral to check process **/
-
-    bm_initData_t bme = {0};
-    bme.devType = BME_280_DEVICE;
-    bme.addressPinState = 0;
-    bme.sampleMode = BM_FORCE_MODE;
-    bme.sampleType = BM_MODE_TEMP_PRESSURE_HUMIDITY;
-    bme.i2cChannel = PM_I2C_BUS_PRIMARY;
-
-    bm_controlData_t *bmHandle = bm280_init(&bme);
-
-    peripheral_t *bmeP = heap_caps_calloc(1, sizeof(peripheral_t), MALLOC_CAP_DEFAULT);
-    bmeP->handle = bmHandle;
-    bmeP->ptype = PTYPE_ENVIRO_SENSOR;
-    bmeP->stype = STYPE_ENVIRO_SENSOR_BME_290;
-    bmeP->actions = bm_action_mappings;
-    bmeP->actions_len = bm_action_len;
-    bmeP->params = bm_param_mappings;
-    bmeP->param_len = bm_param_len;
-    bmeP->peripheral_id = (uint32_t)(bmeP->ptype << 16) | (uint32_t)(bmeP->stype << 8) | (uint32_t)peripheral_num;
-
-    peripherals[peripheral_num] = bmeP;
-    peripheral_num++;
 
     respondq = NULL;
     respondq = xQueueCreate(PM_MAX_QUEUE_LEN, sizeof(cmd_rsp_t));
