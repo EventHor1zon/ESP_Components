@@ -102,6 +102,7 @@ typedef struct HMC5883_Driver
     uint8_t i2c_bus;
     uint8_t i2c_address;
     bool isr_en;
+    bool isr_pin_configured;
     gpio_num_t drdy_pin;
 
     hmc_mode_t mode;
