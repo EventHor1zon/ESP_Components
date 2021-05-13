@@ -131,17 +131,33 @@ esp_err_t hmc_get_mode(HMC_DEV dev, uint8_t *val);
 
 esp_err_t hmc_set_mode(HMC_DEV dev, uint8_t *val);
 
-esp_err_t hmc_get_avg_samples(HMC_DEV dev, uint8_t *val);
+esp_err_t hmc_get_scale(HMC_DEV dev, uint8_t *val);
 
-esp_err_t hmc_set_avg_samples(HMC_DEV dev, uint8_t *val);
+esp_err_t hmc_set_scale(HMC_DEV dev, uint8_t *val);
 
-esp_err_t hmc_get_mode(HMC_DEV dev, uint8_t *val);
+esp_err_t hmc_get_data_rate(HMC_DEV dev, uint8_t *val);
 
-esp_err_t hmc_set_mode(HMC_DEV dev, uint8_t *val);
+esp_err_t hmc_set_data_rate(HMC_DEV dev, uint8_t *val);
 
-esp_err_t hmc_get_mode(HMC_DEV dev, uint8_t *val);
+esp_err_t hmc_get_oversample_ratio(HMC_DEV dev, uint8_t *val);
 
-esp_err_t hmc_set_mode(HMC_DEV dev, uint8_t *val);
+esp_err_t hmc_set_oversample_register(HMC_DEV dev, uint8_t *val);
+
+esp_err_t hmc_get_interupt_enabled(HMC_DEV dev, uint8_t *val);
+
+esp_err_t hmc_set_interrupt_enabled(HMC_DEV dev, bool *val);
+
+esp_err_t hmc_get_x_gaus(HMC_DEV dev, float *val);
+
+esp_err_t hmc_get_y_gaus(HMC_DEV dev, float *val);
+
+esp_err_t hmc_get_z_gaus(HMC_DEV dev, float *val);
+
+esp_err_t hmc_get_x_raw(HMC_DEV dev, int16_t *val);
+
+esp_err_t hmc_get_y_raw(HMC_DEV dev, int16_t *val);
+
+esp_err_t hmc_get_z_raw(HMC_DEV dev, int16_t *val);
 
 esp_err_t hmc_update_measurements(HMC_DEV dev);
 #endif /* HMC5883_DRIVER_H */
