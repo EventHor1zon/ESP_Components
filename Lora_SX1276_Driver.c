@@ -24,15 +24,15 @@
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
 
-#include "CommandAPI.h"
+// #include "CommandAPI.h"
 
-const parameter_t lora_parameter_map[LORA_PERIPH_LEN] = {
+// const parameter_t lora_parameter_map[LORA_PERIPH_LEN] = {
 
-    {"Operating Mode", 1, sx1276_get_opmode_LoRa, sx1276_set_opmode_LoRa, 
+//     {"Operating Mode", 1, sx1276_get_opmode_LoRa, sx1276_set_opmode_LoRa, 
 
 
-};
-const peripheral_t lora_peripheral_template;
+// };
+// const peripheral_t lora_peripheral_template;
 
 
 #endif
