@@ -5,6 +5,9 @@
 *           - task
 *           - gets/sets
 *           - modes, etc
+*           Hahaha little gotcha... Couldn't understand why the chip ID wasn't matching - 
+*               went searching & found there's 2 different types of HMC5883L 
+*               A honeywell version & a QST version
 * \date     March 2021
 * \author   RJAM
 ****************************************/
@@ -25,7 +28,6 @@
 
 const char *HMC_TAG = "HMC5883";
 
-const uint8_t hmc_id_bytes[3] = { 0x48, 0x43, 0x34 };
 
 
 /****** Function Prototypes ***********/
@@ -94,6 +96,7 @@ HMC_DEV hmc_init(hmc_init_t *ini) {
             /** set default values in the handle **/
             dev->drdy_pin = ini->drdy_pin;
             dev->i2c_bus = ini->i2c_bus;
+            dev->i2c_address = HMC_I2C_ADDR;
             dev->mode = HMC_MODE_SINGLE_MEASURE;
         }
     }
@@ -105,23 +108,6 @@ HMC_DEV hmc_init(hmc_init_t *ini) {
     else {
         dev->t_handle = t_handle;
     }
-
-    /** better check the device is actually on the bus... **/
-    if(!err) {
-        uint8_t recv[3] = {0};
-        err = gcd_i2c_read_address(dev->i2c_bus, HMC_I2C_ADDR, HMC_REGADDR_ID_A, 3, recv);
-        if(!err 
-            && recv[0] == hmc_id_bytes[0]
-            && recv[1] == hmc_id_bytes[1]
-            && recv[2] == hmc_id_bytes[2]
-        ) {
-            ESP_LOGI(HMC_TAG, "Performed succesful ID check!");
-        } 
-        else {
-            ESP_LOGI(HMC_TAG, "ID Check was unsuccesful! [ %02x %02x %02x]", recv[0], recv[1], recv[2]);
-            /** dont fail at this point, out of curiosity **/
-        }
-    }   
 
     /** if setup fails and heap has been allocated, free now **/
     if(err){
@@ -139,20 +125,39 @@ HMC_DEV hmc_init(hmc_init_t *ini) {
 }
 
 
-esp_err_t hmc_get_mode(HMC_DEV dev, uint8_t *val);
+esp_err_t hmc_get_mode(HMC_DEV dev, uint8_t *val) {
 
-esp_err_t hmc_set_mode(HMC_DEV dev, uint8_t *val);
+    esp_err_t err = ESP_OK;
+    *val = dev->mode;
+}
+
+esp_err_t hmc_set_mode(HMC_DEV dev, uint8_t *val) {
+    
+    esp_err_t err = ESP_OK;
+    uint8_t byte = *val;
+    uint8_t regval = 0;
+    if(byte > 1) {
+        ESP_LOGE(HMC_TAG, "Invalid mode");
+        err = ESP_ERR_INVALID_ARG;
+    }
+    else {
+        err = gcd_i2c_read_address(dev->i2c_bus, dev->i2c_address, HMC_REGADDR_CTRL_A, 1, regval);
+        if(!err) {
+            regval &= ~(0b11); // clear the lowest 2 bits
+            regval |= byte;
+            err = gcd_i2c_write_address(dev->i2c_bus, dev->i2c_address, HMC_REGADDR_CTRL_A, 1, &regval);
+        }
+    }
+
+    return err;
+}
 
 esp_err_t hmc_get_avg_samples(HMC_DEV dev, uint8_t *val);
 
 esp_err_t hmc_set_avg_samples(HMC_DEV dev, uint8_t *val);
 
-esp_err_t hmc_get_mode(HMC_DEV dev, uint8_t *val);
 
-esp_err_t hmc_set_mode(HMC_DEV dev, uint8_t *val);
 
-esp_err_t hmc_get_mode(HMC_DEV dev, uint8_t *val);
 
-esp_err_t hmc_set_mode(HMC_DEV dev, uint8_t *val);
 
 esp_err_t hmc_update_measurements(HMC_DEV dev);
