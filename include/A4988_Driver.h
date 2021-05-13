@@ -48,8 +48,10 @@ typedef struct A4988_Init
     gpio_num_t ms1;         /**< ms1 pin  - optional **/
     gpio_num_t ms2;         /**< ms2 pin  - optional **/
     gpio_num_t ms3;         /**< ms3 pin  - optional **/
-    step_size_t step_size;
-
+    step_size_t step_size;  /**< step size - if driver controls 
+                                ms pins, leave at zero, else describes 
+                                the ms pin states
+                            **/
 } a4988_init_t;
 
 typedef struct A4988_Driver
@@ -64,21 +66,24 @@ typedef struct A4988_Driver
     gpio_num_t ms2;         /**< ms2 pin  - optional **/
     gpio_num_t ms3;         /**< ms3 pin  - optional **/
 
-    uint32_t step_pulse_len;
-    uint32_t steps_queued;
-    uint16_t step_wait;
+    uint32_t step_pulse_len;    /**< step pulse hold time **/
+    uint32_t steps_queued;      /**< number of steps queued  **/
+    uint16_t step_wait;         /**< delay between executing queued steps **/
 
 
-    bool is_sleeping;
-    bool is_enabled;
+    bool is_sleeping;       /**< is device sleeping **/
+    bool is_enabled;        /**< is device enabled **/
+    bool direction;         /**< current direction 
+                                (depends on wiring, dir is "true/false" for
+                                software purposes ) 
+                            **/
+    bool _en;               /**< driver manages enabled pin **/
+    bool _sleep;            /**< driver manages sleep pin **/
+    bool _ms;               /**< driver manages 3 microstep select pins **/
 
-    bool _en;
-    bool _sleep;
-    bool _ms;
-
-    step_size_t step_size;
-    TimerHandle_t timer;
-    TaskHandle_t t_handle;
+    step_size_t step_size;  /**< step size setting **/
+    TimerHandle_t timer;    /**< timer handle **/
+    TaskHandle_t t_handle;  /**< driver task handle **/
 
 } a4988_handle_t;
 
@@ -116,6 +121,8 @@ esp_err_t a4988_get_step_delay(A4988_DEV dev, uint16_t *sz);
 
 esp_err_t a4988_set_step_delay(A4988_DEV dev, uint16_t *sz);
 
+esp_err_t a4988_get_direction(A4988_DEV dev, bool *dir);
 
+esp_err_t a4988_set_direction(A4988_DEV dev, bool *dir);
 
 #endif /* A4988_DRIVER_H */

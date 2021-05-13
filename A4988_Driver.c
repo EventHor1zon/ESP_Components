@@ -19,7 +19,7 @@
 #include "freertos/timers.h"
 
 const char *DEV_TAG = "A4988 Driver";
-
+static TaskHandle_t toNotify = NULL;
 /****** Function Prototypes ***********/
 
 /************ ISR *********************/
@@ -29,13 +29,12 @@ const char *DEV_TAG = "A4988 Driver";
 /****** Private Functions *************/
 
 
-static void a4988_timer_callback(TimerHandle_t tmr) {
+void a4988_timer_callback(TimerHandle_t tmr) {
 
     A4988_DEV dev = (a4988_handle_t *)tmr;
     BaseType_t higherPrioWoken = pdFALSE;
-
-    vTaskNotifyGiveFromISR(dev->t_handle, &higherPrioWoken);
-    return; 
+    xTaskNotifyGive(toNotify);
+    return;
 } 
 
 
@@ -45,16 +44,24 @@ static void a4988_driver_task(void *args) {
     A4988_DEV dev = args;
     uint16_t last_t = dev->step_wait;
 
+    toNotify = xTaskGetCurrentTaskHandle();
+
     while(1) {
 
         if(dev->steps_queued > 0) {
             /** take the queued step, then start the timer & wait for notify **/
+            ESP_LOGI(DEV_TAG, "Stepping... (steps in queue: %u)", dev->steps_queued);
             a4988_step(dev);
             if(last_t != dev->step_wait) {
-                xTimerChangePeriod(dev->timer, pdMS_TO_TICKS(dev->step_wait), portMAX_DELAY);
+                if(xTimerChangePeriod(dev->timer, pdMS_TO_TICKS(dev->step_wait), portMAX_DELAY) == pdFAIL) {
+                    ESP_LOGE(DEV_TAG, "Error changing timer freq");
+                }
                 last_t = dev->step_wait;
             }
-            xTimerStart(dev->timer, portMAX_DELAY);
+            ESP_LOGI(DEV_TAG, "starting timer");
+            if(xTimerStart(dev->timer, 0) != pdPASS) {
+                ESP_LOGE(DEV_TAG, "Error starting timer");
+            }
             ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         }
 
@@ -89,6 +96,7 @@ A4988_DEV a4988_init(a4988_init_t *init) {
         dev->step_wait = A4988_DEFAULT_STEP_DELAY;
         dev->is_enabled = true;
         dev->is_sleeping = false;
+        dev->direction = false;
         dev->step_size = init->step_size;
         dev->rst = init->rst;
         dev->sleep = init->sleep;
@@ -119,7 +127,7 @@ A4988_DEV a4988_init(a4988_init_t *init) {
         else {
             /** set pin states **/
             gpio_set_level(dev->rst, 1);
-            gpio_set_level(dev->dir, 1);
+            gpio_set_level(dev->dir, 0);
             gpio_set_level(dev->step, 0);
         }
     }
@@ -169,7 +177,7 @@ A4988_DEV a4988_init(a4988_init_t *init) {
     }
 
     /** Try something - make the timer ID = pointer to our dev struct **/
-    if(!err && xTaskCreate(a4988_driver_task, "a4988_driver_task", 5012, (void *)dev, 3, t_handle) != pdTRUE) {
+    if(!err && xTaskCreate(a4988_driver_task, "a4988_driver_task", 5012, (void *)dev, 3, &t_handle) != pdTRUE) {
         ESP_LOGE(DEV_TAG, "Error starting dev task!");
         err = ESP_ERR_NO_MEM;
     }
@@ -178,9 +186,13 @@ A4988_DEV a4988_init(a4988_init_t *init) {
     }
 
     if(!err ) {
-        timer = xTimerCreate("a4988_timer", pdMS_TO_TICKS(dev->step_wait), true, dev, &a4988_timer_callback);
+        timer = xTimerCreate("a4988_timer", pdMS_TO_TICKS(dev->step_wait), true, (void *)dev, a4988_timer_callback);
         if(timer == NULL) {
-
+            ESP_LOGE(DEV_TAG, "Error creating timer!");
+            err = ESP_ERR_NO_MEM;
+        }
+        else {
+            dev->timer = timer;
         }
     }
 
@@ -302,10 +314,24 @@ esp_err_t a4988_get_step_delay(A4988_DEV dev, uint16_t *t) {
 esp_err_t a4988_set_step_delay(A4988_DEV dev, uint16_t *t) {
 
     dev->step_wait = *t;
+    xTaskNotifyGive(dev->t_handle);
     return ESP_OK;
 }
 
 
+esp_err_t a4988_get_direction(A4988_DEV dev, bool *dir) {
+    *dir = dev->direction;
+    return ESP_OK;
+}
 
+esp_err_t a4988_set_direction(A4988_DEV dev, bool *dir) {
+
+    uint8_t val = *dir;
+    if((val && !(dev->direction)) || (!(val) && dev->direction)) {
+        gpio_set_level(dev->dir, (uint32_t )val);
+        dev->direction = val;
+    }
+    return ESP_OK;
+}
 
 
