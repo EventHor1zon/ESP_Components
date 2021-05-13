@@ -113,8 +113,6 @@ typedef struct HMC5883_Driver
 
     TaskHandle_t t_handle;
 
-
-
 } hmc_driver_t;
 
 
