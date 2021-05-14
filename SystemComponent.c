@@ -53,13 +53,9 @@ const parameter_t sys_param_map[sys_cmd_len] = {
     // {"BT MAC", 3, &sys_get_bt_mac, NULL, PARAMTYPE_STRING, 0, (GET_FLAG)},
 };
 
-const action_t sys_act_map[sys_act_len] = {
-    {"Sleep", 2, &sys_sleep_until_woken}, 
-};
 
 peripheral_t sys_peripheral_template = {
-    .actions = sys_act_map,
-    .actions_len = sys_act_len,
+
     .handle = NULL,
     .param_len = sys_cmd_len,
     .params = sys_param_map,

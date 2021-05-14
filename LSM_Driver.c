@@ -32,13 +32,13 @@
 #include "CommandAPI.h"
 
 // const parameter_t lsm_parameter_mappings[lsm_param_mappings_len] = {
-//     {"Gyro X", 1, &LSM_getGyroX, NULL, PARAMTYPE_INT16, 0, (GET_FLAG) },
-//     {"Gyro Y", 2, &LSM_getGyroY, NULL, PARAMTYPE_INT16, 0, (GET_FLAG) },
-//     {"Gyro Z", 3, &LSM_getGyroZ, NULL, PARAMTYPE_INT16, 0, (GET_FLAG) },
-//     {"Accel X", 4, &LSM_getAccelX, NULL, PARAMTYPE_INT16, 0, (GET_FLAG) },
-//     {"Accel Y", 5, &LSM_getAccelY, NULL, PARAMTYPE_INT16, 0, (GET_FLAG) },
-//     {"Accel Z", 6, &LSM_getAccelZ, NULL, PARAMTYPE_INT16, 0, (GET_FLAG) },
-//     {"Op Mode", 7, &LSM_getOpMode, &LSM_setOpMode, PARAMTYPE_UIN8, 2, (GET_FLAG | SET_FLAG)},
+//     {"Gyro X", 1, &LSM_getGyroX, NULL, NULL, PARAMTYPE_INT16, 0, (GET_FLAG) },
+//     {"Gyro Y", 2, &LSM_getGyroY, NULL, NULL, PARAMTYPE_INT16, 0, (GET_FLAG) },
+//     {"Gyro Z", 3, &LSM_getGyroZ, NULL, NULL, PARAMTYPE_INT16, 0, (GET_FLAG) },
+//     {"Accel X", 4, &LSM_getAccelX, NULL, NULL, PARAMTYPE_INT16, 0, (GET_FLAG) },
+//     {"Accel Y", 5, &LSM_getAccelY, NULL, NULL, PARAMTYPE_INT16, 0, (GET_FLAG) },
+//     {"Accel Z", 6, &LSM_getAccelZ, NULL, NULL, PARAMTYPE_INT16, 0, (GET_FLAG) },
+//     {"Op Mode", 7, &LSM_getOpMode, &LSM_setOpMode, NULL, PARAMTYPE_UIN8, 2, (GET_FLAG | SET_FLAG)},
 // };
 
 

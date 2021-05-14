@@ -30,12 +30,12 @@ const char *RGB_TAG = "RGB_Driver";
 #ifdef CONFIG_USE_PERIPH_MANAGER
 #include "CommandAPI.h"
 const parameter_t rgb_param_map[rgb_param_len] = {
-    {"Red Duty", 1, &rgb_get_r_duty, &rgb_set_r_duty, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
-    {"Green Duty", 2, &rgb_get_g_duty, &rgb_set_g_duty, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
-    {"Blue Duty", 3, &rgb_get_b_duty, &rgb_set_b_duty, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
-    {"Red (percent)", 4, NULL, &rgb_set_r_duty_percent, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
-    {"Green (percent)", 5, NULL, &rgb_set_g_duty_percent, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
-    {"Blue (percent)", 6, NULL, &rgb_set_b_duty_percent, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
+    {"Red Duty", 1, &rgb_get_r_duty, &rgb_set_r_duty, NULL, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
+    {"Green Duty", 2, &rgb_get_g_duty, &rgb_set_g_duty, NULL, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
+    {"Blue Duty", 3, &rgb_get_b_duty, &rgb_set_b_duty, NULL, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
+    {"Red (percent)", 4, NULL, &rgb_set_r_duty_percent, NULL, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
+    {"Green (percent)", 5, NULL, &rgb_set_g_duty_percent,NULL,  PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
+    {"Blue (percent)", 6, NULL, &rgb_set_b_duty_percent, NULL, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
 };
 
 const peripheral_t rgb_periph_template = {
