@@ -59,21 +59,19 @@ const ws2812b_timing_t ws2812Timings = {
 
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
-const parameter_t availableCommands[ws2812_param_len] = {
-    /** TODO: replace magic numbers */
-    {"NumLeds", 1, &ws2812_get_numleds, NULL, PARAMTYPE_UINT32, 0, (GET_FLAG)},
-    {"Mode", 2, &ws2812_get_mode, NULL, PARAMTYPE_UINT8, 4, (GET_FLAG | SET_FLAG)},
-    {"Colour", 3, &ws2812_get_colour, &ws2812_set_colour, PARAMTYPE_UINT32, 0xFFFFFF, (GET_FLAG | SET_FLAG) },
-    {"Brightness", 4, &ws2812_get_brightness, &ws2812_set_brightness, PARAMTYPE_UINT8, 5, (GET_FLAG | SET_FLAG)}
+const parameter_t ws2812_param_map[ws2812_param_len] = {
+    {"NumLeds", 1, &ws2812_get_numleds, NULL, NULL, PARAMTYPE_UINT32, 0, (GET_FLAG)},
+    {"Mode", 2, &ws2812_get_mode, &ws2812_set_mode, NULL, PARAMTYPE_UINT8, 4, (GET_FLAG | SET_FLAG)},
+    {"Colour", 3, &ws2812_get_colour, &ws2812_set_colour, NULL, PARAMTYPE_UINT32, 0xFFFFFF, (GET_FLAG | SET_FLAG) },
+    {"Brightness", 4, &ws2812_get_brightness, &ws2812_set_brightness, NULL, PARAMTYPE_UINT8, 5, (GET_FLAG | SET_FLAG)}
 };
 
 
 const peripheral_t ws_peripheral_template = {
-    .actions = NULL,
-    .actions_len = 0,
+
     .handle = NULL,
     .param_len = ws2812_param_len,
-    .params = ws2812_param_mapping,
+    .params = ws2812_param_map,
     .peripheral_name = "WS2812B",
     .peripheral_id = 0,
     .periph_type = PTYPE_ADDR_LEDS,

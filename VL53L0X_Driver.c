@@ -24,10 +24,10 @@
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
 const parameter_t vl53_param_map[vl53_param_len] = {
-    {"Device Mode", 1, &vl53_getDeviceMode, &vl53_setDeviceMode, PARAMTYPE_UINT8, 3, (GET_FLAG | SET_FLAG) }, 
-    {"Power Mode", 2, &vl53_getDevicePwr, &vl53_setDevicePwr, PARAMTYPE_UINT8, 2, (GET_FLAG | SET_FLAG) }, 
-    {"Sample Config", 3, &vl53_getDeviceMode, &vl53_setDeviceMode, PARAMTYPE_UINT8, 3, (GET_FLAG | SET_FLAG) }, 
-    {"Update Measurement", 4, &vl53_UpdateMeasurement, NULL, 0, 0, ( ACT_FLAG ) }, 
+    {"Device Mode", 1, &vl53_getDeviceMode, &vl53_setDeviceMode, NULL, PARAMTYPE_UINT8, 3, (GET_FLAG | SET_FLAG) }, 
+    {"Power Mode", 2, &vl53_getDevicePwr, &vl53_setDevicePwr, NULL, PARAMTYPE_UINT8, 2, (GET_FLAG | SET_FLAG) }, 
+    {"Sample Config", 3, &vl53_getDeviceMode, &vl53_setDeviceMode, NULL, PARAMTYPE_UINT8, 3, (GET_FLAG | SET_FLAG) }, 
+    {"Update Measurement", 4, NULL, NULL, &vl53_UpdateMeasurement, 0, 0, ( ACT_FLAG ) }, 
 }
 #endif
 

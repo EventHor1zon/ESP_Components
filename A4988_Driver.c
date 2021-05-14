@@ -26,20 +26,18 @@ static TaskHandle_t toNotify = NULL;
 
 
 const parameter_t a4988_param_map[a4988_param_len] = {
-    {"step size", 1, &a4988_get_stepsize, &a4988_set_stepsize, PARAMTYPE_UINT8, 7, (GET_FLAG | SET_FLAG)},
-    {"step wait", 2, &a4988_get_step_delay, &a4988_set_step_delay, PARAMTYPE_UINT16, 0xFFFF, (GET_FLAG | SET_FLAG)},
-    {"queued steps", 3, &a4988_get_queued_steps, &a4988_set_queued_steps, PARAMTYPE_UINT16, 0xFFFF, (GET_FLAG | SET_FLAG)},
-    {"sleep state", 4, &a4988_get_sleepstate, &a4988_set_sleepstate, PARAMTYPE_BOOL, 1, (GET_FLAG | SET_FLAG)},
-    {"enable", 5, &a4988_get_enable, &a4988_set_enable, PARAMTYPE_BOOL, 1, (GET_FLAG | SET_FLAG)},
-    {"direction", 6, &a4988_get_direction, &a4988_set_direction, PARAMTYPE_BOOL, 1, (GET_FLAG | SET_FLAG)},
-    {"clear queue", 7, &a4988_clear_step_queue, NULL, PARAMTYPE_NONE, 0, (ACT_FLAG)},
-    {"step", 8, &a4988_step, NULL, PARAMTYPE_NONE, 0, (ACT_FLAG)},
-    {"reset", 9, &a4988_reset, NULL, PARAMTYPE_NONE, 0, (ACT_FLAG)},
+    {"step size", 1, &a4988_get_stepsize, &a4988_set_stepsize, NULL, PARAMTYPE_UINT8, 7, (GET_FLAG | SET_FLAG)},
+    {"step wait", 2, &a4988_get_step_delay, &a4988_set_step_delay, NULL, PARAMTYPE_UINT16, 0xFFFF, (GET_FLAG | SET_FLAG)},
+    {"queued steps", 3, &a4988_get_queued_steps, &a4988_set_queued_steps, NULL, PARAMTYPE_UINT16, 0xFFFF, (GET_FLAG | SET_FLAG)},
+    {"sleep state", 4, &a4988_get_sleepstate, &a4988_set_sleepstate, NULL, PARAMTYPE_BOOL, 1, (GET_FLAG | SET_FLAG)},
+    {"enable", 5, &a4988_get_enable, &a4988_set_enable, NULL, PARAMTYPE_BOOL, 1, (GET_FLAG | SET_FLAG)},
+    {"direction", 6, &a4988_get_direction, &a4988_set_direction, NULL, PARAMTYPE_BOOL, 1, (GET_FLAG | SET_FLAG)},
+    {"clear queue", 7, &a4988_clear_step_queue, NULL, NULL, PARAMTYPE_NONE, 0, (ACT_FLAG)},
+    {"step", 8, &a4988_step, NULL, NULL, PARAMTYPE_NONE, 0, (ACT_FLAG)},
+    {"reset", 9, &a4988_reset, NULL, NULL, PARAMTYPE_NONE, 0, (ACT_FLAG)},
 };
 
 const peripheral_t a4988_periph_template = {
-    .actions = NULL,
-    .actions_len = 0,
     .handle = NULL,
     .param_len = a4988_param_len,
     .params = a4988_param_map,

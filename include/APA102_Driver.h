@@ -36,7 +36,7 @@ const char *APA_TAG;
 #ifdef CONFIG_USE_PERIPH_MANAGER
 #include "CommandAPI.h"
 #define apa_param_len 5
-const parameter_t apa_param_mappings[apa_param_len];
+const parameter_t apa_param_map[apa_param_len];
 const peripheral_t apa_periph_template;
 
 #endif 
