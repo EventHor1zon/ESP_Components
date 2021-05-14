@@ -24,6 +24,7 @@
 
 #include "genericCommsDriver.h"
 #include "HMC5883_Driver.h"
+#include "Utilities.h"
 
 
 const static int8_t HMC_CONFIG_INTR_LEVEL = ESP_INTR_FLAG_LEVEL3;
@@ -67,11 +68,11 @@ static void hmc_driver_task(void *args) {
 
         if(dev->isr_en && dev->isr_pin_configured) {
             ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-            hmc_update_measurements(dev);
+            hmc_read_measurements(dev);
         }
 
         else {
-            hmc_update_measurements(dev);
+            hmc_read_measurements(dev);
             ESP_LOGI(HMC_TAG, "[>] X: %0.2f\t[%d]\tY: %0.2f\t[%d]\tZ: %0.2f\t[%d]",
                      dev->results.x_val, dev->results.x_raw, 
                      dev->results.y_val, dev->results.y_raw, 
@@ -133,8 +134,15 @@ HMC_DEV hmc_init(hmc_init_t *ini) {
             dev->mode = HMC_MODE_STANDBY;
         }
     }
+
+    if(!err) {
+        uint8_t mode = 1;
+
+        hmc_set_mode(dev, &mode);
+    }
+
     /** create the driver task ***/
-    if(!err && xTaskCreate(hmc_driver_task, "hmc_driver_task", configMINIMAL_STACK_SIZE, dev, 3, &t_handle) != pdTRUE) {
+    if(!err && xTaskCreate(hmc_driver_task, "hmc_driver_task", 5012, dev, 3, &t_handle) != pdTRUE) {
         ESP_LOGE(HMC_TAG, "Error: Creating driver task!");
         err = ESP_ERR_NO_MEM;
     } 
@@ -177,8 +185,10 @@ esp_err_t hmc_set_mode(HMC_DEV dev, uint8_t *val) {
     else {
         err = gcd_i2c_read_address(dev->i2c_bus, dev->i2c_address, HMC_REGADDR_CTRL_A, 1, &regval);
         if(!err) {
+            printf("%u\n", regval);
             regval &= ~(0b11); // clear the lowest 2 bits
             regval |= byte;
+            printf("%u\n", regval);
             err = gcd_i2c_write_address(dev->i2c_bus, dev->i2c_address, HMC_REGADDR_CTRL_A, 1, &regval);
         }
     }
@@ -364,15 +374,16 @@ esp_err_t hmc_read_measurements(HMC_DEV dev) {
     err = gcd_i2c_read_address(dev->i2c_bus, dev->i2c_address, HMC_REGADDR_XDATA_LSB, 6, buffer);
 
     if(!err) {
-        dev->results.x_raw = ((int16_t )(buffer[1] << 8) || ((int16_t ) buffer[0]));
-        dev->results.y_raw = ((int16_t )(buffer[3] << 8) || ((int16_t ) buffer[2]));
-        dev->results.z_raw = ((int16_t )(buffer[5] << 8) || ((int16_t ) buffer[4]));
+        // showmem(buffer, 6);
+        dev->results.x_raw = ((((int16_t )buffer[0]) << 8) | ((int16_t ) buffer[1]));
+        dev->results.y_raw = ((((int16_t )buffer[2]) << 8) | ((int16_t ) buffer[3]));
+        dev->results.z_raw = ((((int16_t )buffer[4]) << 8) | ((int16_t ) buffer[5]));
     
         if(dev->scale) {
-            mod = 2 / HMC_MAX_VALUE;
+            mod = 2.0 / (float)HMC_MAX_VALUE;
         }
         else {
-            mod = 8 / HMC_MAX_VALUE;
+            mod = 8.0 / (float)HMC_MAX_VALUE;
         }
         dev->results.x_val = mod * (float)dev->results.x_raw;
         dev->results.y_val = mod * (float)dev->results.y_raw;

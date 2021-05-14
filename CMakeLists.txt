@@ -8,7 +8,7 @@ set(srcs
     # "BME280_Driver.c"
     # "CCS811_Driver.c"
     # "DS2321_Driver.c"
-    "HMC5883_Driver.c"
+    # "HMC5883_Driver.c"
     # "HPDL1414_Driver.c"
     # "Lora_SX1276_Driver.c"
     # "LSM_Driver.c"
@@ -20,6 +20,7 @@ set(srcs
     # "ST7735_Screen.c"
     # "VL53L0X_Driver.c"
     # "WS2812_Driver.c"
+    "A4988_Driver.c"
     )
 
 set(includes "include")

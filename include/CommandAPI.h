@@ -74,9 +74,9 @@ typedef enum param_type
     PARAMTYPE_INT32 = 0x04,
     PARAMTYPE_UINT32 = 0x04,
     PARAMTYPE_FLOAT = 0x05,
-    PARAMTYPE_STRING = 0x06,
     PARAMTYPE_DOUBLE = 0x08,
-
+    PARAMTYPE_STRING = 0x0A,
+    PARAMTYPE_BOOL = 0x0B,
     PARAMTYPE_INVALID = 0xFF
 } param_type_t;
 
