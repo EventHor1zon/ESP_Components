@@ -13,8 +13,22 @@
 
 #include "esp_err.h"
 #include "esp_types.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/timers.h"
+#include "freertos/task.h"
+
+#define CONFIG_USE_PERIPH_MANAGER 1
+
+#ifdef CONFIG_USE_PERIPH_MANAGER
+
+#include "CommandAPI.h"
+#define screen_param_len 6
+
+const parameter_t ssd1306_param_map[screen_param_len];
+const peripheral_t ssd1306_peripheral_template;
 
 
+#endif
 
 // SLA (0x3C) + WRITE_MODE (0x00) =  0x78 (0b01111000)
 #define OLED_I2C_ADDRESS   0x3C
@@ -58,8 +72,22 @@
 
 #define SSD1306_SEG_SELECT              0xB0
 #define SSD_MAX_STRLEN                    64
+#define SSD1306_MAX_LINES                  8
+
+
+
+
+
 
 /********* Definitions *****************/
+
+typedef enum {
+    SCROLL_DIR_UP,
+    SCROLL_DIR_DOWN,
+    SCROLL_DIR_LEFT,
+    SCROLL_DIR_RIGHT,
+    SCROLL_DIR_INVALID,
+} screen_scroll_dir_t;
 
 typedef struct ssd1306_init
 {
@@ -77,9 +105,16 @@ typedef struct ssd1306_handle
     uint8_t dev_addr;
     uint16_t pixel_width;
     uint16_t pixel_height;
-
+    uint8_t current_page;
     char text[SSD_MAX_STRLEN];
     uint16_t text_len;
+    uint8_t orientation; /**< 0, one way, 1> other way **/
+    bool active;
+    uint8_t scroll_speed;
+    bool is_scrolling;
+    uint8_t contrast;
+    TimerHandle_t timer;
+    TaskHandle_t task_handle;
 } ssd1306_handle_t;
 
 
@@ -87,8 +122,25 @@ typedef struct ssd1306_handle
 
 /******** Function Definitions *********/
 
+esp_err_t ssd1306_set_contrast(ssd1306_handle_t *screen, uint8_t *val);
+
+esp_err_t ssd1306_get_contrast(ssd1306_handle_t *screen, uint8_t *val);
+
+esp_err_t ssd1306_scroll_screen_dir(ssd1306_handle_t *screen, screen_scroll_dir_t *dir);
+
+esp_err_t ssd1306_set_display_orientation(ssd1306_handle_t *screen, uint8_t *val);
+
+esp_err_t ssd1306_get_orientation(ssd1306_handle_t *screen, uint8_t *val);
 
 esp_err_t ssd1306_set_text(ssd1306_handle_t *screen, char *text);
+
+esp_err_t ssd1306_set_line(ssd1306_handle_t *screen, uint8_t *line);
+
+esp_err_t ssd1306_get_line(ssd1306_handle_t *screen, uint8_t *line);
+
+esp_err_t ssd1306_clear_current_line(ssd1306_handle_t *screen);
+
+esp_err_t ssd1306_write_current_line(ssd1306_handle_t *screen);
 
 esp_err_t ssd1306_clear_screen(ssd1306_handle_t *screen);
 
