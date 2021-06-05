@@ -139,10 +139,14 @@ const peripheral_t apds_periph_template;
 #define APDS_DISABLE_D_DTCR_MASK    0b0100
 #define APDS_DISABLE_U_DTCR_MASK    0b1000
 
-
 /** GST CONFIG 2 **/
 #define APDS_REGOFFSET_GST_GAIN         5
 #define APDS_REGOFFSET_GST_LED_STR      3
+
+/** GST CONFIG 3 **/
+#define APDS_DIR_BOTH_PARS_ACTIVE       0
+#define APDS_DIR_UPDOWN_ONLY            1
+#define APDS_DIR_LEFTRIGHT_ONLY         2
 
 /** GST CFG 4 **/
 #define APDS_REGBIT_GST_FIFO_CLR    (1 << 2)
@@ -151,7 +155,7 @@ const peripheral_t apds_periph_template;
 
 /** GST STAT **/
 #define APDS_REGBIT_GST_FIFO_OVR    (1 << 1)
-#define APDS_REGBIT_GST_DATA_AVAIL  (1 << 0)
+#define APDS_REGBIT_GST_DATA_VALID  (1 << 0)
 
 
 /********** Types **********************/
@@ -206,7 +210,7 @@ typedef enum {
     APDS_GST_WAIT_T_22_4MS,
     APDS_GST_WAIT_T_30_8MS,
     APDS_GST_WAIT_T_39_2MS,
-    APDS_GST_WAIT_T_MAX,
+    APDS_GST_WAIT_T_MAX,    /** do not use this value - check purposes only **/
 }gst_wait_t ; 
 
 
@@ -243,6 +247,17 @@ typedef struct APDS_Init
     gpio_num_t intr_pin;
 
 } apds_init_t;
+
+
+typedef struct APDS9960_Data
+{
+    /* data */
+    uint8_t gst_fifo_u_data[32];
+    uint8_t gst_fifo_d_data[32];
+    uint8_t gst_fifo_l_data[32];
+    uint8_t gst_fifo_r_data[32];
+} apds_data_t;
+
 
 
 typedef struct APDS9960_ALS_Settings
@@ -307,7 +322,11 @@ typedef struct APDS9960_GST_Settings
     uint8_t gst_satr;
     uint8_t gst_pulse_cnt;
     uint8_t gst_pulse_len;
-    uint8_t gst_d_select;
+    uint8_t gst_dir_select;
+
+    uint8_t gst_fifo_thresh;
+    bool gst_ovr;
+    bool gst_fifo_rdy;
 
 } gst_settings_t;
 
@@ -325,6 +344,9 @@ typedef struct APDS9960_Driver
     prx_settings_t prx_settings;
     als_settings_t als_settings;
     gen_settings_t gen_settings;
+
+    apds_data_t data;
+
     TaskHandle_t t_handle;
 
 } adps_handle_t;
@@ -337,34 +359,101 @@ typedef adps_handle_t * APDS_DEV;
 /******** Function Definitions *********/
 
 
-
+/**
+ * \brief - intialises the device
+ * \param init - pointer to apds_init struct
+ * 
+ * \return Handle or Null on fail
+ **/
 APDS_DEV apds_init(apds_init_t *init);
 
 
 /** Set status values **/
 
+/**
+ * \brief - Get power-on status
+ * \param dev - apds handle
+ * \param on - pointer to value
+ * \return ESP_OK or error
+ **/
 esp_err_t apds_get_pwr_on_status(APDS_DEV dev, uint8_t *on);
 
+/**
+ * \brief - Set power-on status
+ * \param dev - apds handle
+ * \param on - pointer to value (0 - 1)
+ * \return ESP_OK or error
+ **/
 esp_err_t apds_set_pwr_on_status(APDS_DEV dev, uint8_t *on);
 
+/**
+ * \brief - Get proximity sensor status
+ * \param dev - apds handle
+ * \param on - pointer to value
+ * \return ESP_OK or error
+ **/
 esp_err_t apds_get_proximity_status(APDS_DEV dev, uint8_t *on);
 
+/**
+ * \brief - Set proximity sensor on/off status
+ * \param dev - apds handle
+ * \param on - pointer to value (0-1)
+ * \return ESP_OK or error
+ **/
 esp_err_t apds_set_proximity_status(APDS_DEV dev, uint8_t *on);
 
+/**
+ * \brief - Get ALS (colour) sensor status
+ * \param dev - apds handle
+ * \param on - pointer to value storage
+ * \return ESP_OK or error
+ **/
 esp_err_t apds_get_als_status(APDS_DEV dev, uint8_t *on);
 
+/**
+ * \brief - Set ALS sensor on/off status
+ * \param dev - apds handle
+ * \param on - pointer to value (0-1)
+ * \return ESP_OK or error
+ **/
 esp_err_t apds_set_als_status(APDS_DEV dev, uint8_t *on);
 
+/**
+ * \brief - Get gesture sensor status
+ * \param dev - apds handle
+ * \param on - pointer to value storage
+ * \return ESP_OK or error
+ **/
 esp_err_t apds_get_gesture_status(APDS_DEV dev, uint8_t *on);
 
+/**
+ * \brief - Set gesture sensor on/off status
+ * \param dev - apds handle
+ * \param on - pointer to value (0-1)
+ * \return ESP_OK or error
+ **/
 esp_err_t apds_set_gesture_status(APDS_DEV dev, uint8_t *on);
 
 
 /** General settings **/
 
+
+/**
+ * \brief - Get wait time (time to wait in idle state each loop)
+ * \param dev - apds handle
+ * \param wait - pointer to value storage (see gst_wait_t)
+ * \return ESP_OK or error
+ **/
 esp_err_t apds_get_wait_time(APDS_DEV dev, uint8_t *wait);
 
+/**
+ * \brief - Get wait time (time to wait in idle state each loop)
+ * \param dev - apds handle
+ * \param wait - pointer to value storage (see gst_wait_t)
+ * \return ESP_OK or error
+ **/
 esp_err_t apds_set_wait_time(APDS_DEV dev, uint8_t *wait);
+
 
 esp_err_t apds_get_longwait_en(APDS_DEV dev, uint8_t *thr);
 
@@ -380,6 +469,18 @@ esp_err_t apds_get_led_drive_strength(APDS_DEV dev, gst_led_drive_t *drive);
 esp_err_t apds_get_sleep_after_intr(APDS_DEV dev, uint8_t *en);
 
 esp_err_t apds_set_sleep_after_intr(APDS_DEV dev, uint8_t *en);
+
+esp_err_t apds_set_gst_intr(APDS_DEV dev, uint8_t *en);
+
+esp_err_t apds_get_gst_intr(APDS_DEV dev, uint8_t *en);
+
+esp_err_t apds_set_prox_intr(APDS_DEV dev, uint8_t *en);
+
+esp_err_t apds_get_prox_intr(APDS_DEV dev, uint8_t *en);
+
+esp_err_t apds_set_als_intr(APDS_DEV dev, uint8_t *en);
+
+esp_err_t apds_get_als_intr(APDS_DEV dev, uint8_t *en);
 
 
 /** ALS **/
@@ -415,6 +516,8 @@ esp_err_t apds_get_prxintr_high_thr(APDS_DEV dev, uint8_t *thr);
 
 esp_err_t apds_set_prxintr_high_thr(APDS_DEV dev, uint8_t *thr);
 
+esp_err_t apds_get_prx_intr_persistence(APDS_DEV dev, uint8_t *cnt);
+
 esp_err_t apds_set_prx_intr_persistence(APDS_DEV dev, uint8_t *cnt);
 
 esp_err_t apds_get_prx_ledpulse_t(APDS_DEV dev, prx_ledtime_t *t);
@@ -440,6 +543,14 @@ esp_err_t apds_get_gst_proximity_ext_thr(APDS_DEV dev, uint8_t *d);
 
 esp_err_t apds_set_gst_proximity_ext_thr(APDS_DEV dev, uint8_t *d);
 
+esp_err_t apds_get_prx_direction_mode(APDS_DEV dev, uint8_t *mode);
+
+esp_err_t apds_set_prx_direction_mode(APDS_DEV dev, uint8_t *mode);
+
+esp_err_t apds_get_gst_ext_persist(APDS_DEV dev, uint8_t *val);
+
+esp_err_t apds_set_gst_ext_persist(APDS_DEV dev, uint8_t *val);
+
 
 /** Get results **/
 
@@ -455,10 +566,21 @@ esp_err_t apds_get_proximity_data(APDS_DEV dev, uint8_t *d);
 
 
 
+/*************** FIFO Settings **********************/
 
+esp_err_t apds_read_fifo_full(APDS_DEV dev);
 
+esp_err_t apds_get_gst_fifo_lvl(APDS_DEV dev, uint8_t *level);
 
+esp_err_t apds_read_fifo_data_set(APDS_DEV dev, uint8_t *index);
 
+esp_err_t apds_get_fifo_valid(APDS_DEV dev, bool *valid);
+
+esp_err_t apds_get_fifo_overflow(APDS_DEV dev, bool *ov);
+
+esp_err_t apds_get_fifo_thresh(APDS_DEV dev, uint8_t *thr);
+
+esp_err_t apds_set_fifo_thresh(APDS_DEV dev, uint8_t *thr);
 
 
 #endif /* APDS9960_DRIVER_H */
