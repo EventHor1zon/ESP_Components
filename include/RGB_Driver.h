@@ -18,14 +18,13 @@
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#define CONFIG_USE_PERIPH_MANAGER
+
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
-#include "CommandAPI.h"
 #define rgb_param_len 6
 
-const parameter_t rgb_param_map[rgb_param_len];
-const peripheral_t rgb_periph_template;
+// const parameter_t rgb_param_map[rgb_param_len];
+// const peripheral_t rgb_periph_template;
 #endif
 
 /********* Definitions *****************/

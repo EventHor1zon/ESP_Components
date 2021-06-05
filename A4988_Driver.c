@@ -32,9 +32,9 @@ const parameter_t a4988_param_map[a4988_param_len] = {
     {"sleep state", 4, &a4988_get_sleepstate, &a4988_set_sleepstate, NULL, PARAMTYPE_BOOL, 1, (GET_FLAG | SET_FLAG)},
     {"enable", 5, &a4988_get_enable, &a4988_set_enable, NULL, PARAMTYPE_BOOL, 1, (GET_FLAG | SET_FLAG)},
     {"direction", 6, &a4988_get_direction, &a4988_set_direction, NULL, PARAMTYPE_BOOL, 1, (GET_FLAG | SET_FLAG)},
-    {"clear queue", 7, &a4988_clear_step_queue, NULL, NULL, PARAMTYPE_NONE, 0, (ACT_FLAG)},
-    {"step", 8, &a4988_step, NULL, NULL, PARAMTYPE_NONE, 0, (ACT_FLAG)},
-    {"reset", 9, &a4988_reset, NULL, NULL, PARAMTYPE_NONE, 0, (ACT_FLAG)},
+    {"clear queue", 7,  NULL, NULL, &a4988_clear_step_queue, PARAMTYPE_NONE, 0, (ACT_FLAG)},
+    {"step", 8, NULL, NULL, &a4988_step, PARAMTYPE_NONE, 0, (ACT_FLAG)},
+    {"reset", 9, NULL, NULL, &a4988_reset, PARAMTYPE_NONE, 0, (ACT_FLAG)},
 };
 
 const peripheral_t a4988_periph_template = {

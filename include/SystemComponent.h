@@ -15,6 +15,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/timers.h"
 
+#include "device_config.h"
+
 #include "driver/gpio.h"
 
 /********* Definitions *****************/
@@ -80,7 +82,7 @@ void uptime_timer_callback(void *timer);
 #include "CommandAPI.h"
 #define sys_cmd_len 1
 #define sys_act_len 1
-peripheral_t sys_peripheral_template;
+// peripheral_t sys_peripheral_template;
 #endif
 
 /********** Types **********************/

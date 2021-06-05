@@ -5,7 +5,7 @@ set(srcs
     # "SystemComponent.c"
     # "APA102_Driver.c"
     # "APDS9960_Driver.c"
-    # "BME280_Driver.c"
+     "BME280_Driver.c"
     # "CCS811_Driver.c"
     # "DS2321_Driver.c"
     # "HMC5883_Driver.c"
@@ -20,10 +20,11 @@ set(srcs
     # "ST7735_Screen.c"
     # "VL53L0X_Driver.c"
     # "WS2812_Driver.c"
-    "A4988_Driver.c"
+    # "A4988_Driver.c"
     )
 
-set(includes "include")
+set(includes "include"
+             "../main/inc")
 
 idf_component_register(SRCS "${srcs}"
                     INCLUDE_DIRS ${includes}

@@ -20,7 +20,6 @@
 
 /********* Includes *******************/
 
-#include <sys/time.h>
 #include "esp_err.h"
 #include "esp_log.h"
 #include "esp_types.h"
@@ -38,7 +37,7 @@
 #include "freertos/timers.h"
 #include "freertos/task.h"
 
-#include "./include/SystemComponent.h"
+#include "SystemComponent.h"
 
 const char  *SYS_TAG = "SYSTEM";
 
