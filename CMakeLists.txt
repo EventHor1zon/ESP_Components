@@ -5,7 +5,7 @@ set(srcs
     # "SystemComponent.c"
     # "APA102_Driver.c"
     # "APDS9960_Driver.c"
-     "BME280_Driver.c"
+    # "BME280_Driver.c"
     # "CCS811_Driver.c"
     # "DS2321_Driver.c"
     # "HMC5883_Driver.c"
@@ -16,7 +16,7 @@ set(srcs
     # "MSGEQ7_Driver.c"
     # "PushButton_Driver.c"
     # "RotaryEncoder_Driver.c"
-    # "SSD1306_Driver.c"
+    "SSD1306_Driver.c"
     # "ST7735_Screen.c"
     # "VL53L0X_Driver.c"
     # "WS2812_Driver.c"
@@ -24,7 +24,8 @@ set(srcs
     )
 
 set(includes "include"
-             "../main/inc")
+             "../main/inc"
+             "../include_base")
 
 idf_component_register(SRCS "${srcs}"
                     INCLUDE_DIRS ${includes}
