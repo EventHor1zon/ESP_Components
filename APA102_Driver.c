@@ -31,7 +31,7 @@ const parameter_t apa_param_map[apa_param_len] = {
     {"Mode", 2, &apa_getMode, &apa_setMode, NULL, PARAMTYPE_UINT8, LEDFX_NUM_EFFECTS, (GET_FLAG | SET_FLAG) },
     {"Colour", 3, &apa_getColour, &apa_setMode, NULL, PARAMTYPE_UINT32, UINT32_MAX, (GET_FLAG | SET_FLAG ) },
     {"Brightness", 4, &apa_getBrightness, &apa_setBrightness, NULL, PARAMTYPE_UINT8, 31, (GET_FLAG | SET_FLAG )},
-}
+};
 
 const peripheral_t apa_periph_template = {
     .handle = NULL,
@@ -223,7 +223,6 @@ static void apaControlTask(void *args) {
 
 /****** Global Data *******************/
 
-StrandData_t *strand = NULL;
 
 const char *APA_TAG = "APA102 Driver";
 const uint32_t zerodata = 0x00000000;
@@ -245,6 +244,7 @@ esp_err_t apa_getNumleds(StrandData_t *strand, uint32_t *var) {
 esp_err_t apa_getMode(StrandData_t *strand, uint32_t *var) {
     esp_err_t status = ESP_OK;
     *var = strand->fxData->effect;
+    xTaskNotifyGive(taskHandle);
     return status;
 }
 
@@ -255,6 +255,7 @@ esp_err_t apa_setMode(StrandData_t *strand, uint8_t  *mode) {
     } else {
         strand->fxData->effect = *mode;
         ledFx_updateMode(strand);
+        xTaskNotifyGive(taskHandle);
     }
     return status;
 }
@@ -270,6 +271,7 @@ esp_err_t apa_setColour(StrandData_t *strand, uint32_t *var) {
     esp_err_t status = ESP_OK;
     strand->fxData->colour = *var;
     strand->updateLeds = true;
+    xTaskNotifyGive(taskHandle);
     return status;
 }
 
@@ -286,6 +288,7 @@ esp_err_t apa_setBrightness(StrandData_t *strand, uint8_t *var) {
         status = ESP_ERR_INVALID_ARG;
     } else {
         strand->fxData->brightness = *var;
+        xTaskNotifyGive(taskHandle);
     }
     return status;
 }
@@ -293,6 +296,7 @@ esp_err_t apa_setBrightness(StrandData_t *strand, uint8_t *var) {
 StrandData_t *APA102_init(apa102_init_t *init_data)
 {
 
+    StrandData_t *strand = NULL;
     esp_err_t init_status = ESP_OK;
 
     if (!(init_data->spi_bus == SPI2_HOST || init_data->spi_bus == SPI3_HOST))

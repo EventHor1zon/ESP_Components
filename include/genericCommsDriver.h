@@ -109,4 +109,10 @@ esp_err_t gcd_i2c_init(int16_t dataPin, int16_t clockPin, uint32_t clockSpeed, u
 esp_err_t gcd_spi_init(int16_t clk_pin, int16_t mosi_pin, int16_t miso_pin, uint8_t spi_bus,  bool use_smphr);
 
 
+/** like the above 2 i2c functions, but without a register address **/
+esp_err_t gcd_i2c_short_slave_read(uint8_t i2cChannel, uint8_t deviceAddr, uint8_t readLen, uint8_t *rxBuffer);
+
+esp_err_t gcd_i2c_short_slave_write(uint8_t i2cChannel, uint8_t deviceAddr, uint8_t writeLen, uint8_t *txBuffer);
+
+
 #endif /* GENERIC_COMMS_DRIVER_H */
