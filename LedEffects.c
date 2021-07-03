@@ -254,18 +254,15 @@ void ledEffects_nightrider(StrandData_t *strand)
     /** save variables for next run */
     fx->var5 = direction;
     fx->var2 = led_pos;
-    // showmem(strand->strandMem, strand->strandMemLength);
     strand->updateLeds = 1;
 }
 
 
 void all_single_colour(StrandData_t *strand) {
 
-    ESP_LOGI(APA_TAG, "In animation");
     if(strand == NULL || strand->strandMem == NULL || strand->fxData == NULL) {
         return;
     }
-
 
     uint8_t r, g, b;
     uint8_t *ptr = (uint8_t *)strand->strandMem;
@@ -288,7 +285,6 @@ void all_single_colour(StrandData_t *strand) {
         ptr++;
     }
 
-    showmem(strand->strandMem, strand->strandMemLength);
     strand->updateLeds = 1;
 }
 
@@ -302,7 +298,6 @@ void soft_glow(StrandData_t *strand) {
         return;
     }
 
-    ESP_LOGI(APA_TAG, "In animation");
     uint8_t r, g, b;
     uint8_t *ptr = (uint8_t *)strand->strandMem;
     uint16_t br_mod = strand->fxData->var1;

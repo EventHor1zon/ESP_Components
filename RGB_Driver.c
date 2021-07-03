@@ -10,7 +10,9 @@
 
 /********* Includes *******************/
 
-#include <math.h>
+
+#include "RGB_Driver.h"
+
 #include "esp_err.h"
 #include "esp_types.h"
 #include "esp_log.h"
@@ -21,15 +23,13 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#include "RGB_Driver.h"
 
 const char *RGB_TAG = "RGB_Driver";
 
 
-
 #ifdef CONFIG_USE_PERIPH_MANAGER
 #include "CommandAPI.h"
-const parameter_t rgb_param_map[rgb_param_len] = {
+parameter_t rgb_param_map[rgb_param_len] = {
     {"Red Duty", 1, &rgb_get_r_duty, &rgb_set_r_duty, NULL, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
     {"Green Duty", 2, &rgb_get_g_duty, &rgb_set_g_duty, NULL, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
     {"Blue Duty", 3, &rgb_get_b_duty, &rgb_set_b_duty, NULL, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
@@ -38,7 +38,7 @@ const parameter_t rgb_param_map[rgb_param_len] = {
     {"Blue (percent)", 6, NULL, &rgb_set_b_duty_percent, NULL, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
 };
 
-const peripheral_t rgb_periph_template = {
+peripheral_t rgb_periph_template = {
     .handle = NULL,
     .param_len = rgb_param_len,
     .params = rgb_param_map,

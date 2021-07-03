@@ -50,7 +50,7 @@ const parameter_t bm_param_map[bm_param_len] = {
 };
 
 
-peripheral_t bme_peripheral_template = {
+const peripheral_t bme_peripheral_template = {
     .handle = NULL,
     .param_len = bm_param_len,
     .params = bm_param_map,

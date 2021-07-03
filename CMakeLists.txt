@@ -1,11 +1,10 @@
 set(srcs
-    "genericCommsDriver.c"
     "Utilities.c"
     "LedEffects.c"
     # "SystemComponent.c"
     "APA102_Driver.c"
     # "APDS9960_Driver.c"
-    # "BME280_Driver.c"
+    "BME280_Driver.c"
     # "CCS811_Driver.c"
     # "DS2321_Driver.c"
     # "HMC5883_Driver.c"
@@ -22,6 +21,7 @@ set(srcs
     # "WS2812_Driver.c"
     # "A4988_Driver.c"
     "VEML6070_Driver.c"
+    "RGB_Driver.c"
     )
 
 set(includes "include"

@@ -29,7 +29,7 @@
 const parameter_t apa_param_map[apa_param_len] = {
     {"NumLeds", 1, &apa_getNumleds, NULL, NULL, PARAMTYPE_UINT32, 0, (GET_FLAG) },
     {"Mode", 2, &apa_getMode, &apa_setMode, NULL, PARAMTYPE_UINT8, LEDFX_NUM_EFFECTS, (GET_FLAG | SET_FLAG) },
-    {"Colour", 3, &apa_getColour, &apa_setMode, NULL, PARAMTYPE_UINT32, UINT32_MAX, (GET_FLAG | SET_FLAG ) },
+    {"Colour", 3, &apa_getColour, &apa_setColour, NULL, PARAMTYPE_UINT32, UINT32_MAX, (GET_FLAG | SET_FLAG ) },
     {"Brightness", 4, &apa_getBrightness, &apa_setBrightness, NULL, PARAMTYPE_UINT8, 31, (GET_FLAG | SET_FLAG )},
 };
 
@@ -37,7 +37,7 @@ const peripheral_t apa_periph_template = {
     .handle = NULL,
     .param_len = apa_param_len,
     .params = apa_param_map,
-    .peripheral_name = "WS2812B",
+    .peripheral_name = "APA102",
     .peripheral_id = 0,
     .periph_type = PTYPE_ADDR_LEDS,
 };
@@ -65,7 +65,6 @@ TaskHandle_t taskHandle = 0;
 void timerExpiredCallback(TimerHandle_t timer)
 {
     /** unblock the task to run the next animation **/
-    ESP_LOGI(APA_TAG, "Attempting to notify task");
     xTaskNotifyGive(taskHandle);
     xTimerReset(timer, APA_SEMTAKE_TIMEOUT);
     return;
@@ -119,7 +118,6 @@ static uint8_t apa102_ctrl_generate_brt_segment(uint8_t bright)
 /** send a polling transaction **/
 static esp_err_t send_frame_polling(StrandData_t *strand)
 {
-    ESP_LOGI("SPI_SETUP", "[+] Sending init data");
 
     esp_err_t txStatus = ESP_OK;
 
@@ -250,10 +248,11 @@ esp_err_t apa_getMode(StrandData_t *strand, uint32_t *var) {
 
 esp_err_t apa_setMode(StrandData_t *strand, uint8_t  *mode) {
     esp_err_t status = ESP_OK;
-    if(*mode > LEDFX_NUM_EFFECTS) {
+    uint8_t m = *mode;
+    if(m > LEDFX_NUM_EFFECTS) {
         status = ESP_ERR_INVALID_ARG;
     } else {
-        strand->fxData->effect = *mode;
+        strand->fxData->effect = m;
         ledFx_updateMode(strand);
         xTaskNotifyGive(taskHandle);
     }
@@ -269,7 +268,8 @@ esp_err_t apa_getColour(StrandData_t *strand, uint32_t *var) {
 
 esp_err_t apa_setColour(StrandData_t *strand, uint32_t *var) {
     esp_err_t status = ESP_OK;
-    strand->fxData->colour = *var;
+    uint32_t c = *var;
+    strand->fxData->colour = c;
     strand->updateLeds = true;
     xTaskNotifyGive(taskHandle);
     return status;
@@ -283,11 +283,11 @@ esp_err_t apa_getBrightness(StrandData_t *strand, uint8_t *var) {
 
 esp_err_t apa_setBrightness(StrandData_t *strand, uint8_t *var) {
     esp_err_t status = ESP_OK;
-
-    if(*var > APA_CTRL_MAX_BR) {
+    uint8_t v = *var;
+    if(v > APA_CTRL_MAX_BR) {
         status = ESP_ERR_INVALID_ARG;
     } else {
-        strand->fxData->brightness = *var;
+        strand->fxData->brightness = v;
         xTaskNotifyGive(taskHandle);
     }
     return status;
@@ -323,7 +323,6 @@ StrandData_t *APA102_init(apa102_init_t *init_data)
 
     if (init_status == ESP_OK)
     {
-        ESP_LOGI("SPI_SETUP", "[+] Setting up LEDs as an SPI device");
 
         spi_device_interface_config_t leds = {0};
         leds.command_bits = 0;
