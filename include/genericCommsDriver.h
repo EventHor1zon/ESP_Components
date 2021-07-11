@@ -10,6 +10,7 @@
 #define GENERIC_COMMS_DRIVER_H
 
 /********* Includes ********************/
+#include "sdkconfig.h"
 
 #include "esp_types.h"
 #include "esp_err.h"

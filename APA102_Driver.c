@@ -44,13 +44,18 @@ const peripheral_t apa_periph_template = {
 #endif
 
 /****** Function Prototypes ***********/
-static uint8_t apa102_ctrl_generate_brt_segment(uint8_t bright);
+
+static esp_err_t send_frame_dma_polling(StrandData_t *strand);
 
 static int send_frame_polling(StrandData_t *strand);
 
 static void apaControlTask(void *args);
 
-TaskHandle_t taskHandle = 0;
+
+/****** Global Data *******************/
+
+
+const char *APA_TAG = "APA102 Driver";
 
 // static esp_err_t send_32bit_frame(spi_device_handle_t spi, uint32_t *data);
 /************ ISR *********************/
@@ -65,19 +70,15 @@ TaskHandle_t taskHandle = 0;
 void timerExpiredCallback(TimerHandle_t timer)
 {
     /** unblock the task to run the next animation **/
-    xTaskNotifyGive(taskHandle);
+    StrandData_t *strand = (StrandData_t *) pvTimerGetTimerID(timer);
+    ESP_LOGI(APA_TAG, "Here");
+    xTaskNotify(strand->task_handle, APA_NOTIFY_BUILD_FRAME, eSetBits);
     xTimerReset(timer, APA_SEMTAKE_TIMEOUT);
     return;
 }
 /****** Private Data ******************/
 
-/** To do quicker transactions, going to put startFrame & endFrame data in some DMA_CAP memory
- *      some static pointers to reference easily
- **/
-static uint32_t *startFrame = NULL;
-static uint32_t *endFrame = NULL;
-
-static uint32_t init_frame[16] = {
+uint32_t init_frame[16] = {
     0xFF0000E1,
     0x00FF00E1,
     0x0000FFE1,
@@ -98,22 +99,25 @@ static uint32_t init_frame[16] = {
 /****** Private Functions *************/
 
 
+static esp_err_t send_frame_dma_polling(StrandData_t *strand) {
 
+    esp_err_t txStatus = ESP_OK;
 
-static uint8_t apa102_ctrl_generate_brt_segment(uint8_t bright)
-{
+    spi_transaction_t trx = {0};
+    
+    trx.length = (strand->strandFrameLength * 8);
+    trx.rxlength = 0;
+    trx.rx_buffer = NULL;
+    trx.tx_buffer = strand->strandFrameStart;
 
-    if (bright > APA_CTRL_MAX_BR)
-    {
-        return 0;
+    showmem(strand->strandFrameStart, strand->strandFrameLength);
+
+    txStatus = spi_device_polling_transmit(strand->ledSPIHandle, &trx);
+    if(txStatus != ESP_OK) {
+        ESP_LOGE(APA_TAG, "Error sending spi dma {%u}", txStatus);
     }
-
-    uint8_t segment = (uint8_t)APA_CTRL_BRT_MASK;
-    segment |= bright;
-
-    return segment;
+    return txStatus;
 }
-
 
 /** send a polling transaction **/
 static esp_err_t send_frame_polling(StrandData_t *strand)
@@ -180,69 +184,75 @@ static void apaControlTask(void *args) {
 
 
     StrandData_t *strand = (StrandData_t *)args;
-
+    uint32_t action = 0;
 
     while(1) {
 
-        if(strand->updateLeds) {
+
+        xTaskNotifyWait(0, UINT32_MAX, &action, pdMS_TO_TICKS(10000));
+
+        if(action & APA_NOTIFY_BUILD_FRAME) {
+#ifdef DEBUG_MODE
+            ESP_LOGI(APA_TAG, "Calling animation...");
+#endif
+            if(xSemaphoreTake(strand->memSemphr, pdMS_TO_TICKS(1000)) != pdTRUE) {
+                ESP_LOGE(APA_TAG, "Failed to get mem semaphore");
+            }
+            else
+            {
+                strand->fxData->func((void *)strand);
+                xSemaphoreGive(strand->memSemphr);
+            }
+            
+            if(xTimerGetPeriod(strand->refreshTimer) != strand->fxData->refresh_t) {
+                xTimerChangePeriod(strand->refreshTimer, strand->fxData->refresh_t, APA_SEMTAKE_TIMEOUT);
+            }
+            xTimerStart(strand->refreshTimer, portMAX_DELAY);
+        }
+       
+        if(strand->updateLeds || (action & APA_NOTIFY_WRITE_LEDS)) {
+#ifdef DEBUG_MODE
+            ESP_LOGI(APA_TAG, "Writing leds...");
+#endif
             if(xSemaphoreTake(strand->memSemphr, APA_SEMTAKE_TIMEOUT) != pdTRUE) {
                 ESP_LOGE(APA_TAG, "Failed to get LED semaphore");
-            } else {
-                if(send_frame_polling(strand) != ESP_OK) {
-                    ESP_LOGE(APA_TAG, "Failed to write to leds");                
+            } 
+            else {
+                if(strand->use_dma) {
+                    if(send_frame_dma_polling(strand) != ESP_OK) {
+                        ESP_LOGE(APA_TAG, "Failed to write to leds");                
+                    }
+                }
+                else {
+                    if(send_frame_polling(strand) != ESP_OK) {
+                        ESP_LOGE(APA_TAG, "Failed to write to leds");       
+                    }
                 }
                 if( xSemaphoreGive(strand->memSemphr) != pdTRUE) {
                     ESP_LOGE(APA_TAG, "error giving sem");
                 }
             }
         }
-        else {
-            ESP_LOGI(APA_TAG, "Not updating");
-        }
-
-        if(xTimerGetPeriod(strand->refreshTimer) != strand->fxData->refresh_t) {
-            xTimerChangePeriod(strand->refreshTimer, strand->fxData->refresh_t, APA_SEMTAKE_TIMEOUT);
-        }
-        xTimerStart(strand->refreshTimer, portMAX_DELAY);
-        ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(10000));
-        
-        ESP_LOGI(APA_TAG, "Calling animation...");
-        if(xSemaphoreTake(strand->memSemphr, pdMS_TO_TICKS(1000)) != pdTRUE) {
-            ESP_LOGE(APA_TAG, "Failed to get mem semaphore");
-        }
-        else
-        {
-            strand->fxData->func((void *)strand);
-            xSemaphoreGive(strand->memSemphr);
-        }
-        vTaskDelay(10);
+        /** clear action value **/
+        action = 0;
+        /** short delay in case of some stuck bits **/
+        vTaskDelay(5);
     }
 }
 
-/****** Global Data *******************/
 
-
-const char *APA_TAG = "APA102 Driver";
-const uint32_t zerodata = 0x00000000;
-const uint32_t onedata = 0xFFFFFFFF;
 
 /****** Global Functions *************/
 
-// static int test_frame(spi_device_handle_t ledhandle);
-
-
 esp_err_t apa_getNumleds(StrandData_t *strand, uint32_t *var) {
     esp_err_t status = ESP_OK;
-
     *var = strand->numLeds;
-
     return status;
 }
 
 esp_err_t apa_getMode(StrandData_t *strand, uint32_t *var) {
     esp_err_t status = ESP_OK;
     *var = strand->fxData->effect;
-    xTaskNotifyGive(taskHandle);
     return status;
 }
 
@@ -254,7 +264,7 @@ esp_err_t apa_setMode(StrandData_t *strand, uint8_t  *mode) {
     } else {
         strand->fxData->effect = m;
         ledFx_updateMode(strand);
-        xTaskNotifyGive(taskHandle);
+        xTaskNotify(strand->task_handle, APA_NOTIFY_REFRESH_LEDS, eSetBits);
     }
     return status;
 }
@@ -271,7 +281,7 @@ esp_err_t apa_setColour(StrandData_t *strand, uint32_t *var) {
     uint32_t c = *var;
     strand->fxData->colour = c;
     strand->updateLeds = true;
-    xTaskNotifyGive(taskHandle);
+    xTaskNotify(strand->task_handle, APA_NOTIFY_REFRESH_LEDS, eSetBits);
     return status;
 }
 
@@ -288,7 +298,7 @@ esp_err_t apa_setBrightness(StrandData_t *strand, uint8_t *var) {
         status = ESP_ERR_INVALID_ARG;
     } else {
         strand->fxData->brightness = v;
-        xTaskNotifyGive(taskHandle);
+        xTaskNotify(strand->task_handle, APA_NOTIFY_REFRESH_LEDS, eSetBits);
     }
     return status;
 }
@@ -298,27 +308,36 @@ StrandData_t *APA102_init(apa102_init_t *init_data)
 
     StrandData_t *strand = NULL;
     esp_err_t init_status = ESP_OK;
+    uint32_t led_mem_sz = 0;
+    spi_device_handle_t ledSPIHandle = NULL;
+    TaskHandle_t thandle = NULL;
+    uint8_t alignment_bytes = 0;
+    uint8_t ledmem_caps = 0;
+    
 
-    if (!(init_data->spi_bus == SPI2_HOST || init_data->spi_bus == SPI3_HOST))
+
+    if (init_data->init_spi)
     {
-        ESP_LOGE(APA_TAG, "Error - invalid SPI bus. Please use SPI2_HOST or SPI3_HOST");
-        init_status = ESP_ERR_INVALID_ARG;
-    }
+        if (!(init_data->spi_bus == SPI2_HOST || init_data->spi_bus == SPI3_HOST))
+        {
+            ESP_LOGE(APA_TAG, "Error - invalid SPI bus. Please use SPI2_HOST or SPI3_HOST");
+            init_status = ESP_ERR_INVALID_ARG;
+        }
+        else {
+            ESP_LOGI("SPI_SETUP", "[+] Setting up SPI bus");
 
-    if (init_data->init_spi && (init_status == ESP_OK))
-    {
-        ESP_LOGI("SPI_SETUP", "[+] Setting up SPI bus");
-
-        spi_bus_config_t buscfg = {0};
-        buscfg.mosi_io_num = init_data->data_pin;
-        buscfg.miso_io_num = -1;
-        buscfg.sclk_io_num = init_data->clock_pin;
-        buscfg.max_transfer_sz = 512; // led data + up to 10 frames of start & end
-        buscfg.quadhd_io_num = -1;
-        buscfg.quadwp_io_num = -1;
-        buscfg.flags = 0;
-        buscfg.intr_flags = 0;
-        ESP_ERROR_CHECK(spi_bus_initialize(HSPI_HOST, &buscfg, 1));
+            spi_bus_config_t buscfg = {0};
+            buscfg.mosi_io_num = init_data->data_pin;
+            buscfg.miso_io_num = -1;
+            buscfg.sclk_io_num = init_data->clock_pin;
+            buscfg.max_transfer_sz = 1024; // led data + up to 10 frames of start & end
+            buscfg.quadhd_io_num = -1;
+            buscfg.quadwp_io_num = -1;
+            buscfg.flags = 0;
+            buscfg.intr_flags = SPICOMMON_BUSFLAG_MASTER;
+            uint8_t dma = init_data->use_dma ? APA_DMA_CHANNEL : 0;
+            ESP_ERROR_CHECK(spi_bus_initialize(HSPI_HOST, &buscfg, dma));
+        }
     }
 
     if (init_status == ESP_OK)
@@ -334,71 +353,112 @@ StrandData_t *APA102_init(apa102_init_t *init_data)
         leds.cs_ena_pretrans = 0;
         leds.spics_io_num = -1;
         leds.queue_size = 16;
-        leds.clock_speed_hz = 200000; // APA claim to have refresh rate of 4KHz, start low.
+        leds.clock_speed_hz = APA102_CLK_SPD; // APA claim to have refresh rate of 4KHz, start low.
         leds.input_delay_ns = 0;
         leds.queue_size = 10; // bit arbitrary...
 
-        spi_device_handle_t ledSPIHandle;
-        ESP_ERROR_CHECK(spi_bus_add_device(HSPI_HOST, &leds, &ledSPIHandle));
+        led_mem_sz = init_data->numleds * APA_BYTES_PER_PIXEL;
+        /** add the zero size **/
+        led_mem_sz += APA_ZERO_FRAME_SIZE_BYTES;
+        /** add the 1's size - use num_leds * byte **/
+        led_mem_sz += init_data->numleds;
+        
+        if(init_data->use_dma) {
+            /** 32-bit align the memory **/
+            alignment_bytes = led_mem_sz % 4;
+            led_mem_sz += alignment_bytes;
+        }
 
-        startFrame = (uint32_t *)heap_caps_calloc(1, sizeof(uint32_t), MALLOC_CAP_DMA);
-        endFrame = (uint32_t *)heap_caps_calloc(1, sizeof(uint32_t), MALLOC_CAP_DMA);
+        ESP_LOGI(APA_TAG, "Led mem size: %u", led_mem_sz);
+        /** init the spi device **/
+
+        init_status = spi_bus_add_device(HSPI_HOST, &leds, &ledSPIHandle);
+        if(init_status) {
+            ESP_LOGE(APA_TAG, "Error adding SPI device! {%u}", init_status);
+        }
+    }
+
+    if(init_status == ESP_OK ) {
+
+        if(init_data->use_dma) {
+            ledmem_caps = (MALLOC_CAP_DMA | MALLOC_CAP_32BIT);
+        }
+        else {
+            ledmem_caps = (MALLOC_CAP_DEFAULT);
+        }
+
         strand = (StrandData_t *)heap_caps_calloc(1, sizeof(StrandData_t), MALLOC_CAP_8BIT);
-        uint32_t *ledMem = (uint32_t *)heap_caps_calloc(1, (init_data->numleds * APA_BYTES_PER_PIXEL), MALLOC_CAP_DMA);
+        uint32_t *ledMem = (uint32_t *)heap_caps_calloc(1, led_mem_sz, ledmem_caps);
         ledEffectData_t *lfx = ledEffectInit(strand);
 
-        if (strand != NULL && lfx != NULL && ledMem != NULL && startFrame != NULL && endFrame != NULL)
+        if (strand != NULL && lfx != NULL && ledMem != NULL)
         {
-            memset(endFrame, 0xFF, sizeof(uint32_t));
-
             strand->ledType = LEDTYPE_APA102;
             strand->bytes_per_pixel = APA_BYTES_PER_PIXEL;
             strand->numLeds = init_data->numleds;
             strand->spi_channel_no = init_data->spi_bus;
             strand->strandMemLength = APA_BYTES_PER_PIXEL * init_data->numleds;
-            strand->strandMem = ledMem;
+            strand->strandMem = (((uint32_t)ledMem) + sizeof(uint32_t));
+            strand->strandFrameStart = ledMem;
+            strand->strandFrameLength = led_mem_sz;
             strand->fxData = lfx;
             strand->ledSPIHandle = ledSPIHandle;
+            strand->use_dma = init_data->use_dma;
+
+            uint32_t offset = sizeof(uint32_t) + (APA_BYTES_PER_PIXEL * strand->numLeds);
+
+            memset((void *)(((uint32_t)strand->strandFrameStart) + offset), 0xFF, ((sizeof(uint8_t) * strand->numLeds) + alignment_bytes));
+#ifdef DEBUG_MODE
+            vTaskDelay(3);
+            showmem(strand->strandFrameStart, strand->strandFrameLength);
+            printf("\n");
+            showmem((void *)(((uint32_t)strand->strandFrameStart) + offset), (strand->numLeds * 4)+alignment_bytes);
+#endif
         }
         else
         {
             ESP_LOGE(APA_TAG, "Error in assigning Driver memory");
             init_status = ESP_ERR_NO_MEM;
         }
+    }
 
-        if (init_status == ESP_OK)
+    if (init_status == ESP_OK)
+    {
+        SemaphoreHandle_t ledSemaphore = NULL;
+        TimerHandle_t refreshTimer = xTimerCreate("refreshTimer", UINT16_MAX, pdTRUE, (void *)strand, timerExpiredCallback);
+        ledSemaphore = xSemaphoreCreateMutex();
+
+        if (refreshTimer != NULL && ledSemaphore != NULL)
         {
-            SemaphoreHandle_t ledSemaphore = NULL;
-            TimerHandle_t refreshTimer = xTimerCreate("refreshTimer", UINT16_MAX, pdTRUE, APA_TIMER_ID, timerExpiredCallback);
-            ledSemaphore = xSemaphoreCreateMutex();
-
-            if (refreshTimer != NULL && ledSemaphore != NULL)
-            {
-                strand->refreshTimer = refreshTimer;
-                strand->memSemphr = ledSemaphore;
-            }
-            else
-            {
-                ESP_LOGE(APA_TAG, "Error in setting up timer/semaphore");
-                init_status = ESP_ERR_NOT_FOUND;
-                }
+            strand->refreshTimer = refreshTimer;
+            strand->memSemphr = ledSemaphore;
         }
-
-        if(init_status == ESP_OK) {
-            ESP_LOGI(APA_TAG, "Starting the control task");
-            if(xTaskCreate(apaControlTask, "apaControlTask", 2048, (void *)strand, 3, &taskHandle) != pdTRUE) {
-                ESP_LOGE(APA_TAG, "Error creating task");
-                init_status = ESP_ERR_NO_MEM;
-            }
+        else
+        {
+            ESP_LOGE(APA_TAG, "Error in setting up timer/semaphore");
+            init_status = ESP_ERR_NOT_FOUND;
         }
     }
+
+    if(init_status == ESP_OK) {
+        ESP_LOGI(APA_TAG, "Starting the control task");
+        if(xTaskCreate(apaControlTask, "apaControlTask", 2048, (void *)strand, 3, &thandle) != pdTRUE) {
+            ESP_LOGE(APA_TAG, "Error creating task");
+            init_status = ESP_ERR_NO_MEM;
+        }
+        else {
+            strand->task_handle = thandle;
+        }
+    }
+    
 
 #ifdef DEBUG_MODE
     if (init_status == ESP_OK)
     {
         //test_frame_polling(strand);
         memcpy(strand->strandMem, init_frame, (sizeof(uint32_t) * strand->numLeds));
-        send_frame_polling(strand);
+        xTimerStart(strand->refreshTimer, pdMS_TO_TICKS(5));
+        send_frame_dma_polling(strand);
     }
 #endif
     
@@ -417,26 +477,3 @@ StrandData_t *APA102_init(apa102_init_t *init_data)
 
 
 
-
-
-
-uint32_t apa102_ctrl_generate_led_frame(void *rgb_data, uint8_t brt)
-{
-
-    uint8_t br = apa102_ctrl_generate_brt_segment(brt);
-    if (!brt)
-    {
-        return 0;
-    }
-
-    uint8_t *data = (uint8_t *)rgb_data;
-    /* color bit order for the APA102 is B, G, R in MSBF*/
-    uint8_t r = *data;
-    data++;
-    uint8_t g = *data;
-    data++;
-    uint8_t b = *data;
-
-    uint32_t frame = ((uint32_t)br << 24 | ((uint32_t)b << 16) | ((uint32_t)g << 8) | (uint32_t)r);
-    return frame;
-}

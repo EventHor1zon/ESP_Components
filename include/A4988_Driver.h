@@ -18,10 +18,10 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/timers.h"
+#include "sdkconfig.h"
 
 /********* Definitions *****************/
 
-#define CONFIG_USE_PERIPH_MANAGER 
 #ifdef CONFIG_USE_PERIPH_MANAGER
 
 #include "CommandAPI.h"

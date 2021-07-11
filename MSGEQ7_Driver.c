@@ -10,8 +10,9 @@
 #include "esp_err.h"
 #include "driver/adc_common.h"
 #include "driver/gpio.h"
-#include "/home/rich/Tools/ToolChains/ESP/esp-idf/components/esp_adc_cal/include/esp_adc_cal.h"
-#include "/home/rich/Tools/ToolChains/ESP/esp-idf/components/soc/soc/esp32/include/soc/adc_channel.h"
+#include "driver/adc.h"
+
+#include "soc/adc_channel.h"
 #include "esp_heap_caps.h"
 #include "esp_log.h"
 
@@ -19,6 +20,7 @@
 #include "freertos/task.h"
 
 #include "MSGEQ7_Driver.h"
+#include "Utilities.h"
 
 #define DEBUG
 
@@ -31,6 +33,7 @@ const char *MSG_TAG = "MSGEQ7";
 /****** Private Data ******************/
 
 /****** Private Functions *************/
+
 
 
 static void pulse_rst(msg_handle_t *handle) {
@@ -50,6 +53,26 @@ static void pulse_strobe(msg_handle_t *handle) {
     gpio_set_level(handle->strobe_pin, 0);
 
 }
+
+
+static esp_err_t sample_all_channels(msg_handle_t *handle) {
+
+
+    uint8_t channel = 0;
+    int16_t adc_val = 0;
+
+    pulse_rst(handle);
+
+    for(channel=0; channel < MSG_CHANNELS; channel++) {
+        pulse_strobe(handle);
+        adc_val = adc1_get_raw(handle->adc_channel);
+        /** so dirty **/
+        *(&handle->data.band_1 + (sizeof(int16_t) * channel)) = adc_val;
+    }
+
+    return ESP_OK;
+}
+
 
 
 static void test_mode(msg_handle_t *handle) {
@@ -96,17 +119,39 @@ static void msg_task(void *arg) {
     msg_handle_t *handle = (msg_handle_t *)arg;
     
 
+    uint8_t verbose = 1;
+
+
+
     while (1)
     {
         /* code */
-        ESP_LOGI(MSG_TAG, "In task");
-        vTaskDelay(1000);
+        if (handle->autosample) {
+            ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+            ESP_LOGI(MSG_TAG, "Got notified...");
+        
+
+        }
+        else {
+            /** just do nothing **/
+            vTaskDelay(1000);
+        }
 
     }
     /** here be dragons **/
 }
 
 /****** Global Data *******************/
+
+
+TimerCallbackFunction_t msgeq7_timer_callback(TimerHandle_t timer) {
+
+    BaseType_t higherPrio = pdFALSE;
+    msg_handle_t *handle = (msg_handle_t *)pvTimerGetTimerID(timer);
+    vTaskNotifyGiveFromISR(handle->task, &higherPrio);
+    return NULL;
+}
+
 
 /****** Global Functions *************/
 
@@ -127,37 +172,8 @@ msg_handle_t *msg_init(msg_init_t *init) {
     else {
         /** Get the channel from pin **/
         /** TODO: Make this a utility function **/
-        uint8_t pin = init->data;
-
-        switch(pin) {
-        case 32:
-                channel = ADC1_GPIO32_CHANNEL;
-                break;
-        case 33:
-                channel = ADC1_GPIO33_CHANNEL;
-                break;
-        case 34:
-                channel = ADC1_GPIO34_CHANNEL;
-                break;
-        case 35:
-                channel = ADC1_GPIO35_CHANNEL;
-                break;
-        case 36:
-                channel = ADC1_GPIO36_CHANNEL;
-                break;
-        case 37:
-                channel = ADC1_GPIO37_CHANNEL;
-                break;
-        case 38:
-                channel = ADC1_GPIO38_CHANNEL;
-                break;
-        case 39:
-                channel = ADC1_GPIO39_CHANNEL;
-                break;
-        default:
-                istat = ESP_ERR_INVALID_ARG;
-                break;
-        }
+        uint32_t pin = init->data;
+        channel = adc_channel_from_gpio(pin);
     }
 
     /** init adc **/
@@ -166,8 +182,14 @@ msg_handle_t *msg_init(msg_init_t *init) {
     }
 
     if (istat == ESP_OK) {
-        adc1_config_width(ADC_WIDTH_10Bit);
-        adc1_config_channel_atten((adc_channel_t)channel, ADC_ATTEN_DB_11);
+        if (init->adc_width >= ADC_WIDTH_MAX) {
+            istat = ESP_ERR_INVALID_ARG;
+            ESP_LOGE(MSG_TAG, "Error, invalid ADC width: Use 0-3(4 for S2)");
+        }
+        else {
+            istat = adc1_config_width(init->adc_width);
+            adc1_config_channel_atten((adc_channel_t)channel, ADC_ATTEN_DB_11);
+        }
     }
 
     /** Config GPIOs **/
@@ -205,8 +227,21 @@ msg_handle_t *msg_init(msg_init_t *init) {
             ESP_LOGE(MSG_TAG, "Error creating task!");
             istat = ESP_ERR_NO_MEM;
         }
+        else {
+            handle->task = th;
+        }
     }
 
+    if (istat == ESP_OK) {
+        TimerHandle_t timer_handle = xTimerCreate("msgeq7_timer", pdMS_TO_TICKS(100), pdTRUE, handle, msgeq7_timer_callback);
+        if(timer_handle == NULL) {
+            ESP_LOGE(MSG_TAG, "Error creating the timer");
+            istat = ESP_ERR_NO_MEM;
+        }
+        else {
+            handle->timer = timer_handle;
+        }
+    }
 
     /** If init fails, free handle **/
     if(istat != ESP_OK && handle != NULL) {
@@ -224,4 +259,56 @@ msg_handle_t *msg_init(msg_init_t *init) {
 #endif
 
     return handle;
+}
+
+
+
+esp_err_t msg_update_channels(msg_handle_t *handle) {
+
+    esp_err_t err = ESP_OK;
+    sample_all_channels(handle);
+    return err;
+}
+
+
+esp_err_t msg_get_channel_1(msg_handle_t *handle, int16_t *val) {
+    esp_err_t status = ESP_OK;
+    *val = handle->data.band_1;        
+    return status;
+}
+
+esp_err_t msg_get_channel_2(msg_handle_t *handle, int16_t *val) {
+    esp_err_t status = ESP_OK;
+    *val = handle->data.band_2;        
+    return status;
+}
+
+esp_err_t msg_get_channel_3(msg_handle_t *handle, int16_t *val) {
+    esp_err_t status = ESP_OK;
+    *val = handle->data.band_3;        
+    return status;
+}
+
+esp_err_t msg_get_channel_4(msg_handle_t *handle, int16_t *val) {
+    esp_err_t status = ESP_OK;
+    *val = handle->data.band_4;        
+    return status;
+}
+
+esp_err_t msg_get_channel_5(msg_handle_t *handle, int16_t *val) {
+    esp_err_t status = ESP_OK;
+    *val = handle->data.band_5;        
+    return status;
+}
+
+esp_err_t msg_get_channel_6(msg_handle_t *handle, int16_t *val) {
+    esp_err_t status = ESP_OK;
+    *val = handle->data.band_6;        
+    return status;
+}
+
+esp_err_t msg_get_channel_7(msg_handle_t *handle, int16_t *val) {
+    esp_err_t status = ESP_OK;
+    *val = handle->data.band_7;        
+    return status;
 }

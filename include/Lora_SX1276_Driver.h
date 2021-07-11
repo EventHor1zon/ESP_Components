@@ -5,12 +5,13 @@
 * \author   RJAM
 ****************************************/
 
-#ifndef LOAR_SX1276_H
-#define LOAR_SX1276_H
+#ifndef LORA_SX1276_H
+#define LORA_SX1276_H
 
 /********* Includes ********************/
 #include "esp_types.h"
 #include "esp_err.h"
+#include "sdkconfig.h"
 
 #include "driver/spi_common.h"
 /********* Definitions *****************/
@@ -18,7 +19,6 @@
 /** registers have overlapping addresses as function changes 
  *  between LoRa / fsk/ook mode  
  **/
-#define CONFIG_USE_PERIPH_MANAGER
 #ifdef CONFIG_USE_PERIPH_MANAGER
 
 #include "CommandAPI.h"
@@ -583,4 +583,4 @@ esp_err_t sx1276_get_mode(sx1276_driver_t *dev, uint8_t *mode);
 
 
 
-#endif /* LOAR_SX1276_H */
+#endif /* LORA_SX1276_H */

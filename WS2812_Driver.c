@@ -17,6 +17,8 @@
 
 #include <stdio.h>
 #include <string.h>
+#include "sdkconfig.h"
+
 /* esp-idf */
 #include "esp_system.h"
 #include "esp_err.h"
@@ -243,7 +245,7 @@ static void WS2812_driverTask(void *args)
                 /* if the leds require updating, take the semaphore and write new data */
                 if (strand->updateLeds)
                 {
-                    if (xSemaphoreTake(strand->memSemphr, pdMS_TO_TICKS(WS2812_SEMAPHORE_TIMEOUT)) == pdFALSE)
+                    if (xSemaphoreTake(strand->memSemphr, pdMS_TO_TICKS(WS2812_SEMAPHORE_TIMEOUT)) == 0)
                     {
                         ESP_LOGE(WS2812_TAG, "Semaphore request timed out");
                     }
@@ -478,10 +480,7 @@ esp_err_t WS2812_ledsOff(StrandData_t *strand)
         status = WS2812_transmitLedData(strand); /* write the strand data */
     }
 
-    if (xSemaphoreGive(strand->memSemphr) == pdFAIL)
-    {
-        status = ESP_FAIL;
-    }
+    xSemaphoreGive(strand->memSemphr);
 
     return status;
 }

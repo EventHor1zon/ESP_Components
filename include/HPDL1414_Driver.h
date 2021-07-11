@@ -12,6 +12,7 @@
 
 #include "esp_err.h"
 #include "driver/gpio.h"
+#include "sdkconfig.h"
 
 
 /********* Definitions *****************/

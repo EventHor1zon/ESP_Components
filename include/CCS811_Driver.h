@@ -13,6 +13,7 @@
 #include "esp_err.h"
 #include "esp_types.h"
 #include "driver/gpio.h"
+#include "sdkconfig.h"
 
 #include "freertos/task.h"
 

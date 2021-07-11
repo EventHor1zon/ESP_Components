@@ -11,8 +11,9 @@
 /********* Includes ********************/
 
 #include <stdlib.h>
-
+#include "sdkconfig.h"
 #include "driver/gpio.h"
+#include "esp_event_base.h"
 
 #include "freertos/task.h"
 #include "freertos/timers.h"
@@ -24,22 +25,18 @@
 
 #define BTN_DEFAULT_DEBOUNCE_T 150
 
-#define CONFIG_USE_PERIPH_MANAGER 1
-#define CONFIG_USE_EVENTS 1
 #ifdef CONFIG_USE_PERIPH_MANAGER
 #include "CommandAPI.h"
+#endif  /** CONFIG_USE_PERIPH_MANAGER **/
+
+
 #ifdef CONFIG_USE_EVENTS
-
-
-
 #define BTN_ID_BASE         0x45
 
 #define BTN_EVENT_BTNDOWN   (BTN_ID_BASE << 16 | NOTIFY_BTN_DWN)
 #define BTN_EVENT_BTNUP     (BTN_ID_BASE << 16 | NOTIFY_BTN_UP)
 
-
 #endif  /** CONFIG_USE_EVENTS **/
-#endif  /** CONFIG_USE_PERIPH_MANAGER **/
 
 /********** Types **********************/
 

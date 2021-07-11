@@ -12,6 +12,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 #include "freertos/timers.h"
+#include "sdkconfig.h"
+
 #include "driver/rmt.h"
 #include "driver/spi_common.h"
 #include "driver/spi_master.h"
@@ -70,7 +72,6 @@ typedef struct ledEffectData
     uint16_t refresh_t;       /** < refresh time in ms - 0 for no refresh */
     bool updateEffect;        /** < led effect has been changed - adjust parameters */
     uint8_t brightness;       /** < led brigthness  */
-    uint32_t LedEffectData_t; /** < struct for holding led effect variables if needed */
     uint16_t var1;            /**< some variables for function use **/
     uint16_t var2;
     uint32_t var3;
@@ -88,12 +89,16 @@ typedef struct StrandData
     uint16_t numLeds;                 /** < num leds in strand           */
     uint16_t strandMemLength;         /** < length of memory    */
     uint32_t *strandMem;              /** < pointer to LED data          */
+    uint32_t strandFrameLength;
+    uint32_t *strandFrameStart;  
+    bool use_dma;
     ledEffectData_t *fxData;          /** < pointer to led effect data */
     SemaphoreHandle_t memSemphr;      /** < sempahore for led data access*/
     uint8_t spi_channel_no;           /** < the channel of the SPI peripheral used **/
     TimerHandle_t refreshTimer;       /** < handle for the effect refresh timer **/
     rmt_channel_t dataChannel;        /** < TODO: replace this & next with union/bitfield **/
     spi_device_handle_t ledSPIHandle; /** < spi device handle **/
+    TaskHandle_t task_handle;
 } StrandData_t;
 
 /******** Function Definitions *********/

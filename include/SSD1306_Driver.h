@@ -17,7 +17,6 @@
 #include "freertos/timers.h"
 #include "freertos/task.h"
 
-#define CONFIG_USE_PERIPH_MANAGER 1
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
 

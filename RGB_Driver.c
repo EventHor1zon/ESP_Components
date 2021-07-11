@@ -29,16 +29,18 @@ const char *RGB_TAG = "RGB_Driver";
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
 #include "CommandAPI.h"
-parameter_t rgb_param_map[rgb_param_len] = {
+const parameter_t rgb_param_map[rgb_param_len] = {
     {"Red Duty", 1, &rgb_get_r_duty, &rgb_set_r_duty, NULL, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
     {"Green Duty", 2, &rgb_get_g_duty, &rgb_set_g_duty, NULL, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
     {"Blue Duty", 3, &rgb_get_b_duty, &rgb_set_b_duty, NULL, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
     {"Red (percent)", 4, NULL, &rgb_set_r_duty_percent, NULL, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
     {"Green (percent)", 5, NULL, &rgb_set_g_duty_percent,NULL,  PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
     {"Blue (percent)", 6, NULL, &rgb_set_b_duty_percent, NULL, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
+    {"Fade time", 7, &rgb_get_fade_time, &rgb_set_fade_time, NULL, PARAMTYPE_UINT32, 10000, (GET_FLAG | SET_FLAG)},
+    // {"Colour", 8, &rgb_get_colour, &rgb_set_colour, NULL, PARAMTYPE_UINT32, 0xFFFFFF, (GET_FLAG | SET_FLAG)},
 };
 
-peripheral_t rgb_periph_template = {
+const peripheral_t rgb_periph_template = {
     .handle = NULL,
     .param_len = rgb_param_len,
     .params = rgb_param_map,
@@ -55,6 +57,9 @@ peripheral_t rgb_periph_template = {
 static esp_err_t update_duty(uint32_t duty, uint8_t channel, uint32_t fade_t);
 
 static uint32_t percent_to_duty(uint8_t percent, uint32_t max_duty);
+
+
+
 
 
 /************ ISR *********************/
@@ -97,6 +102,8 @@ static uint32_t percent_to_duty(uint8_t percent, uint32_t max_duty) {
     p *= percent;
     return p;
 }
+
+
 
 
 static void rgb_driver_task(void *args) {
@@ -183,7 +190,7 @@ RGB_HANDLE rgb_driver_init(rgb_init_t *init) {
             handle->g_channel = 1;
             handle->b_channel = 2;
             handle->resolution = 12;        /** TODO: don't hardwire values! **/
-            handle->max_duty = 4095;
+            handle->max_duty = RGB_LEDC_DUTY;
         }
     }
 
@@ -213,6 +220,41 @@ RGB_HANDLE rgb_driver_init(rgb_init_t *init) {
 
 }
 
+
+
+// esp_err_t rgb_get_colour(RGB_HANDLE handle, uint32_t *val) {
+
+
+
+
+// } 
+
+
+// esp_err_t rgb_set_colour(RGB_HANDLE handle, uint32_t *val) {
+
+// }
+
+
+esp_err_t rgb_get_fade_time(RGB_HANDLE handle, uint32_t *val) {
+
+    esp_err_t err = ESP_OK;
+
+    *val = handle->fade_time;
+    return err;
+}
+
+esp_err_t rgb_set_fade_time(RGB_HANDLE handle, uint32_t *val) {
+    esp_err_t err = ESP_OK;
+    uint32_t t = *val; 
+    if(t > RGB_MAX_FADE_TIME || t < RGB_MIN_FADE_TIME) {
+        handle->fade_time;
+        err = ESP_ERR_INVALID_ARG;
+    }
+    else {
+        handle->fade_time = t;
+    }
+    return err;
+}
 
 
 esp_err_t rgb_set_r_duty(RGB_HANDLE handle, uint32_t *val) {

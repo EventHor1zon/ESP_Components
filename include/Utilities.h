@@ -21,4 +21,5 @@
 
 void showmem(uint8_t *ptr, uint16_t len);
 void printByteBits(uint8_t data);
+int8_t adc_channel_from_gpio(uint32_t gpio_n);
 #endif /* UTILITIES_H */

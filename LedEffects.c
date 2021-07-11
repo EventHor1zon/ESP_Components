@@ -85,7 +85,7 @@ ledEffectData_t *ledEffectInit(StrandData_t *strand)
     if (effectData != NULL)
     {
         effectData->brightness = 1;
-        effectData->LedEffectData_t = 0;
+        effectData->effect = 0;
         effectData->refresh_t = 1000;
         effectData->effect = LED_EFFECT_SINGLE_COLOUR;
         effectData->colour = 0x00001100;
@@ -279,7 +279,7 @@ void all_single_colour(StrandData_t *strand) {
         }
         *ptr = r;
         ptr++;
-            *ptr = g;
+        *ptr = g;
         ptr++;
         *ptr = b;
         ptr++;

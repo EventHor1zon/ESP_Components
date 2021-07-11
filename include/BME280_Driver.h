@@ -9,7 +9,8 @@
 #ifndef BM280_DRIVER_H
 #define BM280_DRIVER_H
 
-#define CONFIG_USE_PERIPH_MANAGER
+#include "sdkconfig.h"
+
 #define BME_280
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
