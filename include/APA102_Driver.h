@@ -24,9 +24,6 @@
 
 /********* Definitions *****************/
 
-#define DEBUG_MODE 1
-
-
 #define APA102_CLK_SPD 200000
 #define APA_BYTES_PER_PIXEL 4
 #define APA_TIMER_ID 0

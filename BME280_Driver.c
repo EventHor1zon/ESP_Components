@@ -125,9 +125,11 @@ static uint32_t bm280_compensate_P_int64(bm_controlData_t *bmCtrl)
     }
 }
 
+
+#ifdef BME_280
+
 // Returns humidity in %RH as unsigned 32 bit integer in Q22.10 format (22 integer and 10 fractional bits).
 // Output value of “47445” represents 47445/1024 = 46.333 %RH
-#ifdef BME_280
 static uint32_t bm280_compensate_H_int32(bm_controlData_t *bmCtrl)
 {
     if (bmCtrl->calibrationAquired)
@@ -306,6 +308,56 @@ static esp_err_t bm280_InitDeviceSettings(bm_controlData_t *bmCtrl)
         break;
     }
 
+    if(bmCtrl->use_cbuffer) {
+        char pattern[3] = "fff";
+        char *names[3];
+        char *n[3] = {"temperature", "pressure", "humidity"};
+        uint8_t ids[3] = {0};
+        uint8_t sz = 0;
+
+        switch(sampleType) {
+            case BM_MODE_TEMP:
+                sz = 1;
+                names[0] = n[0];
+                ids[0] = BM_TEMP_MEASURE_ID;
+                break;
+            case BM_MODE_TEMP_PRESSURE:
+                sz = 2;
+                ids[0] = BM_TEMP_MEASURE_ID;
+                ids[1] = BM_PRESSURE_MEASURE_ID;
+                names[0] = n[0];
+                names[1] = n[1];
+                break;
+#ifdef BME_280
+            case BM_MODE_TEMP_HUMIDITY:
+                sz = 2;
+                names[0] = n[0];
+                names[1] = n[2];
+                ids[0] = BM_TEMP_MEASURE_ID;
+                ids[1] = BM_HUMIDITY_MEASURE_ID;
+                break;
+            case BM_MODE_TEMP_PRESSURE_HUMIDITY:
+                sz = 3;
+                names[0] = n[0];
+                names[1] = n[1];
+                names[2] = n[2];
+                ids[0] = BM_TEMP_MEASURE_ID;
+                ids[1] = BM_PRESSURE_MEASURE_ID;
+                ids[2] = BM_HUMIDITY_MEASURE_ID;
+                break;
+#endif
+            default:
+                break;
+        }
+
+        cbuffer_clear_packet(bmCtrl->cbuff);
+        trxStatus = cbuffer_load_packet(bmCtrl->cbuff, sz, pattern, names, ids);
+        if(trxStatus) {
+            ESP_LOGE(BM_DRIVER_TAG, "Error in pattern loading: %u", trxStatus);
+            trxStatus = 0;
+        }
+    }
+
     switch (sampleType)
     {
     case BM_MODE_TEMP:
@@ -377,6 +429,8 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
     uint8_t forcedMeasure = bmCtrl->sampleMask | BM_CTRL_MODE_FORCED;
     uint8_t rxBuffer[BM_MEASURE_READ_LEN] = {0};
 
+    float temp[4] = {0};
+
     if (bmCtrl->devSettings.sampleMode == BM_FORCE_MODE)
     {
 #ifdef DEBUG
@@ -432,14 +486,23 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
             bmCtrl->sensorData.calibratedTemperature = bm280_compensate_T_int32(bmCtrl);
             bmCtrl->sensorData.realTemperature = (float)bmCtrl->sensorData.calibratedTemperature / 100.0;
             bmCtrl->devSettings.tempOS = 1;
+            if (bmCtrl->use_cbuffer) {
+                temp[0] = bmCtrl->sensorData.realTemperature;
+                cbuffer_write_packet(bmCtrl->cbuff, temp, sizeof(float));
+            }
             break;
         case BM_MODE_TEMP_PRESSURE:
             bmCtrl->sensorData.calibratedTemperature = bm280_compensate_T_int32(bmCtrl);
             bmCtrl->sensorData.calibratedPressure = bm280_compensate_P_int64(bmCtrl);
             bmCtrl->sensorData.realTemperature = (float)bmCtrl->sensorData.calibratedTemperature / 100.0;
             bmCtrl->sensorData.realPressure = (float)bmCtrl->sensorData.calibratedPressure / 256;
-            bmCtrl->devSettings.tempOS = 1;
+            bmCtrl->devSettings.tempOS = 1; /** TODO: What was I doing here? **/
             bmCtrl->devSettings.pressOS = 1;
+            if (bmCtrl->use_cbuffer) {
+                temp[0] = bmCtrl->sensorData.realTemperature;
+                temp[1] = bmCtrl->sensorData.realPressure;
+                cbuffer_write_packet(bmCtrl->cbuff, temp, sizeof(float) * 2);
+            }
             break;
 #ifdef BME_280
         case BM_MODE_TEMP_HUMIDITY:
@@ -449,6 +512,11 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
             bmCtrl->sensorData.realHumidity = (float)bmCtrl->sensorData.calibratedHumidity / 1024;
             bmCtrl->devSettings.tempOS = 1;
             bmCtrl->devSettings.humidOS = 1;
+            if (bmCtrl->use_cbuffer) {
+                temp[0] = bmCtrl->sensorData.realTemperature;
+                temp[1] = bmCtrl->sensorData.realHumidity;
+                cbuffer_write_packet(bmCtrl->cbuff, temp, sizeof(float) * 2);
+            }
             break;
         case BM_MODE_TEMP_PRESSURE_HUMIDITY:
             bmCtrl->sensorData.calibratedTemperature = bm280_compensate_T_int32(bmCtrl);
@@ -459,6 +527,13 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
             bmCtrl->sensorData.realHumidity = (float)bmCtrl->sensorData.calibratedHumidity / 1024;
             bmCtrl->devSettings.tempOS = 1;
             bmCtrl->devSettings.humidOS = 1;
+            if (bmCtrl->use_cbuffer) {
+                temp[0] = bmCtrl->sensorData.realTemperature;
+                temp[1] = bmCtrl->sensorData.realPressure;
+                temp[2] = bmCtrl->sensorData.realHumidity;
+                printf("Writing data: %.2f %.2f %.2f \n", temp[0], temp[1], temp[2]);
+                cbuffer_write_packet(bmCtrl->cbuff, temp, sizeof(float) * 3);
+            }
             break;
 #endif
         default:
@@ -624,6 +699,7 @@ esp_err_t bm280_setSampleMode(bm_controlData_t *bmCtrl, BM_sampleMode_t *sampleM
             status = gcd_i2c_write_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg);
         }
         bmCtrl->devSettings.sampleMode = sm;
+
     }
     return status;
 }
@@ -766,6 +842,11 @@ bm_controlData_t *bm280_init(bm_initData_t *initData)
         bmCtrl->initData = initData;
         bmCtrl->i2cChannel = initData->i2cChannel;
 
+        if(initData->use_cbuffer && initData->cbuff != NULL) {
+            bmCtrl->cbuff = initData->cbuff;
+            bmCtrl->use_cbuffer = true;
+        }
+
         if (initData->addressPinState)
         {
             bmCtrl->deviceAddress = (uint8_t)BM_I2C_ADDRESS_SDHIGH;
@@ -779,8 +860,6 @@ bm_controlData_t *bm280_init(bm_initData_t *initData)
 #endif
         ESP_LOGI(BM_DRIVER_TAG, "Device address - %u", bmCtrl->deviceAddress);
     }
-
-    //bm280_debugPrintRegs(bmCtrl);
 
     if (initStatus == ESP_OK)
     {

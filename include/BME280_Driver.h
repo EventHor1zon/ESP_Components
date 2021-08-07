@@ -25,6 +25,7 @@ const peripheral_t bme_peripheral_template;
 /********* Includes ********************/
 
 #include "esp_types.h"
+#include "CircularBuffer.h"
 
 
 
@@ -119,6 +120,9 @@ const peripheral_t bme_peripheral_template;
 
 #define BM_DRIVER_I2C_TRX_TIMEOUT 100
 
+#define BM_TEMP_MEASURE_ID      1
+#define BM_PRESSURE_MEASURE_ID  2
+#define BM_HUMIDITY_MEASURE_ID  3
 
 #ifdef DEBUG_MODE
 #define DEBUG_I2C_CLOCK_PIN 25
@@ -265,6 +269,8 @@ typedef struct bm_initData
     bool addressPinState;
     uint8_t i2cChannel; /** < 0 - no i2c initialised, driver will init. 1 | 2, valid i2c channels */
 
+    bool use_cbuffer;
+    CBuff cbuff;
 } bm_initData_t;
 
 typedef struct bm_deviceSettings
@@ -296,6 +302,8 @@ typedef struct bm_controlData
     peripheral_t *peripheral_template;
 #endif
 
+    bool use_cbuffer;
+    CBuff cbuff;
 
 } bm_controlData_t;
 

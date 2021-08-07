@@ -289,6 +289,14 @@ void all_single_colour(StrandData_t *strand) {
 }
 
 
+void rainbow(StrandData_t *strand) {
+
+    ledEffectData_t *data = strand->fxData;
+
+    return;
+}
+
+
 void soft_glow(StrandData_t *strand) {
 
     uint16_t numleds = strand->numLeds;

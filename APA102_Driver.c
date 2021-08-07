@@ -71,7 +71,9 @@ void timerExpiredCallback(TimerHandle_t timer)
 {
     /** unblock the task to run the next animation **/
     StrandData_t *strand = (StrandData_t *) pvTimerGetTimerID(timer);
-    ESP_LOGI(APA_TAG, "Here");
+#ifdef DEBUG_MODE
+    ESP_LOGI(APA_TAG, "Timer Callback");
+#endif
     xTaskNotify(strand->task_handle, APA_NOTIFY_BUILD_FRAME, eSetBits);
     xTimerReset(timer, APA_SEMTAKE_TIMEOUT);
     return;
@@ -79,22 +81,22 @@ void timerExpiredCallback(TimerHandle_t timer)
 /****** Private Data ******************/
 
 uint32_t init_frame[16] = {
-    0xFF0000E1,
-    0x00FF00E1,
-    0x0000FFE1,
-    0x110011E1,
-    0x111100E1,
-    0x001111E1,
-    0x111111E1,
-    0xFF0000E1,
-    0x000000E1,
-    0xFF0000E1,
-    0x000000E1,
-    0xFF0000E1,
-    0x000000E1,
-    0xFF0000E1,
-    0x000000E1,
-    0xFF0000E1,
+    0x000000ff,
+    0x0000ff00,
+    0x00ff0000,
+    0x0000ff00,
+    0x000000ff,
+    0x00ff00ff,
+    0x0000ffff,
+    0x00ffff00,
+    0x00111111,
+    0x00f0f0f0,
+    0x000010ff,
+    0x001000ff,
+    0x0000ff10,
+    0x00ff1000,
+    0x0010ff00,
+    0x00000000,
 };
 /****** Private Functions *************/
 
@@ -110,7 +112,9 @@ static esp_err_t send_frame_dma_polling(StrandData_t *strand) {
     trx.rx_buffer = NULL;
     trx.tx_buffer = strand->strandFrameStart;
 
+#ifdef DEBUG_MODE
     showmem(strand->strandFrameStart, strand->strandFrameLength);
+#endif
 
     txStatus = spi_device_polling_transmit(strand->ledSPIHandle, &trx);
     if(txStatus != ESP_OK) {
