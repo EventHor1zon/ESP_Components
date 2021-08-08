@@ -177,6 +177,10 @@ esp_err_t cbuffer_config_packet(CBuff handle, bool use_sep, uint8_t *sep_bytes, 
  **/
 esp_err_t cbuffer_get_full_packet_length(CBuff handle, uint16_t *len);
 
+
+esp_err_t cbuffer_set_event_mask(CBuff handle, uint8_t event_mask);
+
+
 /**
  * \brief gets the full packet pattern in string form,
  *          compatible with python struct (minus endian-ness)

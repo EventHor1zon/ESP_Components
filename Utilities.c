@@ -28,6 +28,8 @@
 
 /****** Global Functions *************/
 
+
+/** Prints some memory - many useful uses! **/
 void showmem(uint8_t *memptr, int len)
 {
     for (int i = 0; i < len; i++)
@@ -48,6 +50,10 @@ void showmem(uint8_t *memptr, int len)
     }
 }
 
+
+/** Prints a byte's individual bits, good for
+ * reading register contents & stuff 
+ **/
 void printByteBits(uint8_t num)
 {
     printf("[");
@@ -58,6 +64,7 @@ void printByteBits(uint8_t num)
     }
     printf("]");
 }
+
 
 int8_t adc_channel_from_gpio(uint32_t gpio_n) {
         

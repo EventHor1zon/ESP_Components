@@ -15,8 +15,8 @@
 #include "esp_log.h"
 #include "esp_heap_caps.h"
 
-#include "include/Max30102_Driver.h"
-#include "include/genericCommsDriver.h"
+#include "Max30102_Driver.h"
+#include "genericCommsDriver.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 

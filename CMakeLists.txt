@@ -20,9 +20,10 @@ set(srcs
     # "VL53L0X_Driver.c"
     # "WS2812_Driver.c"
     # "A4988_Driver.c"
-    #"VEML6070_Driver.c"
-    #"RGB_Driver.c"
+    # "VEML6070_Driver.c"
+    # "RGB_Driver.c"
     "CircularBuffer.c"
+    "FutabaVFD_Driver.c"
     )
 
 set(includes "include"

@@ -2,7 +2,6 @@
 * \file     RotaryEncoder_Driver.c
 * \brief    An ESP32 IDF / FreeRTOS driver for a standard incremental Rotary encoder
 *           Driver is based on GPIO driver, ESP interrupts and (maybe) freertos timer
-*           Also includes support for central button
 * \date     July 2020
 * \author   RJAM
 ****************************************/

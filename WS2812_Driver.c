@@ -465,11 +465,6 @@ esp_err_t WS2812_deinit()
 }
 
 
-/**
- *  ws2812_ledsOff
- * ** TODO: think of a better name 
-*/
-
 esp_err_t WS2812_ledsOff(StrandData_t *strand)
 {
     esp_err_t status = ESP_OK;
@@ -484,54 +479,6 @@ esp_err_t WS2812_ledsOff(StrandData_t *strand)
 
     return status;
 }
-
-/**
- *  WS2812_ledSetColour - set all leds to colour
- * 
-**/
-
-// esp_err_t WS2812_setAllLedColour(StrandData_t *strand, uint32_t colour)
-// {
-
-//     esp_err_t status = ESP_OK;
-//     uint8_t r, g, b;
-//     uint8_t *ptr = strand->strandMem;
-
-//     if (strand == NULL)
-//     {
-//         status = ESP_ERR_INVALID_ARG;
-//         ESP_LOGE(WS2812_TAG, "Error: Invalid strand");
-//     }
-//     else
-//     {
-//         r = fade_color((uint8_t)colour, 2, 1);
-//         g = fade_color((uint8_t)(colour >> 8), 2, 1);
-//         b = fade_color((uint8_t)(colour >> 16), 2, 1);
-
-//         for (uint8_t offset = 0; offset < strand->strandMemLength; offset++)
-//         {
-//             if (offset % 3 == 0)
-//             {
-//                 *ptr = g;
-//             }
-//             else if (offset % 3 == 1)
-//             {
-//                 *ptr = r;
-//             }
-//             else if (offset % 3 == 2)
-//             {
-//                 *ptr = b;
-//             }
-//             ptr++;
-//         }
-//     }
-
-//     strand->updateLeds = 1;
-
-//     return status;
-// }
-
-
 
 
 esp_err_t ws2812_get_numleds(StrandData_t *strand, uint8_t *data) {

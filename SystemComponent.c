@@ -153,7 +153,7 @@ system_handle_t *system_init() {
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
 
-/** TODO: If this breaks shit, try using CONFOG_PM_DFS_INIT_AUTO **/
+/** TODO: If this breaks shit, try using CONFIG_PM_DFS_INIT_AUTO **/
 esp_err_t system_set_autosleep_wow(system_handle_t *handle, uint8_t *val) {
 
 

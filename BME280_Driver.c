@@ -356,6 +356,9 @@ static esp_err_t bm280_InitDeviceSettings(bm_controlData_t *bmCtrl)
             ESP_LOGE(BM_DRIVER_TAG, "Error in pattern loading: %u", trxStatus);
             trxStatus = 0;
         }
+        else {
+            ESP_LOGI(BM_DRIVER_TAG, "Loaded pattern succesfully");
+        }
     }
 
     switch (sampleType)

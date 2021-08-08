@@ -15,8 +15,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#include "./include/genericCommsDriver.h"
-#include "./include/CCS811_Driver.h"
+#include "genericCommsDriver.h"
+#include "CCS811_Driver.h"
 
 const char *CCS_TAG = "CSS DRIVER";
 

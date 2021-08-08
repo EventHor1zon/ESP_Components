@@ -359,7 +359,6 @@ StrandData_t *APA102_init(apa102_init_t *init_data)
         leds.queue_size = 16;
         leds.clock_speed_hz = APA102_CLK_SPD; // APA claim to have refresh rate of 4KHz, start low.
         leds.input_delay_ns = 0;
-        leds.queue_size = 10; // bit arbitrary...
 
         led_mem_sz = init_data->numleds * APA_BYTES_PER_PIXEL;
         /** add the zero size **/
