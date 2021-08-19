@@ -534,7 +534,6 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
                 temp[0] = bmCtrl->sensorData.realTemperature;
                 temp[1] = bmCtrl->sensorData.realPressure;
                 temp[2] = bmCtrl->sensorData.realHumidity;
-                printf("Writing data: %.2f %.2f %.2f \n", temp[0], temp[1], temp[2]);
                 cbuffer_write_packet(bmCtrl->cbuff, temp, sizeof(float) * 3);
             }
             break;

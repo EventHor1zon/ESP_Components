@@ -19,7 +19,6 @@
 #include "freertos/timers.h"
 
 const char *DEV_TAG = "A4988 Driver";
-static TaskHandle_t toNotify = NULL;
 
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
@@ -61,9 +60,9 @@ const peripheral_t a4988_periph_template = {
 
 void a4988_timer_callback(TimerHandle_t tmr) {
 
-    A4988_DEV dev = (a4988_handle_t *)tmr;
+    A4988_DEV dev = pvTimerGetTimerID(tmr);
     BaseType_t higherPrioWoken = pdFALSE;
-    xTaskNotifyGive(toNotify);
+    xTaskNotifyGive(dev->t_handle);
     return;
 } 
 
@@ -73,8 +72,6 @@ static void a4988_driver_task(void *args) {
 
     A4988_DEV dev = args;
     uint16_t last_t = dev->step_wait;
-
-    toNotify = xTaskGetCurrentTaskHandle();
 
     while(1) {
 
@@ -187,7 +184,7 @@ A4988_DEV a4988_init(a4988_init_t *init) {
             pins.pin_bit_mask = pinmask;
             err = gpio_config(&pins);
             if(err) {
-                ESP_LOGE(DEV_TAG, "error setting up secondary GPIO pins");
+                ESP_LOGE(DEV_TAG, "Error setting up secondary GPIO pins {%u}", err);
             }
             else {
                 /** set pin levels **/
@@ -206,7 +203,6 @@ A4988_DEV a4988_init(a4988_init_t *init) {
         }
     }
 
-    /** Try something - make the timer ID = pointer to our dev struct **/
     if(!err && xTaskCreate(a4988_driver_task, "a4988_driver_task", 5012, (void *)dev, 3, &t_handle) != pdTRUE) {
         ESP_LOGE(DEV_TAG, "Error starting dev task!");
         err = ESP_ERR_NO_MEM;

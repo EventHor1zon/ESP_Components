@@ -22,7 +22,7 @@
 
 #define CBUFFER_MAX_PACKET_VALUES   6
 #define CBUFFER_MAX_NAME_LENGTH     24
-#define CBUFFER_MAX_BUFFER_SIZE     2056
+#define CBUFFER_MAX_BUFFER_SIZE     8192
 #define CBUFF_MAX_SEP_BYTES         8
 
 #define CBUFFER_SEM_WAIT_MS         100
@@ -271,22 +271,6 @@ esp_err_t cbuffer_reset_pointers(CBuff handle);
  *  \return ESP_OK 
  **/
 esp_err_t cbuffer_reset_buffer(CBuff handle);
-
-
-/**
- * \brief Claims the mem semaphore
- * \param handle see above
- * \return ESP_OK or error
- **/
-esp_err_t cbuffer_claim(CBuff handle);
-
-
-/**
- * \brief Unclaim the sem
- * \param handle see above
- * \return ESP_OK or error
- **/
-esp_err_t  cbuffer_unclaim(CBuff handle);
 
 #ifdef CONFIG_USE_EVENTS
 /**

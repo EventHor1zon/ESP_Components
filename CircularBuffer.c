@@ -111,12 +111,8 @@ static uint16_t get_packet_size_from_pattern(char *pattern) {
 
 /** this write will overwrite unread data **/
 static bool buffer_will_overwrite(CBuff handle, uint32_t incomming_sz) {
-    if(incomming_sz > buffer_free_bytes(handle)) {
-        return true;
-    }
-    else {
-        return false;
-    }
+    uint32_t freebytes = buffer_free_bytes(handle);
+    return incomming_sz > freebytes;
 }
 
 /** returns true if buffer is full **/
@@ -131,29 +127,29 @@ static bool buffer_is_empty(CBuff handle) {
 
 /** buffer write will run past the buffer end - pointers need to be moved **/
 static bool buffer_will_overrun(CBuff handle, uint32_t incomming_sz) {
-    return (handle->write_ptr + incomming_sz > handle->buffer_end);
+    return ((handle->write_ptr + incomming_sz) > handle->buffer_end);
 }
 
 /** bytes available between write and read pointer **/
 static uint32_t buffer_free_bytes(CBuff handle) {
 
-    uint32_t free = (handle->write_ptr > (handle->read_ptr-1) ?  // if write pointer is ahead of read...
-                    ((handle->buffer_end - handle->write_ptr) + (handle->buffer_start - (handle->read_ptr - 1))) : // go round the buffer
-                    ((handle->read_ptr -1) - handle->write_ptr));    // else go up to read-1
+    uint32_t free = (handle->write_ptr > handle->read_ptr) ?  // if write pointer is ahead of read...
+                    (handle->buffer_end - handle->write_ptr) + ((handle->read_ptr - 1) - handle->buffer_start) : // go round the buffer
+                    ((handle->read_ptr -1) - handle->write_ptr);    // else go up to read-1
     return free;
 }
 
 /** bytes available between read and write pointers **/
 uint32_t buffer_unread_bytes(CBuff handle) {
     uint32_t avail = (handle->read_ptr > handle->write_ptr ? 
-                      ((handle->buffer_end - handle->read_ptr) + ((handle->write_ptr-1)-handle->buffer_start)) :
-                      ((handle->write_ptr-1) - handle->read_ptr));
+                      ((handle->buffer_end - handle->read_ptr) + ((handle->write_ptr)-handle->buffer_start)) :
+                      (handle->write_ptr - handle->read_ptr));
     return avail;
 }
 
 /** bytes from pointer to end of buffer **/
 static uint32_t buffer_bytes_until_end(CBuff handle, bool read) {
-    uint32_t bytes;
+    uint32_t bytes = 0;
     if(read) {
         bytes = handle->buffer_end - handle->read_ptr;
     } 
@@ -171,6 +167,7 @@ static void cbuffer_write_ll(CBuff handle, void *data, uint32_t length) {
         memcpy(handle->write_ptr, data, first_write);
         handle->write_ptr = handle->buffer_start;
         memcpy(handle->write_ptr, (data + first_write), (length - first_write));
+        assert(length > first_write);
         handle->write_ptr += (length - first_write);
     }
     else {
@@ -180,7 +177,6 @@ static void cbuffer_write_ll(CBuff handle, void *data, uint32_t length) {
 
     return;
 }
-
 
 #ifdef CONFIG_USE_EVENTS
 
@@ -262,7 +258,6 @@ CBuff cbuffer_create(CBuffer_init_t *init) {
             handle->is_claimed = false;
             handle->sem = sem;
             ESP_LOGI("CBUFF", "Created new CBuffer Size: %u at 0x%08x", handle->buffer_len, (uint32_t)buffer);
-            printf("%p\n", buffer);
         }
     }
     
@@ -501,18 +496,17 @@ esp_err_t cbuffer_load_packet(CBuff handle, uint8_t values_per_packet, char *pat
 
 esp_err_t cbuffer_clear_packet(CBuff handle) {
     memset(handle->packets, 0, (sizeof(cbuffer_pmember_t) * CBUFFER_MAX_PACKET_VALUES));
-
     return ESP_OK;
 }
 
 
 /** newer version **/
-esp_err_t cbuffer_write(CBuff handle, void *data, uint32_t length) {
+esp_err_t cbuffer_write(CBuff handle, void *data, uint32_t wrt_len) {
 
     esp_err_t ret = ESP_OK;
     bool ovr = false;
 
-    if(length > handle->buffer_len) {
+    if(wrt_len > handle->buffer_len) {
         ret = ESP_ERR_INVALID_ARG;
     }
     else if(data == NULL || handle == NULL) {
@@ -524,9 +518,7 @@ esp_err_t cbuffer_write(CBuff handle, void *data, uint32_t length) {
     }
 
     if(!ret) {
-
-        ovr = buffer_will_overwrite(handle, length);
-
+        ovr = buffer_will_overwrite(handle, wrt_len);
 #ifdef CONFIG_USE_EVENTS
         /** emit the overwrite event **/
         if(handle->use_events && \
@@ -538,7 +530,7 @@ esp_err_t cbuffer_write(CBuff handle, void *data, uint32_t length) {
 
         if (ovr && !handle->allow_overwrite) {
             /** fill remaining space **/
-            uint32_t bytes_left = buffer_bytes_until_end(handle, 0);
+            uint32_t bytes_left = buffer_free_bytes(handle);
             cbuffer_write_ll(handle, data, bytes_left);
 
 #ifdef CONFIG_USE_EVENTS
@@ -550,7 +542,8 @@ esp_err_t cbuffer_write(CBuff handle, void *data, uint32_t length) {
 #endif
         }
         else {
-            cbuffer_write_ll(handle, data, length);
+            /** write the packet, don't care about overwriting old data **/
+            cbuffer_write_ll(handle, data, wrt_len);
 
 #ifdef CONFIG_USE_EVENTS
             if(handle->use_events) {
@@ -575,34 +568,72 @@ esp_err_t cbuffer_write(CBuff handle, void *data, uint32_t length) {
 
 
 esp_err_t cbuffer_write_packet(CBuff handle, void *data, uint32_t length) {
-    /* function to write an entire packet at once */
+    /* function to write an entire packet at once - do it faster this time! */
     esp_err_t err = ESP_OK;
     uint8_t sep[CBUFF_MAX_SEP_BYTES] = {0};
 
     if (length != handle->pkt_settings.packet_sz_bytes ) {
         ESP_LOGE(CBUFF_TAG, "Error, invalid length!");
         err = ESP_ERR_INVALID_ARG;
-
     }
-    if(!err && handle->pkt_settings.use_timestamp) {
-        if(handle->pkt_settings.ts_precision == CBUFF_TS_PRECISION_SECOND) {
-            time_t sse = time(NULL);
-            printf("Writing time %lu to cbuffer\n", sse);
-            ESP_ERROR_CHECK(cbuffer_write(handle, &sse, sizeof(time_t)));
+    else if(length > buffer_free_bytes(handle)) {
+        /** no space for another packet **/
+        if(!handle->allow_overwrite) {
+            err = ESP_ERR_NO_MEM;
+#ifdef CONFIG_USE_EVENTS
+        /** emit full event **/
+            if(handle->use_events && \
+            handle->event_settings.event_mask & CBUFF_EVENT_FULL
+            ) {
+                emit_full_event(handle);
+            }
+#endif
         }
-        else {
-            struct timeval tv_now;
-            gettimeofday(&tv_now, NULL);
-            int64_t time_us = (int64_t)tv_now.tv_sec * 1000000L + (int64_t)tv_now.tv_usec;
-            cbuffer_write(handle, &time_us, sizeof(int64_t));
-        }
-    }
-    if(!err) {
-        ESP_ERROR_CHECK(cbuffer_write(handle, data, length));
+#ifdef CONFIG_USE_EVENTS
+        else if(handle->use_events && \
+                handle->event_settings.event_mask & CBUFF_EVENT_OVERWRITE) {
+                    emit_overwrite_event(handle);
+        } 
+#endif
     }
 
-    if(!err && handle->pkt_settings.use_sep_bytes) {
-        ESP_ERROR_CHECK(cbuffer_write(handle, handle->pkt_settings.sep_bytes, handle->pkt_settings.sep_length));
+    /** lock buffer for writing **/
+    if(!err && xSemaphoreTake(handle->sem, pdMS_TO_TICKS(CBUFFER_SEM_WAIT_MS)) != pdTRUE) {
+        err = ESP_ERR_TIMEOUT;
+    }
+    else {
+        /** write timestamp **/
+        if(handle->pkt_settings.use_timestamp) {
+            if(handle->pkt_settings.ts_precision == CBUFF_TS_PRECISION_SECOND) {
+                time_t sse = time(NULL);
+                cbuffer_write_ll(handle, &sse, sizeof(time_t));
+            }
+            else {
+                struct timeval tv_now;
+                gettimeofday(&tv_now, NULL);
+                int64_t time_us = (int64_t)tv_now.tv_sec * 1000000L + (int64_t)tv_now.tv_usec;
+                cbuffer_write_ll(handle, &time_us, sizeof(int64_t));
+            }
+        }
+        /** write data **/
+        cbuffer_write_ll(handle, data, length);
+
+        /** write seperation bytes **/
+        if(handle->pkt_settings.use_sep_bytes) {
+            cbuffer_write_ll(handle, handle->pkt_settings.sep_bytes, handle->pkt_settings.sep_length);
+        }
+
+        xSemaphoreGive(handle->sem);
+
+#ifdef CONFIG_USE_EVENTS
+        uint32_t unread_bytes = buffer_unread_bytes(handle);
+        if( handle->use_events && \
+            (handle->event_settings.event_mask & CBUFF_EVENT_NEARFULL) && \
+            (unread_bytes >= handle->event_settings.nearfull_val)) {
+                emit_nearfull_event(handle);
+        }
+#endif
+
     }
 
     return err;
@@ -613,7 +644,6 @@ esp_err_t cbuffer_read(CBuff handle, void *buffer, uint32_t length){
 
     esp_err_t ret = ESP_OK;
     uint32_t unread = buffer_unread_bytes(handle);
-    printf("Getting %u bytes (%u unread bytes) ", length, unread); 
     if(length > unread) {
         ret = ESP_ERR_INVALID_ARG;
     }
@@ -670,33 +700,3 @@ esp_err_t cbuffer_reset_buffer(CBuff handle) {
     return ESP_OK;
 }
 
-
-esp_err_t cbuffer_claim(CBuff handle) {
-
-    esp_err_t err = ESP_OK;
-
-    if(xSemaphoreTake(handle->sem, pdMS_TO_TICKS(CBUFFER_SEMTAKE_TIMEOUT)) != pdTRUE) {
-        ESP_LOGE(CBUFF_TAG, "Error claiming sempahore!");
-        err= ESP_ERR_TIMEOUT;
-    }
-    else {
-        handle->is_claimed = true;
-    }
-    return err;    
-}
-
-
-esp_err_t cbuffer_unclaim(CBuff handle) {
-
-    esp_err_t err = ESP_OK;
-
-    if(xSemaphoreGive(handle->sem) != pdTRUE) {
-        ESP_LOGE(CBUFF_TAG, "Error unclaiming sempahore!");
-        err= ESP_ERR_TIMEOUT;
-    }
-    else {
-        handle->is_claimed = false;
-    }
-
-    return err;    
-}
