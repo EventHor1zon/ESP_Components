@@ -47,7 +47,7 @@ a device handle and a pointer to a value (set) or value storage (get)
 - ESP32 System interface         (not complete)
 - WS2812 Addressable LEDs        (beta) (credit to ESP-IDF's WS2812 example)
 - VL53L0X Time of flight sensor  (beta) (credit to ST's VL53L0X api - included for ease of use)
-- Utilities (various bits)       (beta)
+- Utilities (various bits)       (beta) 
 
 
 ### Informations
