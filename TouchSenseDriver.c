@@ -39,6 +39,7 @@ TSENSE_HANDLE touchsense_init(touchsense_init_t *ts_init) {
     gpio_num_t to_init[TOUCHSENSE_MAX_PINS] = {0};
     uint8_t numpins = 0;
     esp_err_t err = ESP_OK;
+    uint32_t pinmask = 0;
 
     err = touch_pad_init();
 
@@ -46,17 +47,30 @@ TSENSE_HANDLE touchsense_init(touchsense_init_t *ts_init) {
         ESP_LOGE(TSENSE_TAG, "Error during touchpad init (%u)", err);
     }
 
-    if(!err) {    
-        for(int i=0; i<TOUCHSENSE_MAX_PINS; i++) {
+    if(!err && ts_init->num_pins <= TOUCHSENSE_MAX_PINS) {    
+        for(int i=0; i<ts_init->num_pins; i++) {
 
             if(ts_init->touch_pins[i] > 0) {
                 to_init[i] = ts_init->touch_pins[i];
                 numpins++;
             }
-        }
-    
-        for(int j=0; j<numpins && err == ESP_OK; j++) {
-
-        }
+            else {
+                ESP_LOGE("TOUCH", "Error - invalid gpio");
+                err = ESP_ERR_INVALID_ARG;
+            }
+        }    
     }
+
+    if(!err) {
+        for(int i=0; i<numpins; i++) {
+            err = touch_pad_config(to_init);
+            if(err) {
+                ESP_LOGE("TOUCH", "Error configuring touch pad {%u}", err);
+                break;
+            }
+        }
+
+    }
+    
+
 }

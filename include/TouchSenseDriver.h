@@ -29,6 +29,7 @@ typedef struct TouchSenseInit
 {
     /* data */
     gpio_num_t touch_pins[TOUCHSENSE_MAX_PINS];
+    uint8_t num_pins;
     void *event_loop;
 
 } touchsense_init_t;
@@ -39,6 +40,7 @@ typedef struct TouchSenseDriver
     /* data */
 
     gpio_num_t touch_pins[TOUCHSENSE_MAX_PINS];
+    uint8_t num_pins;
     TaskHandle_t t_handle;
     TimerHandle_t timer;
 } touchsense_data_t;
