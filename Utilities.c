@@ -62,7 +62,7 @@ void printByteBits(uint8_t num)
         printf("%d", num & 0x01);
         num = num >> 1;
     }
-    printf("]");
+    printf("]\n");
 }
 
 

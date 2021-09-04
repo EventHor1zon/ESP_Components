@@ -231,10 +231,13 @@ CBuff cbuffer_create(CBuffer_init_t *init) {
 
     if (init->size <= CBUFFER_MAX_BUFFER_SIZE) {
         handle = (CBuff )heap_caps_calloc(1, sizeof(CBuffer_Handle_t), MALLOC_CAP_DEFAULT);
-        buffer = heap_caps_calloc(1, init->size, MALLOC_CAP_DEFAULT);
+        buffer = heap_caps_malloc(init->size, MALLOC_CAP_DEFAULT);
 
         if(handle == NULL || buffer == NULL) {
             err = ESP_ERR_NO_MEM;
+        }
+        else {
+            memset(buffer, 0, init->size);
         }
     }
     else {
