@@ -35,9 +35,21 @@ esp_err_t dump_cbuffer_packets_string(CBuff handle) {
 
     esp_err_t err = ESP_OK;
 
-    if(handle->use_packets) {
+    if(!handle->use_packets) {
+        err = ESP_ERR_INVALID_STATE;
+        ESP_LOGE("CBUFF_UTILS", "Error - can't dump packets, not configured for this cbuffer!");
+    }
+
+    if(!err) {
+
+        
 
 
     }
+
+
+
     return err;
 }
+
+

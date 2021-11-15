@@ -54,7 +54,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 typedef uint8_t VL53L0X_DeviceError;
 
 #define VL53L0X_DEVICEERROR_NONE                        ((VL53L0X_DeviceError) 0)
-	/*!< 0  NoError  */
+    /*!< 0  NoError  */
 #define VL53L0X_DEVICEERROR_VCSELCONTINUITYTESTFAILURE  ((VL53L0X_DeviceError) 1)
 #define VL53L0X_DEVICEERROR_VCSELWATCHDOGTESTFAILURE    ((VL53L0X_DeviceError) 2)
 #define VL53L0X_DEVICEERROR_NOVHVVALUEFOUND             ((VL53L0X_DeviceError) 3)
@@ -100,16 +100,16 @@ typedef uint8_t VL53L0X_DeviceError;
 typedef uint8_t VL53L0X_GpioFunctionality;
 
 #define VL53L0X_GPIOFUNCTIONALITY_OFF                     \
-	((VL53L0X_GpioFunctionality)  0) /*!< NO Interrupt  */
+    ((VL53L0X_GpioFunctionality)  0) /*!< NO Interrupt  */
 #define VL53L0X_GPIOFUNCTIONALITY_THRESHOLD_CROSSED_LOW   \
-	((VL53L0X_GpioFunctionality)  1) /*!< Level Low (value < thresh_low)  */
+    ((VL53L0X_GpioFunctionality)  1) /*!< Level Low (value < thresh_low)  */
 #define VL53L0X_GPIOFUNCTIONALITY_THRESHOLD_CROSSED_HIGH   \
-	((VL53L0X_GpioFunctionality)  2) /*!< Level High (value > thresh_high) */
+    ((VL53L0X_GpioFunctionality)  2) /*!< Level High (value > thresh_high) */
 #define VL53L0X_GPIOFUNCTIONALITY_THRESHOLD_CROSSED_OUT    \
-	((VL53L0X_GpioFunctionality)  3)
-	/*!< Out Of Window (value < thresh_low OR value > thresh_high)  */
+    ((VL53L0X_GpioFunctionality)  3)
+    /*!< Out Of Window (value < thresh_low OR value > thresh_high)  */
 #define VL53L0X_GPIOFUNCTIONALITY_NEW_MEASURE_READY        \
-	((VL53L0X_GpioFunctionality)  4) /*!< New Sample Ready  */
+    ((VL53L0X_GpioFunctionality)  4) /*!< New Sample Ready  */
 
 /** @} end of VL53L0X_GpioFunctionality_group */
 
@@ -121,39 +121,39 @@ typedef uint8_t VL53L0X_GpioFunctionality;
  *  @{
  */
 #define VL53L0X_REG_SYSRANGE_START                        0x000
-	/** mask existing bit in #VL53L0X_REG_SYSRANGE_START*/
-	#define VL53L0X_REG_SYSRANGE_MODE_MASK          0x0F
-	/** bit 0 in #VL53L0X_REG_SYSRANGE_START write 1 toggle state in
-	 * continuous mode and arm next shot in single shot mode */
-	#define VL53L0X_REG_SYSRANGE_MODE_START_STOP    0x01
-	/** bit 1 write 0 in #VL53L0X_REG_SYSRANGE_START set single shot mode */
-	#define VL53L0X_REG_SYSRANGE_MODE_SINGLESHOT    0x00
-	/** bit 1 write 1 in #VL53L0X_REG_SYSRANGE_START set back-to-back
-	 *  operation mode */
-	#define VL53L0X_REG_SYSRANGE_MODE_BACKTOBACK    0x02
-	/** bit 2 write 1 in #VL53L0X_REG_SYSRANGE_START set timed operation
-	 *  mode */
-	#define VL53L0X_REG_SYSRANGE_MODE_TIMED         0x04
-	/** bit 3 write 1 in #VL53L0X_REG_SYSRANGE_START set histogram operation
-	 *  mode */
-	#define VL53L0X_REG_SYSRANGE_MODE_HISTOGRAM     0x08
+    /** mask existing bit in #VL53L0X_REG_SYSRANGE_START*/
+    #define VL53L0X_REG_SYSRANGE_MODE_MASK          0x0F
+    /** bit 0 in #VL53L0X_REG_SYSRANGE_START write 1 toggle state in
+     * continuous mode and arm next shot in single shot mode */
+    #define VL53L0X_REG_SYSRANGE_MODE_START_STOP    0x01
+    /** bit 1 write 0 in #VL53L0X_REG_SYSRANGE_START set single shot mode */
+    #define VL53L0X_REG_SYSRANGE_MODE_SINGLESHOT    0x00
+    /** bit 1 write 1 in #VL53L0X_REG_SYSRANGE_START set back-to-back
+     *  operation mode */
+    #define VL53L0X_REG_SYSRANGE_MODE_BACKTOBACK    0x02
+    /** bit 2 write 1 in #VL53L0X_REG_SYSRANGE_START set timed operation
+     *  mode */
+    #define VL53L0X_REG_SYSRANGE_MODE_TIMED         0x04
+    /** bit 3 write 1 in #VL53L0X_REG_SYSRANGE_START set histogram operation
+     *  mode */
+    #define VL53L0X_REG_SYSRANGE_MODE_HISTOGRAM     0x08
 
 
 #define VL53L0X_REG_SYSTEM_THRESH_HIGH               0x000C
 #define VL53L0X_REG_SYSTEM_THRESH_LOW                0x000E
 
 
-#define VL53L0X_REG_SYSTEM_SEQUENCE_CONFIG		0x0001
-#define VL53L0X_REG_SYSTEM_RANGE_CONFIG			0x0009
-#define VL53L0X_REG_SYSTEM_INTERMEASUREMENT_PERIOD	0x0004
+#define VL53L0X_REG_SYSTEM_SEQUENCE_CONFIG        0x0001
+#define VL53L0X_REG_SYSTEM_RANGE_CONFIG            0x0009
+#define VL53L0X_REG_SYSTEM_INTERMEASUREMENT_PERIOD    0x0004
 
 
 #define VL53L0X_REG_SYSTEM_INTERRUPT_CONFIG_GPIO               0x000A
-	#define VL53L0X_REG_SYSTEM_INTERRUPT_GPIO_DISABLED	0x00
-	#define VL53L0X_REG_SYSTEM_INTERRUPT_GPIO_LEVEL_LOW	0x01
-	#define VL53L0X_REG_SYSTEM_INTERRUPT_GPIO_LEVEL_HIGH	0x02
-	#define VL53L0X_REG_SYSTEM_INTERRUPT_GPIO_OUT_OF_WINDOW	0x03
-	#define VL53L0X_REG_SYSTEM_INTERRUPT_GPIO_NEW_SAMPLE_READY	0x04
+    #define VL53L0X_REG_SYSTEM_INTERRUPT_GPIO_DISABLED    0x00
+    #define VL53L0X_REG_SYSTEM_INTERRUPT_GPIO_LEVEL_LOW    0x01
+    #define VL53L0X_REG_SYSTEM_INTERRUPT_GPIO_LEVEL_HIGH    0x02
+    #define VL53L0X_REG_SYSTEM_INTERRUPT_GPIO_OUT_OF_WINDOW    0x03
+    #define VL53L0X_REG_SYSTEM_INTERRUPT_GPIO_NEW_SAMPLE_READY    0x04
 
 #define VL53L0X_REG_GPIO_HV_MUX_ACTIVE_HIGH          0x0084
 
@@ -211,7 +211,7 @@ typedef uint8_t VL53L0X_GpioFunctionality;
 #define VL53L0X_REG_MSRC_CONFIG_TIMEOUT_MACROP                    0x0046
 
 
-#define VL53L0X_REG_SOFT_RESET_GO2_SOFT_RESET_N	                 0x00bf
+#define VL53L0X_REG_SOFT_RESET_GO2_SOFT_RESET_N                     0x00bf
 #define VL53L0X_REG_IDENTIFICATION_MODEL_ID                       0x00c0
 #define VL53L0X_REG_IDENTIFICATION_REVISION_ID                    0x00c2
 

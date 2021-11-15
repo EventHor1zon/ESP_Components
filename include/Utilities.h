@@ -9,7 +9,7 @@
 #define UTILITIES_H
 
 /********* Includes ********************/
-#include <stdint.h>
+#include "esp_types.h"
 /********* Definitions *****************/
 
 #define INCREMENT_TO_MAX(i, max) ((i == max) ? (max) : (i + 1))
@@ -21,5 +21,6 @@
 
 void showmem(uint8_t *ptr, uint16_t len);
 void printByteBits(uint8_t data);
-int8_t adc_channel_from_gpio(uint32_t gpio_n);
+void printBytesOrderExplicit(uint8_t val);
+
 #endif /* UTILITIES_H */

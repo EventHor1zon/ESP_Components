@@ -69,8 +69,8 @@ TSENSE_HANDLE touchsense_init(touchsense_init_t *ts_init) {
                 break;
             }
         }
-
     }
+    
     
 
 }

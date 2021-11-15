@@ -26,9 +26,11 @@
 
 const char *RGB_TAG = "RGB_Driver";
 
+#define CONFIG_USE_PERIPH_MANAGER 1
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
-#include "CommandAPI.h"
+
+
 const parameter_t rgb_param_map[rgb_param_len] = {
     {"Red Duty", 1, &rgb_get_r_duty, &rgb_set_r_duty, NULL, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
     {"Green Duty", 2, &rgb_get_g_duty, &rgb_set_g_duty, NULL, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
@@ -37,7 +39,6 @@ const parameter_t rgb_param_map[rgb_param_len] = {
     {"Green (percent)", 5, NULL, &rgb_set_g_duty_percent,NULL,  PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
     {"Blue (percent)", 6, NULL, &rgb_set_b_duty_percent, NULL, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
     {"Fade time", 7, &rgb_get_fade_time, &rgb_set_fade_time, NULL, PARAMTYPE_UINT32, 10000, (GET_FLAG | SET_FLAG)},
-    // {"Colour", 8, &rgb_get_colour, &rgb_set_colour, NULL, PARAMTYPE_UINT32, 0xFFFFFF, (GET_FLAG | SET_FLAG)},
 };
 
 const peripheral_t rgb_periph_template = {
@@ -222,19 +223,6 @@ RGB_HANDLE rgb_driver_init(rgb_init_t *init) {
 
 
 
-// esp_err_t rgb_get_colour(RGB_HANDLE handle, uint32_t *val) {
-
-
-
-
-// } 
-
-
-// esp_err_t rgb_set_colour(RGB_HANDLE handle, uint32_t *val) {
-
-// }
-
-
 esp_err_t rgb_get_fade_time(RGB_HANDLE handle, uint32_t *val) {
 
     esp_err_t err = ESP_OK;
@@ -247,7 +235,7 @@ esp_err_t rgb_set_fade_time(RGB_HANDLE handle, uint32_t *val) {
     esp_err_t err = ESP_OK;
     uint32_t t = *val; 
     if(t > RGB_MAX_FADE_TIME || t < RGB_MIN_FADE_TIME) {
-        handle->fade_time;
+        handle->fade_time = t;
         err = ESP_ERR_INVALID_ARG;
     }
     else {
@@ -262,7 +250,7 @@ esp_err_t rgb_set_r_duty(RGB_HANDLE handle, uint32_t *val) {
     uint32_t d = *val;
     if(d > handle->max_duty) {
         status = ESP_ERR_INVALID_ARG;
-        ESP_LOGE(RGB_TAG, "Duty too high!");
+        ESP_LOGE(RGB_TAG, "Duty %u too high!", d);
     }
     else {
         handle->r_duty = d;
@@ -277,7 +265,7 @@ esp_err_t rgb_set_g_duty(RGB_HANDLE handle, uint32_t *val) {
     uint32_t d = *val;
     if(d > handle->max_duty) {
         status = ESP_ERR_INVALID_ARG;
-        ESP_LOGE(RGB_TAG, "Duty too high!");
+        ESP_LOGE(RGB_TAG, "Duty %u too high!", d);
     }
     else {
         handle->g_duty = d;
@@ -292,7 +280,7 @@ esp_err_t rgb_set_b_duty(RGB_HANDLE handle, uint32_t *val) {
     uint32_t d = *val;
     if(d > handle->max_duty) {
         status = ESP_ERR_INVALID_ARG;
-        ESP_LOGE(RGB_TAG, "Duty too high!");
+        ESP_LOGE(RGB_TAG, "Duty %u too high!", d);
     }
     else {
         handle->b_duty = d;
@@ -330,7 +318,7 @@ esp_err_t rgb_set_r_duty_percent(RGB_HANDLE handle, uint32_t *val) {
     uint32_t d = *val;
     if(d > 100) {
         status = ESP_ERR_INVALID_ARG;
-        ESP_LOGE(RGB_TAG, "Duty too high!");
+        ESP_LOGE(RGB_TAG, "Duty %u too high!", d);
     }
     else {
         handle->r_duty = percent_to_duty(d, handle->max_duty);
@@ -345,7 +333,7 @@ esp_err_t rgb_set_g_duty_percent(RGB_HANDLE handle, uint32_t *val) {
     uint32_t d = *val;
     if(d > 100) {
         status = ESP_ERR_INVALID_ARG;
-        ESP_LOGE(RGB_TAG, "Duty too high!");
+        ESP_LOGE(RGB_TAG, "Duty %u too high!", d);
     }
     else {
         handle->g_duty =  percent_to_duty(d, handle->max_duty);
@@ -360,7 +348,7 @@ esp_err_t rgb_set_b_duty_percent(RGB_HANDLE handle, uint32_t *val) {
     uint32_t d = *val;
     if(d > 100) {
         status = ESP_ERR_INVALID_ARG;
-        ESP_LOGE(RGB_TAG, "Duty too high!");
+        ESP_LOGE(RGB_TAG, "Duty %u too high!", d);
     }
     else {
         handle->b_duty = percent_to_duty(d, handle->max_duty);

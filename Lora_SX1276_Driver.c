@@ -309,12 +309,6 @@ static esp_err_t  device_init(SX1276_DEV Dev) {
     }
     else {
         device_idle(Dev);
-
-        Dev->settings.frequency = SX1276_LORA_FREQ_EURO;
-        Dev->settings.current_mode = SX1276_MODE_STDBY;
-        Dev->settings.gain = SX1276_MAX_GAIN;
-        Dev->settings.lna_boost = true;
-        Dev->settings.agc_auto = true;
     }
 
     return err;
@@ -339,12 +333,12 @@ static void sx1276_driver_task(void *args) {
 /** 
  *  intitialise the device, assume SPI already init. 
  *  Pins for TTGO Lora32 are 
- *  - MISO	19
- *  - CS	17
- *  - MOSI	27
- *  - SCK	5
- *  - RST	14
- *  - IRQ	26
+ *  - MISO    19
+ *  - CS    17
+ *  - MOSI    27
+ *  - SCK    5
+ *  - RST    14
+ *  - IRQ    26
  **/
 
 #define LORA_RST_PIN 14
@@ -375,7 +369,7 @@ SX1276_DEV sx1276_init(sx1276_init_t *init) {
         if(init->spi_bus != SPI1_HOST && init->spi_bus != SPI2_HOST) {
             ESP_LOGE(LORA_TAG, "Error, invalid SPI Bus");
             err = ESP_ERR_INVALID_ARG;
-        } 
+        }
         if(!err) {
             spi_host_device_t dev = init->spi_bus;
             spi_device_interface_config_t dconf = {0};

@@ -20,22 +20,22 @@
 
    Conversion is done via following procedure:
    
-	for (int code = 0; code < 128; code++) {
-		uint8_t trans[8];
-		for (int w = 0; w < 8; w++) {
-			trans[w] = 0x00;
-			for (int b = 0; b < 8; b++) {
-				trans[w] |= ((font8x8_basic[code][b] & (1 << w)) >> w) << b;
-			}
-		}
-	
-		for (int w = 0; w < 8; w++) {
-			if (w == 0) { printf("    { "); }
-			printf("0x%.2X", trans[w]);
-			if (w < 7) { printf(", "); }
-			if (w == 7) { printf(" },   // U+00%.2X (%c)\n", code, code); }
-		}
-	}
+    for (int code = 0; code < 128; code++) {
+        uint8_t trans[8];
+        for (int w = 0; w < 8; w++) {
+            trans[w] = 0x00;
+            for (int b = 0; b < 8; b++) {
+                trans[w] |= ((font8x8_basic[code][b] & (1 << w)) >> w) << b;
+            }
+        }
+    
+        for (int w = 0; w < 8; w++) {
+            if (w == 0) { printf("    { "); }
+            printf("0x%.2X", trans[w]);
+            if (w < 7) { printf(", "); }
+            if (w == 7) { printf(" },   // U+00%.2X (%c)\n", code, code); }
+        }
+    }
 */
 
 uint8_t font8x8_basic_tr[128][8] = {

@@ -35,12 +35,17 @@
 #include "esp_heap_caps.h"
 #include "device_config.h"
 
+#include "driver/i2c.h"
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
+
+#include "driver/uart.h"
 
 
 #include "CircularBuffer.h"
 #include "Utilities.h"
+#include "genericCommsDriver.h"
 const char *CBUFF_TAG = "CBUFF";
 
 #include <time.h>
@@ -174,9 +179,28 @@ static void cbuffer_write_ll(CBuff handle, void *data, uint32_t length) {
         memcpy(handle->write_ptr, data, length);
         handle->write_ptr += length;
     }
-
+    // update the number of data butes available
+    handle->data_len = buffer_unread_bytes(handle);
     return;
 }
+
+/** read data of length **/
+static void cbuffer_read_ll(CBuff handle, void *data, uint32_t len) {
+    uint32_t bytes_until_end = buffer_bytes_until_end(handle, 1);
+    if(len > bytes_until_end) {
+        memcpy(data, handle->read_ptr, bytes_until_end); 
+        handle->read_ptr = handle->buffer_start;
+        memcpy((data + bytes_until_end), handle->read_ptr, (len - bytes_until_end));
+        handle->read_ptr += (len - bytes_until_end);
+    }
+    else {
+        memcpy(data, handle->read_ptr, len);
+        handle->read_ptr += len;
+    }
+    // update the number of data bytes available 
+    handle->data_len = buffer_unread_bytes(handle);
+}
+
 
 #ifdef CONFIG_USE_EVENTS
 
@@ -185,15 +209,15 @@ static void cbuffer_write_ll(CBuff handle, void *data, uint32_t length) {
  *  User will have to re-implement the event when reading the buffer
  *  is finished
  **/
-
 static esp_err_t emit_nearfull_event(CBuff handle) {
 
     esp_err_t err = ESP_OK;
     err = esp_event_post_to(handle->event_settings.loop, PM_EVENT_BASE, CBUFF_EVENTCODE_NEARFULL, handle, sizeof(CBuff), pdMS_TO_TICKS(CONFIG_EVENTPOST_WAIT_MS));
+    printf("Posting nearful event %u\n\n", err);
     handle->event_settings.event_mask &= ~(CBUFF_EVENT_NEARFULL);
-    printByteBits(handle->event_settings.event_mask);
     return err;
 }
+
 
 static esp_err_t emit_full_event(CBuff handle) {
 
@@ -203,6 +227,7 @@ static esp_err_t emit_full_event(CBuff handle) {
     return err;
 }
 
+
 static esp_err_t emit_overwrite_event(CBuff handle) {
 
     esp_err_t err = ESP_OK;
@@ -211,15 +236,22 @@ static esp_err_t emit_overwrite_event(CBuff handle) {
     return err;
 }
 
+
+static esp_err_t emit_empty_event(CBuff handle) {
+
+    esp_err_t err = esp_event_post_to(handle->event_settings.loop, PM_EVENT_BASE, CBUFF_EVENTCODE_EMPTY, handle, sizeof(CBuff), pdMS_TO_TICKS(CONFIG_EVENTPOST_WAIT_MS));
+    handle->event_settings.event_mask &= ~(CBUFF_EVENT_EMPTY);
+    return err;
+}
+
 #endif
+
+
+
 
 /****** Global Data *******************/
 
-
-
 /****** Global Functions *************/
-
-
 
 CBuff cbuffer_create(CBuffer_init_t *init) {
     
@@ -307,6 +339,19 @@ esp_err_t cbuffer_config_events(CBuff handle, bool use_events, esp_event_loop_ha
     return err;
 }
 
+
+esp_err_t cbuffer_set_event_mask(CBuff handle, uint8_t event_mask) {
+    handle->event_settings.event_mask = event_mask;
+
+    if(event_mask) {
+        handle->use_events = true;
+    }
+    else {
+        handle->use_events = false;
+    } 
+    return ESP_OK;
+}
+
 #endif
 
 
@@ -327,20 +372,23 @@ esp_err_t cbuffer_config_packet(CBuff handle, bool use_sep, uint8_t *sep_bytes, 
         if(use_sep) {
             handle->pkt_settings.use_sep_bytes = true;
             handle->pkt_settings.sep_length = sep_length;
+            handle->pkt_settings.packet_sz_bytes += sep_length;
             memset(handle->pkt_settings.sep_bytes, 0, (sizeof(uint8_t ) * CBUFF_MAX_SEP_BYTES));
             memcpy(handle->pkt_settings.sep_bytes, sep_bytes, sep_length);
             printf("Loaded %u seperation bytes ", sep_length);
             for(uint8_t i=0; i < sep_length; i++) {
-                printf("%08x ", handle->pkt_settings.sep_bytes[i]);
+                printf("%02x ", handle->pkt_settings.sep_bytes[i]);
             }
             printf("\n");
         }
 
         if(use_timestamp) {
+            uint8_t ts_size = ts_precision > 0 ? 8 : 4;
             handle->pkt_settings.use_timestamp = true;
             handle->pkt_settings.use_timestamp = use_timestamp;
             handle->pkt_settings.ts_precision = use_timestamp ? ts_precision : 0;
-            handle->pkt_settings.timestamp_length = ts_precision > 0 ? 8 : 4;
+            handle->pkt_settings.timestamp_length = ts_size;
+            handle->pkt_settings.packet_sz_bytes += ts_size;
             printf("Set time-stamp precision=%u, length=%u\n", handle->pkt_settings.ts_precision, handle->pkt_settings.timestamp_length);
         }
 
@@ -353,13 +401,6 @@ esp_err_t cbuffer_config_packet(CBuff handle, bool use_sep, uint8_t *sep_bytes, 
 }
 
 
-esp_err_t cbuffer_set_event_mask(CBuff handle, uint8_t event_mask) {
-    handle->event_settings.event_mask = event_mask;
-    handle->use_events = event_mask > 0 ? true : false;
-    return ESP_OK;
-}
-
-
 esp_err_t cbuffer_get_full_packet_length(CBuff handle, uint16_t *len) {
 
     esp_err_t err = ESP_OK;
@@ -369,7 +410,6 @@ esp_err_t cbuffer_get_full_packet_length(CBuff handle, uint16_t *len) {
         err = ESP_ERR_INVALID_STATE;
     }
     else {
-        ESP_LOGI("CBUFF", "Getting full packet length");
         if(handle->pkt_settings.use_timestamp) {
             if(handle->pkt_settings.ts_precision == CBUFF_TS_PRECISION_MICROSECOND) {
                 length += 8;
@@ -379,19 +419,16 @@ esp_err_t cbuffer_get_full_packet_length(CBuff handle, uint16_t *len) {
             }
         }
         /** copy the pattern from the buffer **/
-        length += get_packet_size_from_pattern(handle->pkt_settings.pattern);
+        length += handle->pkt_settings.packet_data_sz_bytes;
 
         if(handle->pkt_settings.use_sep_bytes) {
             length += handle->pkt_settings.sep_length;
         }
     }
 
-    ESP_LOGI("CBUFF", "full packet length = %u", length);
-
     *len = length;
 
     return err;
-
 }
 
 
@@ -435,6 +472,7 @@ esp_err_t cbuffer_get_pattern(CBuff handle, char *pattern) {
 esp_err_t cbuffer_load_packet(CBuff handle, uint8_t values_per_packet, char *pattern, char **names_array, uint8_t *ids) {
     esp_err_t err = ESP_OK;
     uint16_t name_len = 0;
+    uint16_t pkt_data_len = 0;
     ESP_LOGI(CBUFF_TAG, "Loading new pattern : %s", pattern);
 
     if(values_per_packet > CBUFFER_MAX_PACKET_VALUES) {
@@ -454,11 +492,13 @@ esp_err_t cbuffer_load_packet(CBuff handle, uint8_t values_per_packet, char *pat
         }
     }
 
-    if(get_packet_size_from_pattern(pattern) == 0) {
+    pkt_data_len = get_packet_size_from_pattern(pattern); 
+    if( pkt_data_len == 0) {
         err = ESP_ERR_INVALID_ARG;
     }
 
     if(!err) {
+        handle->pkt_settings.packet_data_sz_bytes = pkt_data_len;
         cbuffer_reset_buffer(handle);
     }
 
@@ -479,7 +519,7 @@ esp_err_t cbuffer_load_packet(CBuff handle, uint8_t values_per_packet, char *pat
             
             printf("Added to packet: %s %c %i\n", handle->packets[counter].name, handle->packets[counter].p, handle->packets[counter].id);
         }
-        handle->pkt_settings.packet_sz_bytes  = get_packet_size_from_pattern(pattern);
+        handle->pkt_settings.packet_sz_bytes  = pkt_data_len;
     }
 
     if(!err) {
@@ -503,7 +543,20 @@ esp_err_t cbuffer_clear_packet(CBuff handle) {
 }
 
 
-/** newer version **/
+esp_err_t cbuffer_get_available_packets(CBuff handle, uint32_t *avail) {
+    esp_err_t err = ESP_OK;
+
+    if(!handle->use_packets) {
+        err = ESP_ERR_INVALID_STATE;
+        *avail = 0;
+    }
+    else {
+        *avail = handle->pkts_available;
+    }
+    return err;
+}
+
+
 esp_err_t cbuffer_write(CBuff handle, void *data, uint32_t wrt_len) {
 
     esp_err_t ret = ESP_OK;
@@ -574,12 +627,14 @@ esp_err_t cbuffer_write_packet(CBuff handle, void *data, uint32_t length) {
     /* function to write an entire packet at once - do it faster this time! */
     esp_err_t err = ESP_OK;
     uint8_t sep[CBUFF_MAX_SEP_BYTES] = {0};
+    uint32_t free = buffer_free_bytes(handle);
+    bool overwrite = false;
 
-    if (length != handle->pkt_settings.packet_sz_bytes ) {
-        ESP_LOGE(CBUFF_TAG, "Error, invalid length!");
+    if (length != handle->pkt_settings.packet_data_sz_bytes) {
+        ESP_LOGE(CBUFF_TAG, "Error, invalid length! Expected %u got %u", handle->pkt_settings.packet_data_sz_bytes, length);
         err = ESP_ERR_INVALID_ARG;
     }
-    else if(length > buffer_free_bytes(handle)) {
+    else if(length > free) {
         /** no space for another packet **/
         if(!handle->allow_overwrite) {
             err = ESP_ERR_NO_MEM;
@@ -596,8 +651,11 @@ esp_err_t cbuffer_write_packet(CBuff handle, void *data, uint32_t length) {
         else if(handle->use_events && \
                 handle->event_settings.event_mask & CBUFF_EVENT_OVERWRITE) {
                     emit_overwrite_event(handle);
-        } 
+        }
 #endif
+        if(handle->allow_overwrite) {
+            overwrite = true;
+        }
     }
 
     /** lock buffer for writing **/
@@ -625,7 +683,10 @@ esp_err_t cbuffer_write_packet(CBuff handle, void *data, uint32_t length) {
         if(handle->pkt_settings.use_sep_bytes) {
             cbuffer_write_ll(handle, handle->pkt_settings.sep_bytes, handle->pkt_settings.sep_length);
         }
-
+        /** only increment the packet count if we're not overwriting old packets **/
+        if(!overwrite) {
+            handle->pkts_available++;
+        }
         xSemaphoreGive(handle->sem);
 
 #ifdef CONFIG_USE_EVENTS
@@ -638,6 +699,9 @@ esp_err_t cbuffer_write_packet(CBuff handle, void *data, uint32_t length) {
 #endif
 
     }
+
+    // uint32_t free_bytes = buffer_free_bytes(handle);
+    // ESP_LOGI(CBUFF_TAG, "Wrote %u byte packet to cbuffer, %u free bytes left", length, free_bytes);
 
     return err;
 }
@@ -659,22 +723,57 @@ esp_err_t cbuffer_read(CBuff handle, void *buffer, uint32_t length){
     }
     
     if(!ret) {
-        uint32_t bytes_until_end = buffer_bytes_until_end(handle, 1);
-        if(length > bytes_until_end) {
-            memcpy(buffer, handle->read_ptr, bytes_until_end); 
-            handle->read_ptr = handle->buffer_start;
-            memcpy((buffer + bytes_until_end), handle->read_ptr, (length - bytes_until_end));
-            handle->read_ptr += (length - bytes_until_end);
-        }
-        else {
-            memcpy(buffer, handle->read_ptr, length);
-            handle->read_ptr += length;
-        }
-
+        cbuffer_read_ll(handle, buffer, length);
         xSemaphoreGive(handle->sem);
     }
 
+#ifdef CONFIG_USE_EVENTS
+
+    if(!ret && 
+        handle->use_events &&
+        (handle->pkts_available < 1 || handle->data_len < 1 ) &&
+        handle->event_settings.event_mask & CBUFF_EVENT_EMPTY) {
+            emit_empty_event(handle);
+       }
+
+#endif
+
     return ret;
+}
+
+
+esp_err_t cbuffer_read_packet(CBuff handle, void *data) {
+
+    /* function to write an entire packet at once - do it faster this time! */
+    esp_err_t err = ESP_OK;
+    uint8_t sep[CBUFF_MAX_SEP_BYTES] = {0};
+
+    /** lock buffer for writing **/
+    if(!handle->use_packets) {
+        ESP_LOGE(CBUFF_TAG, "Error, packets not configured for this cbuffer!");
+        err = ESP_ERR_INVALID_STATE;
+    }
+
+    if(!err && handle->pkts_available < 1) {
+        ESP_LOGI(CBUFF_TAG, "No packets available");
+        err = ESP_ERR_NOT_FOUND;
+    }
+
+    if(!err && xSemaphoreTake(handle->sem, pdMS_TO_TICKS(CBUFFER_SEM_WAIT_MS)) != pdTRUE) {
+        err = ESP_ERR_TIMEOUT;
+    }
+    
+    if(!err) {
+
+        uint16_t pkt_len = handle->pkt_settings.packet_sz_bytes;
+
+        cbuffer_read_ll(handle, data, pkt_len);
+        handle->pkts_available--;
+        xSemaphoreGive(handle->sem);
+    }
+
+    return err;
+
 }
 
 
@@ -703,3 +802,475 @@ esp_err_t cbuffer_reset_buffer(CBuff handle) {
     return ESP_OK;
 }
 
+
+/** CBUFFER UTILS 
+ **/
+
+
+/** 
+ *  After some thought, going to create a task which can be created to do async
+ *  data-dumping. Could also do async data reading too. Whilst this is some cool stuff to do
+ *  with cbuffers, it's not really core, so keeping this functionality to the extended 'cbuff utils'
+ *  
+ * 
+ * 
+ *  Keep task simple -  
+ *      - condition - taskComplete (if complete, delete/stop task)
+ *      - current action
+ * 
+ **/
+
+static void cbuff_dispatch_task(void *args) {
+
+    esp_err_t err = ESP_OK;
+    CBuff handle = (CBuffer_Handle_t *)args;
+    cbuffer_task_settings_t *task = (cbuffer_task_settings_t *)&handle->tx_task;
+    uint32_t io_sz = 0;
+    void *ptr = NULL;
+    bool pkt_dispatch = false;
+    bool done = false;
+
+    if(task->current_task == CBUFF_TASK_PACKET_DISPATCH_CONTINUOUS) {
+        pkt_dispatch = true;
+        io_sz = handle->pkt_settings.packet_sz_bytes;
+    }
+    else {
+        io_sz = task->chunk_sz;
+    }
+
+    while(!done) {
+        
+        /** if data available, dispatch via io **/
+        if((pkt_dispatch && handle->pkts_available > 0) ||
+            (!pkt_dispatch && buffer_unread_bytes(handle) >= task->chunk_sz) 
+        ) {
+
+            switch(task->io_type) {
+                case CBUFF_IO_TYPE_CAN:
+                    /** TODO: Can send from cbuffer **/
+                    break;
+                case CBUFF_IO_TYPE_I2C:
+                    /** TODO: i2c send from cbuffer **/
+                    break;  
+                case CBUFF_IO_TYPE_SPI:
+                    /** TODO: implement spi send from cbuffer **/                    
+                    break;
+                case CBUFF_IO_TYPE_UART:
+                    /** place a packet into the uart queue **/
+
+                    ptr = handle->read_ptr;
+                    err = cbuff_dump_uart(handle, task->io_bus, io_sz);
+                    if(!err && pkt_dispatch) {
+                        handle->pkts_available--;
+                    }
+                    else if(err && pkt_dispatch) {
+                        /** if we didn't send the whole packet, reset the read ptr to pre-read
+                         *  so things don't get out of sync.
+                         * **/
+                        handle->read_ptr = ptr;
+                    }
+                    else if(err && !pkt_dispatch) {
+                        /** do the same here, why not **/
+                        handle->read_ptr = ptr;
+                    }
+                    break;
+                default:
+                    ESP_LOGE(CBUFF_TAG, "Error, invalid IO Type");
+                    break;
+
+            }
+
+            vTaskDelay(pdMS_TO_TICKS(CBUFFER_CONFIG_DISPATCH_YIELD_MS));
+        }
+        /** there are no bytes left to send and task not continous **/
+        else if(!task->continuous) {
+            task->is_complete = true;
+            done = true;
+        }
+        /** task is continous and no data available - wait new data **/
+        else {
+            vTaskDelay(pdMS_TO_TICKS(CBUFFER_CONFIG_WAIT_PKT_MS));
+        }
+    }
+    /** here be dragons **/
+
+#ifdef CONFIG_USE_EVENTS
+
+    
+
+#endif /** CONFIG_USE_EVENTS **/
+
+    task->active = false;
+    vTaskDelete(NULL);
+    
+    /** hopefully task is deleted by now - just in case **/
+    while(1) {
+        vTaskDelay(1);
+    }
+}
+
+
+
+
+/** 
+ *  TODO:
+ *  Async receive task to periodically read data into the cbuffer 
+ *  from an io peripheral
+ *  
+ *  Receive task could be free-running or stop on reaching a 
+ *  pre-determined condition?
+ *   
+ ***/
+static void cbuff_receive_task(void *args) {
+
+    while(1) {
+        vTaskDelay(100);
+    }
+}
+
+
+esp_err_t cbuffer_start_task(CBuff handle, cbuffer_data_io_t io_type, uint8_t io_bus, uint8_t addr, cbuffer_task_t type, uint16_t chunk_sz) {
+    /** 
+     *  Start a cbuffer task to i/o data to/from a specific peripheral 
+     *      - could look into using dma mem for this possibly? 
+     *      - start a single or continuous task
+     *      - single tasks should end their task when done
+     *      - continous tasks can be ended by using this function and setting task type to NO_TASK
+     **/
+    esp_err_t err = ESP_OK;
+
+    if((type == CBUFF_TASK_PACKET_DISPATCH_AVAILABLE ||
+        type == CBUFF_TASK_PACKET_DISPATCH_CONTINUOUS) &&
+        !handle->use_packets) {
+        ESP_LOGE(CBUFF_TAG, "Error packets not configured for packet task type");
+        err = ESP_ERR_INVALID_STATE;
+    }
+
+    else if((type == CBUFF_TASK_PACKET_DISPATCH_AVAILABLE ||
+             type == CBUFF_TASK_PACKET_DISPATCH_CONTINUOUS ||
+             type == CBUFF_TASK_DATA_DISPATCH_AVAILABLE || 
+             type == CBUFF_TASK_PACKET_DISPATCH_AVAILABLE) &&
+        handle->tx_task.active) {
+        ESP_LOGE(CBUFF_TAG, "Error TX task is currently active");
+        err = ESP_ERR_INVALID_STATE;
+    }
+
+    else if((type == CBUFF_TASK_DATA_READ ||
+             type == CBUFF_TASK_PACKET_READ) &&
+             handle->rx_task.active ) {
+        ESP_LOGE(CBUFF_TAG, "Error RX task is currently active");
+        err = ESP_ERR_INVALID_STATE;
+    }
+
+    else if((type == CBUFF_TASK_DATA_DISPATCH_AVAILABLE ||
+         type == CBUFF_TASK_DATA_DISPATCH_CONTINUOUS) &&
+        handle->use_packets) {
+        ESP_LOGE(CBUFF_TAG, "Error packets configured but data task requested");
+        err = ESP_ERR_INVALID_STATE;
+    }
+    
+    if(type >= CBUFF_TASK_MAX) {
+        ESP_LOGE(CBUFF_TAG, "Error invalid task type");
+        err = ESP_ERR_INVALID_ARG;
+    }
+
+    if(handle->tx_task.active && type != CBUFF_TASK_NONE) {
+        ESP_LOGE(CBUFF_TAG, "Error: task already running");
+        err = ESP_ERR_INVALID_STATE;
+    }
+
+    if(!err) {
+        if(type < CBUFF_TASK_DATA_READ ) {
+            /** tx type **/
+            handle->tx_task.addr = addr;
+            handle->tx_task.io_bus = io_bus;
+            handle->tx_task.io_type = io_type;
+            handle->tx_task.is_complete = false;
+            handle->tx_task.current_task = type;
+            handle->tx_task.chunk_sz = chunk_sz;
+        }
+        else if (type >= CBUFF_TASK_DATA_READ) {
+            handle->rx_task.addr = addr;
+            handle->rx_task.io_bus = io_bus;
+            handle->rx_task.io_type = io_type;
+            handle->rx_task.is_complete = false;
+            handle->rx_task.current_task = type;
+            handle->rx_task.chunk_sz = chunk_sz;          
+        }
+
+        switch (type)
+        {
+        case CBUFF_TASK_NONE:
+            /** if running a task, stop the task **/
+            if(handle->tx_task.active) {
+                ESP_LOGI(CBUFF_TAG, "Shutting down running task");
+                vTaskSuspend(handle->tx_task.task_handle);
+                vTaskDelete(handle->tx_task.task_handle);
+                handle->tx_task.active = false;
+            }
+            break;
+
+        case CBUFF_TASK_DATA_DISPATCH_AVAILABLE:
+        case CBUFF_TASK_PACKET_DISPATCH_AVAILABLE:
+            handle->tx_task.continuous = false;
+            if(xTaskCreate(cbuff_dispatch_task, "cbuff_dispatch_task", 5012, handle, 5, &handle->tx_task.task_handle) != pdTRUE) {
+                err = ESP_ERR_NO_MEM;
+            }
+            else {
+                handle->tx_task.active = true;
+            }
+            break;
+        case CBUFF_TASK_DATA_DISPATCH_CONTINUOUS:
+        case CBUFF_TASK_PACKET_DISPATCH_CONTINUOUS:
+            handle->tx_task.continuous = true;
+            if(xTaskCreate(cbuff_dispatch_task, "cbuff_dispatch_task", 5012, handle, 5, &handle->tx_task.task_handle) != pdTRUE) {
+                err = ESP_ERR_NO_MEM;
+            } else {
+                handle->tx_task.active = true;
+            }
+            break;
+        case CBUFF_TASK_DATA_READ:
+        case CBUFF_TASK_PACKET_READ:
+            handle->rx_task.active = true;
+            if(xTaskCreate(cbuff_receive_task, "cbuff_receive_task", 5012, handle, 5, &handle->rx_task.task_handle) != pdTRUE) {
+                err = ESP_ERR_NO_MEM;
+            }
+            break;
+        default:
+            break;
+        }
+    }
+
+    if(!err) {
+        ESP_LOGI(CBUFF_TAG, "Started new task succesfully!");
+    }
+
+    return err;
+}
+
+
+esp_err_t cbuffer_read_i2c_pattern_block(CBuff handle, gcd_transaction_t *trx) {
+
+    esp_err_t err = ESP_OK;
+    uint32_t first_write = 0;
+    uint32_t bytes_written = 0;
+    uint32_t bytes_read = 0;
+    uint8_t n_chunks = 0;
+    uint16_t last_chunk_sz = 0;
+    uint32_t read_len = 0;
+    uint16_t pkts_in_block = 0;
+    uint16_t pkts_per_chunk = 0;
+
+    uint8_t middle_buffer[CBUFFER_CHUNK_READ_SIZE] = {0};
+
+    if(!handle->use_packets) {
+        err = ESP_ERR_INVALID_STATE;
+        ESP_LOGE(CBUFF_TAG, "Error, packets are not configured for this CBuffer!");
+    }
+    if (!err && trx->len % handle->pkt_settings.packet_sz_bytes > 0) {
+        ESP_LOGE(CBUFF_TAG, "Error, length is not a multiple of packet size, truncating read length...");
+        trx->len = trx->len - (trx->len % handle->pkt_settings.packet_sz_bytes);
+    }
+
+    if(!err) {
+        /** make our chunk read size multiple of whole packets  **/
+        pkts_in_block = trx->len / handle->pkt_settings.packet_sz_bytes;
+
+        if(trx->len > CBUFFER_CHUNK_READ_SIZE) {
+            pkts_per_chunk = CBUFFER_CHUNK_READ_SIZE / handle->pkt_settings.packet_sz_bytes;
+            n_chunks = pkts_in_block / pkts_per_chunk;
+            read_len = pkts_per_chunk * handle->pkt_settings.packet_sz_bytes;
+        }
+        else {
+            pkts_per_chunk = pkts_in_block;
+            read_len = trx->len;
+            n_chunks = 1;
+        }
+
+        /** while chunks to read, read i2c to middle buffer, then use the write packet function
+         * to save packets as usual 
+         */
+        while(n_chunks) {
+            memset(middle_buffer, 0, sizeof(uint8_t ) * CBUFFER_CHUNK_READ_SIZE);
+            err = gcd_i2c_read_address(trx->bus, trx->dev, trx->reg, read_len, middle_buffer);
+            if(err) {
+                ESP_LOGE(CBUFF_TAG, "Error during buffer read - exiting");
+                break;
+            }
+            else {
+                cbuffer_write_packet(handle, middle_buffer, read_len);
+                n_chunks--;
+            }
+        }
+    }
+
+    return err;
+}
+
+
+esp_err_t cbuffer_read_i2c_block(CBuff handle, uint8_t bus, uint8_t device_addr, uint8_t reg_addr, uint32_t len) {
+
+    esp_err_t err = ESP_OK;
+    uint32_t first_write = 0;
+    uint32_t written = 0;
+
+    if(len > handle->buffer_len) {
+        ESP_LOGE(CBUFF_TAG, "Error: length greater than buffer size!");
+        err = ESP_ERR_INVALID_ARG;
+    }
+    else if(len > buffer_free_bytes(handle) && !handle->allow_overwrite) {
+        ESP_LOGE(CBUFF_TAG, "Error: Insufficient space without overwriting");
+        err = ESP_ERR_INVALID_STATE;
+    }
+    else {
+        err = gcd_i2c_bus_claim(bus);
+    }
+
+    if(!err) {
+        i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+        i2c_master_start(cmd);
+
+        i2c_master_write_byte(cmd, device_addr << 1 | 0, 1);
+        i2c_master_write_byte(cmd, reg_addr, 1);
+        i2c_master_start(cmd);
+        i2c_master_write_byte(cmd, device_addr << 1 | 1, 1);
+
+        /** read first bytes **/
+        if(buffer_will_overrun(handle, len)) {
+            first_write = buffer_bytes_until_end(handle, false);
+            i2c_master_read(cmd, handle->write_ptr, first_write, 0);
+            handle->write_ptr = handle->buffer_start;
+            written += first_write;
+        }
+        
+        /** read rest of bytes **/
+        i2c_master_read(cmd, handle->write_ptr, len - written - 1, 0);
+        handle->write_ptr += len - written - 1;
+
+        /** read last byte with stop bit **/
+        i2c_master_read_byte(cmd, handle->write_ptr, 1);
+        handle->write_ptr += 1;
+
+        i2c_master_stop(cmd);
+        err = i2c_master_cmd_begin(bus, cmd, 1000 / portTICK_RATE_MS);
+        i2c_cmd_link_delete(cmd);
+
+        if (err == ESP_ERR_TIMEOUT)
+        {
+            ESP_LOGW(CBUFF_TAG, "I2C Timeout error");
+        } 
+        if (err != ESP_OK)
+        {
+            ESP_LOGW(CBUFF_TAG, "I2C error during block read {%u}", err);
+        }
+
+        gcd_i2c_bus_unclaim(bus);
+    }
+
+    return err;
+}
+
+
+esp_err_t cbuffer_dump_packet_uart(CBuff handle, uint8_t bus) {
+    
+    /** read a packet **/
+    esp_err_t err = ESP_OK;
+
+    /** send packet over uart **/
+    err = gcd_uart_transmit_blocking(bus, handle->read_ptr, handle->pkt_settings.packet_sz_bytes);
+
+    /** clear buffer **/
+    handle->pkts_available--;
+
+    return err;
+}
+
+
+esp_err_t cbuff_dump_uart(CBuff handle, uint8_t bus, uint32_t len) {
+
+    esp_err_t err = ESP_OK;
+    uint32_t sent = 0;
+    uint32_t bytes_until_end = buffer_bytes_until_end(handle, true);
+
+    if(len > handle->buffer_len) {
+        ESP_LOGE(CBUFF_TAG, "Error: Dump length is greater than buffer length");
+        err = ESP_ERR_INVALID_ARG;
+    }
+
+    if(!err && len > bytes_until_end) {
+        uint32_t first_write = bytes_until_end; 
+        sent = uart_tx_chars(handle->tx_task.io_bus, (const char *)handle->read_ptr, first_write);
+        if(sent < first_write) {
+            /** there wasn't enough space in uart fifo */
+            ESP_LOGI(CBUFF_TAG, "UART fifo full");
+            handle->read_ptr += sent;
+            err = ESP_ERR_NO_MEM;
+        }
+        else {
+            handle->read_ptr = handle->buffer_start;
+            uint32_t second_write = len - first_write;
+            sent = uart_tx_chars(handle->tx_task.io_bus, (const char *)handle->read_ptr, second_write);
+            if(sent < second_write) {
+                ESP_LOGI(CBUFF_TAG, "UART fifo full");          
+                err = ESP_ERR_NO_MEM;
+            }
+            handle->read_ptr += sent;
+        }
+    }
+    else {
+        sent = uart_tx_chars(handle->tx_task.io_bus, (const char *)handle->read_ptr, len);
+        if(sent < len) {
+            ESP_LOGI(CBUFF_TAG, "UART fifo full");
+        }
+        handle->read_ptr += sent;
+    }
+
+    return err;
+}
+
+
+esp_err_t cbuff_dump_packets_uart(CBuff handle, uint8_t uart_bus) {
+
+    esp_err_t err = ESP_OK;
+    uint8_t mid_buffer[CBUFFER_MAX_PACKET_SIZE_BYTES] = {0};
+    uint16_t avail_packets = 0;
+    
+    if(!handle->use_packets) {
+        err = ESP_ERR_INVALID_STATE;
+        ESP_LOGE("CBUFF_UTILS", "Error - packets not configured for this cbuffer!");
+    }
+
+    if(handle->pkts_available < 1) {
+        err = ESP_ERR_INVALID_STATE;
+        ESP_LOGE("CBUFF_UTILS", "Error - no packets available");        
+    }
+
+    if(!err) {
+        uint16_t tx_size = handle->pkt_settings.packet_sz_bytes;
+        ESP_LOGI(CBUFF_TAG, "Dumping %u packets of bytes %u on uart bus %u", handle->pkts_available, tx_size, uart_bus);
+        avail_packets = handle->pkts_available;
+
+        for(uint16_t i=0; i < avail_packets; i++) {
+            /** read a packet **/
+            err = cbuffer_read_packet(handle, mid_buffer);
+
+            if(err) {
+                ESP_LOGE(CBUFF_TAG, "Error reading packet %u - break [%u]", i, err);
+                break;
+            }
+            /** send packet over uart **/
+            err = gcd_uart_transmit_blocking(uart_bus, mid_buffer, tx_size);
+            
+            /** clear buffer **/
+            memset(mid_buffer, 0, CBUFFER_MAX_PACKET_SIZE_BYTES);
+            if(err) {
+                ESP_LOGE(CBUFF_TAG, "Error dumping packet %u - break [%u]", i, err);
+                break;
+            }
+
+            handle->pkts_available--;
+        }
+    }
+
+    return err;
+}

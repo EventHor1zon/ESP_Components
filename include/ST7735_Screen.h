@@ -24,29 +24,29 @@
 #define ST_CMD_SLPIN         0x10;//Sleep ON
 #define ST_CMD_SLPOUT        0x11;//Sleep OFF
 #define ST_CMD_PTLON         0x12;//Partial Mode ON
-#define ST_CMD_NORML         0x13;//Normal Display ON								_CMD_NORON
-#define ST_CMD_DINVOF        0x20;//Display Inversion OFF							_CMD_INVOFF
-#define ST_CMD_DINVON        0x21;//Display Inversion ON							_CMD_INVON
+#define ST_CMD_NORML         0x13;//Normal Display ON                                _CMD_NORON
+#define ST_CMD_DINVOF        0x20;//Display Inversion OFF                            _CMD_INVOFF
+#define ST_CMD_DINVON        0x21;//Display Inversion ON                            _CMD_INVON
 #define ST_CMD_GAMMASET      0x26;//Gamma Set (0x01[1],0x02[2],0x04[3],0x08[4])
 #define ST_CMD_DISPOFF       0x28;//Display OFF
 #define ST_CMD_DISPON        0x29;//Display ON
-#define ST_CMD_IDLEON        0x39;//Idle Mode ON									_CMD_IDLEON
-#define ST_CMD_IDLEOF        0x38;//Idle Mode OFF									_CMD_IDLEOFF
-#define ST_CMD_CLMADRS       0x2A;//Column Address Set								_CMD_CASET
-#define ST_CMD_PGEADRS       0x2B;//Page Address Set								_CMD_PASET
+#define ST_CMD_IDLEON        0x39;//Idle Mode ON                                    _CMD_IDLEON
+#define ST_CMD_IDLEOF        0x38;//Idle Mode OFF                                    _CMD_IDLEOFF
+#define ST_CMD_CLMADRS       0x2A;//Column Address Set                                _CMD_CASET
+#define ST_CMD_PGEADRS       0x2B;//Page Address Set                                _CMD_PASET
 #define ST_CMD_RAMWR         0x2C;//Memory Write
 #define ST_CMD_RAMRD         0x2E;//Memory Read
-#define ST_CMD_PARTAREA      0x30;//Partial Area									_CMD_PTLAR
-#define ST_CMD_VSCLLDEF      0x33;//Vertical Scroll Definition						_CMD_VSCRLLD
-#define ST_CMD_TEFXLON       0x35;//Tearing Effect Line ON							_CMD_TEFXON
-#define ST_CMD_TEFXLOF       0x34;//Tearing Effect Line OFF						_CMD_TEFXOFF
+#define ST_CMD_PARTAREA      0x30;//Partial Area                                    _CMD_PTLAR
+#define ST_CMD_VSCLLDEF      0x33;//Vertical Scroll Definition                        _CMD_VSCRLLD
+#define ST_CMD_TEFXLON       0x35;//Tearing Effect Line ON                            _CMD_TEFXON
+#define ST_CMD_TEFXLOF       0x34;//Tearing Effect Line OFF                        _CMD_TEFXOFF
 #define ST_CMD_MADCTL        0x36;//Memory Access Control
-#define ST_CMD_VSSTADRS      0x37;//Vertical Scrolling Start address				_CMD_VSCLLSA
+#define ST_CMD_VSSTADRS      0x37;//Vertical Scrolling Start address                _CMD_VSCLLSA
 #define ST_CMD_PIXFMT        0x3A;//Interface Pixel Format
 #define ST_CMD_FRMCTR1       0xB1;//Frame Rate Control (In normal mode/Full colors)
 #define ST_CMD_FRMCTR2       0xB2;//Frame Rate Control(In Idle mode/8-colors)
 #define ST_CMD_FRMCTR3       0xB3;//Frame Rate Control(In Partial mode/full colors)
-#define ST_CMD_DINVCTR       0xB4;//Display Inversion Control						_CMD_INVCTR
+#define ST_CMD_DINVCTR       0xB4;//Display Inversion Control                        _CMD_INVCTR
 #define ST_CMD_DFUNCTR       0xB6;//Display Fuction set 5
 #define ST_CMD_PWCTR1        0xC0;//Power_Control1
 #define ST_CMD_PWCTR2        0xC1;//Power_Control2
@@ -54,18 +54,18 @@
 #define ST_CMD_PWCTR4        0xC3;//Power_Control4
 #define ST_CMD_PWCTR5        0xC4;//Power_Control5
 #define ST_CMD_PWCTR6        0xFC;//Power_Control6
-#define ST_CMD_VCOMCTR1      0xC5;//VCOM_Control 1									_CMD_VMCTR1
-#define ST_CMD_VCOMCTR2      0xC7;//VCOM_Control 2									_CMD_VMCTR2
-#define ST_CMD_PGAMMAC       0xE0;//Positive Gamma Correction Setting				_CMD_POSGAMUT
-#define ST_CMD_NGAMMAC       0xE1;//Negative Gamma Correction Setting	
+#define ST_CMD_VCOMCTR1      0xC5;//VCOM_Control 1                                    _CMD_VMCTR1
+#define ST_CMD_VCOMCTR2      0xC7;//VCOM_Control 2                                    _CMD_VMCTR2
+#define ST_CMD_PGAMMAC       0xE0;//Positive Gamma Correction Setting                _CMD_POSGAMUT
+#define ST_CMD_NGAMMAC       0xE1;//Negative Gamma Correction Setting    
 
 #define ST_CMD_TRX          0x0
 #define ST_DATA_TRX         0x01
 
 #define ST_MAC_CTRL_DATA    0b11000000
 
-#define TFT_ST7735_TFTWIDTH	    128
-#define TFT_ST7735_TFTHEIGHT	160
+#define TFT_ST7735_TFTWIDTH        128
+#define TFT_ST7735_TFTHEIGHT    160
 #define TFT_ST7735_MEMSZ        20480
 
 static const uint8_t TFT_ST7735_FRMCTR1[3] = {0x00,0x06,0x03};

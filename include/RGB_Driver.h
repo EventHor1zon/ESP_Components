@@ -21,10 +21,13 @@
 
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
+#include "CommandAPI.h"
+
 #define rgb_param_len 7
 
 const parameter_t rgb_param_map[rgb_param_len];
 const peripheral_t rgb_periph_template;
+
 #endif
 
 /********* Definitions *****************/

@@ -13,6 +13,11 @@
 #include "esp_err.h"
 #include "sdkconfig.h"
 
+#include "./sx_fsk_definitions.h"
+#include "./sx_lora_definitions.h"
+
+#include "driver/gpio.h"
+#include "driver/spi_master.h"
 #include "driver/spi_common.h"
 /********* Definitions *****************/
 
@@ -29,7 +34,7 @@ const peripheral_t lora_peripheral_template;
 
 #endif 
 
-/** TODO: put these in a couple of arrays or prefix lora/fsk 
+/** TODONE: put these in a couple of arrays or prefix lora/fsk 
  ***/ 
 
 #define SX1276_REGADDR_REGFIFO 0x00
@@ -139,6 +144,41 @@ const peripheral_t lora_peripheral_template;
 #define SX1276_REGADDR_AGC_THRESH2 0x63
 #define SX1276_REGADDR_AGC_THRESH3 0x64
 #define SX1276_REGADDR_PLL  0x70
+
+
+
+#define SX1276_REGADDR_REGFIFO_DEFAULT      0x00
+#define SX1276_REGADDR_OPMODE_DEFAULT       0x01
+#define SX1276_REGADDR_BITRATE_MSB_DEFAULT  0x1A
+#define SX1276_REGADDR_BITRATE_LSB_DEFAULT  0x0B
+#define SX1276_REGADDR_DEV_MSB_DEFAULT      0x00
+#define SX1276_REGADDR_DEV_LSB_DEFAULT      0x52
+#define SX1276_REGADDR_CARRFREQ_MSB_DEFAULT 0x6C
+#define SX1276_REGADDR_CARRFREQ_MIDB_DEFAULT    0x80
+#define SX1276_REGADDR_CARRFREQ_LSB_DEFAULT     0x00
+#define SX1276_REGADDR_PA_CONFIG_DEFAULT        0x4F
+#define SX1276_REGADDR_PA_RAMP_DEFAULT          0x09
+#define SX1276_REGADDR_OCURRENT_PROT_DEFAULT    0x2B
+#define SX1276_REGADDR_LNA_CONFIG_DEFAULT       0x20
+#define SX1276_REGADDR_RX_CONFIG_DEFAULT        0x0E
+#define SX1276_REGADDR_FIFOADDR_PTR_DEFAULT     0x08
+#define SX1276_REGADDR_RSSI_CONFIG_DEFAULT      0xFF
+#define SX1276_REGADDR_FIFO_TXBASEADDR_DEFAULT  0x02
+#define SX1276_REGADDR_RSSI_COLLSN_DEFAULT      0x0A
+#define SX1276_REGADDR_FIFO_RXBASEADDR_DEFAULT  0x0A
+#define SX1276_REGADDR_RSSI_THRESH_DEFAULT      0xFF
+#define SX1276_REGADDR_FIFO_RXCURR_DEFAULT      0xFF
+#define SX1276_REGADDR_RSSI_VALUE_DEFAULT       0x00
+#define SX1276_REGADDR_IRQFLAGS_MASK_DEFAULT    0x00
+#define SX1276_REGADDR_RX_BW_DEFAULT            0x15
+#define SX1276_REGADDR_IRQ_FLAGS_DEFAULT        0x15
+#define SX1276_REGADDR_AFC_BW_DEFAULT           0x0B
+#define SX1276_REGADDR_RX_N_BYTES_DEFAULT       0x0B
+#define SX1276_REGADDR_OOK_PEAK_DEFAULT         0x28
+#define SX1276_REGADDR_RXHDR_CNT_MSB_DEFAULT    0x28
+
+
+
 
 /** REG MODE BITS **/
 #define SX1276_LORA_MODE_BIT (1 << 7)
@@ -295,15 +335,20 @@ const peripheral_t lora_peripheral_template;
 
 
 typedef enum {
-    SX1276_MODE_SLEEP,  /** clears fifo, switch lora/fsk **/
-    SX1276_MODE_STDBY,  /** large bits off **/
-    SX1276_MODE_FS_TX,  /** freq synth tx, pll on, rf off **/
-    SX1276_MODE_TX,     /** rf on, tx, then standby **/
-    SX1276_MODE_FS_RX,  /** above, but rx **/
-    SX1276_MODE_RX_CONT, /** rx until told to stop **/
-    SX1276_MODE_RX_SGL,  /** rx a single packet, then stdby **/
-    SX1276_MODE_CAD,    /** check chan for lora preamble **/
-} sx_mode_t;            
+    SX_DEVICE_FSK_MODE,
+    SX_DEVICE_LORA_MODE,
+} sx_device_mode_t;
+
+typedef enum {
+    SX1276_TRXMODE_SLEEP,  /** clears fifo, switch lora/fsk **/
+    SX1276_TRXMODE_STDBY,  /** large bits off **/
+    SX1276_TRXMODE_FS_TX,  /** freq synth tx, pll on, rf off **/
+    SX1276_TRXMODE_TX,     /** rf on, tx, then standby **/
+    SX1276_TRXMODE_FS_RX,  /** above, but rx **/
+    SX1276_TRXMODE_RX_CONT, /** rx until told to stop **/
+    SX1276_TRXMODE_RX_SGL,  /** rx a single packet, then stdby **/
+    SX1276_TRXMODE_CAD,    /** check chan for lora preamble **/
+} sx_trxmode_t;            
 
 typedef enum {
     SX1276_PA_OUTPUT_RFO,
@@ -555,12 +600,21 @@ typedef struct SX1276_Device_Settings
 
 typedef struct SX1276_Driver
 {
-    sx1276_settings_t settings;
+    sx_device_mode_t device_mode;
+
+    /** internal register maps **/
+    FSK_Register_Map_t fsk_reg;
+    Lora_Register_Map_t lora_reg;
+
     uint8_t rx_buffer[256];
     uint8_t tx_buffer[256];
+
     gpio_num_t rst_pin; 
     gpio_num_t cs_pin; 
     spi_device_handle_t spi_handle;
+
+
+
 } sx1276_driver_t;
 
 

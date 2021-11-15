@@ -21,6 +21,7 @@
 #include "driver/gpio.h"
 #include "esp_err.h"
 #include "esp_log.h"
+#include "CircularBuffer.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
@@ -47,11 +48,37 @@ const peripheral_t lsm_periph_template;
 
 #define LSM_DRIVER_MIN_SAMPLE_PERIOD_MS 20
 #define LSM_DRIVER_MAX_SAMPLE_PERIOD_MS 100000
+
+
+#ifdef CONFIG_USE_EVENTS
+
+#define LSM_CONFIG_EVENT_POST_MS    20
+
+// event codes //
+#define LSM_EVENT_BASE              (0x55)
+#define LSM_EVENT_DREADY            (1 << 0)
+#define LSM_EVENT_FIFO_THRESH       (1 << 1)
+#define LSM_EVENT_FIFO_FULL         (1 << 2)
+#define LSM_EVENT_FIFO_OVR          (1 << 3)
+#define LSM_EVENT_STEP_DETECT       (1 << 4)
+#define LSM_EVENT_FALL_DETECT       (1 << 5)
+
+#define LSM_EVENTCODE_DREADY        ((LSM_EVENT_BASE << 8) | LSM_EVENT_BASE)
+#define LSM_EVENTCODE_FIFO_THRESH   ((LSM_EVENT_BASE << 8) | LSM_EVENT_FIFO_THRESH)
+#define LSM_EVENTCODE_FIFO_FULL     ((LSM_EVENT_BASE << 8) | LSM_EVENT_FIFO_FULL)
+#define LSM_EVENTCODE_FIFO_OVR      ((LSM_EVENT_BASE << 8) | LSM_EVENT_FIFO_OVR)
+#define LSM_EVENTCODE_STEP_DETECT   ((LSM_EVENT_BASE << 8) | LSM_EVENT_STEP_DETECT)
+#define LSM_EVENTCODE_FALL_DETECT   ((LSM_EVENT_BASE << 8) | LSM_EVENT_FALL_DETECT)
+
+#endif
+
+
 /** in order to do better fifo transactions, 
  * limit max packet length - can end up being just 
  * too unweildy to keep track of!
  **/
 #define LSM_MAX_SUPPORTED_PACKET_LENGTH 36
+#define LSM_MAX_SUPPORTED_PACKET_ELEMENTS 8
 
 /** i2c stuff **/
 #define LSM_I2C_ADDR 0b1101010
@@ -160,7 +187,7 @@ const peripheral_t lsm_periph_template;
 #define LSM_CTRL3_ISR_ACTIVE_LVL_BIT (1 << 5)
 #define LSM_CTRL3_ISR_PUSHPULL_OD_BIT (1 << 4)
 #define LSM_CTRL3_SPI_MODE_BIT (1 << 3)
-#define LSM_CTRL3_AUTOINC_ADDR_BIT (1 << 2) /** < use this bit to read fifo ? */
+#define LSM_CTRL3_AUTOINC_ADDR_BIT (1 << 2)
 #define LSM_CTRL3_ENDIAN_BIT (1 << 1)
 #define LSM_CTRL3_SW_RESET_BIT (1)
 
@@ -331,11 +358,12 @@ typedef enum LSM_PktType
     LSM_PKT1_GYRO = 1,
     LSM_PKT2_ACCL = 2,
     LSM_PKT3_SENSHUB = 4,
-    LSM_PKT4_STEP_OR_TEMP = 8
+    LSM_PKT4_STEP_TS = 8,
+    LSM_PKT4_TEMP = 16,
+
 } LSM_PktType_t;
 
 /**  ISR control 1 **/
-
 typedef enum LSM_interrupt1
 {
     LSM_INT1_TYPE_ACC_RDY = 1,
@@ -360,7 +388,6 @@ typedef enum LSM_interrupt2
     LSM_INT2_TYPE_STEPDELTA = (1 << 7),
 } LSM_interrupt2_t;
 
-
 typedef enum LSM_func_interrupt2
 {
     LSM_FNCT_INT1_TYPE_TMR_END = 1,
@@ -373,7 +400,6 @@ typedef enum LSM_func_interrupt2
     LSM_FNCT_INT1_TYPE_INACTV_STATE = (1 << 7),
 } LSM_funct_interrupt2_t;
 
-
 typedef enum LSM_func_interrupt1
 {
     LSM_FNCT_INT2_TYPE_IRON_END_EVT = 1,
@@ -385,7 +411,6 @@ typedef enum LSM_func_interrupt1
     LSM_FNCT_INT2_TYPE_SNGLTAP_EVT = (1 << 6),
     LSM_FNCT_INT2_TYPE_INACTV_STATE = (1 << 7),
 } LSM_funct_interrupt1_t;
-
 
 /** ctrl1 accel */
 typedef enum LSM_AccelODR
@@ -515,6 +540,7 @@ typedef struct LSM_initData
     CBuff cbuff;
 } LSM_initData_t;
 
+
 typedef struct LSM_deviceSettings
 {
     LSM_OperatingMode_t opMode;
@@ -561,6 +587,7 @@ typedef struct LSM_deviceSettings
 
 } LSM_DeviceSettings_t;
 
+
 typedef struct LSM_DeviceMeasures
 {
     float calibGyroX; /** < in mDegrees/s **/
@@ -588,6 +615,7 @@ typedef struct LSM_Driver_settings {
 
 } LSM_Driver_settings_t;
 
+
 typedef struct LSM_status
 {
     /* data */
@@ -604,6 +632,26 @@ typedef struct LSM_status
 } LSM_status_t;
 
 
+typedef enum {
+    LSM_PKT_ELM_T_ACCEL,
+    LSM_PKT_ELM_T_GYRO,
+    LSM_PKT_ELM_T_STEP,
+    LSM_PKT_ELM_T_TEMP,
+} LSM_FIFO_pkt_t;
+
+
+typedef struct 
+{
+    uint8_t pkt_elements;
+    LSM_FIFO_pkt_t pkt_types[LSM_MAX_SUPPORTED_PACKET_ELEMENTS];
+    float accel_factor;
+    float gyro_factor;
+    uint16_t pkt_len_pre_proc;
+    uint16_t pkt_len_post_proc;
+    bool configured;                                
+} LSM_FIFO_packet_descr_t;
+
+
 /**
  *  LSM_DriverHandle_t - a settings struct for the device
  *  keep track of various things..
@@ -616,23 +664,29 @@ typedef struct LSM_DriverSettings
     uint16_t i2Pin;                    /** < gpio interrupt pin 2 **/
     bool int1En;                       /** < enabled interrupt 1 **/
     bool int2En;                       /** < enabled interrupt 2 **/
-    uint8_t intr1_mask;              /** < interrupts enabled on intr 1 **/
-    uint8_t intr2_mask;              /** < interrupt enabled on intr 2 **/
-    LSM_DeviceCommMode_t commMode;     /** < comms mode **/
-    LSM_DeviceSettings_t settings;     /** < a holder for device settings **/
-    LSM_DeviceMeasures_t measurements; /** < the device's latest measurtements **/
+    uint8_t intr1_mask;                 /** < interrupts enabled on intr 1 **/
+    uint8_t intr2_mask;                 /** < interrupt enabled on intr 2 **/
+    LSM_DeviceCommMode_t commMode;      /** < comms mode **/
+    LSM_DeviceSettings_t settings;      /** < a holder for device settings **/
+    LSM_DeviceMeasures_t measurements;  /** < the device's latest measurtements **/
     LSM_Driver_settings_t driver_settings; /**< settings for the driver **/
+    LSM_FIFO_packet_descr_t fifo_pkts;  /**< description of fifo packets **/
     LSM_status_t status;                /**< device status **/
-    uint8_t commsChannel;              /** < the i2c or spi channel being used */
-    uint8_t devAddr;                   /** < the device i2c address **/
-    uint8_t commsHandle;                 /** < can be used to hold a device handle */
-    void *fifoBuffer;                  /** < ptr to fifo buffer memory **/
-    bool use_cbuffer;                  /**< use a cbuffer as fifo storage **/
-    bool cbuff_store_raw;               /**< if true, store the raw data, else store processed **/
-    bool cbuff_store_packets;           /**< store data as cbuffer packets **/
+    /** comms settings **/
+    uint8_t commsChannel;               /** < the i2c or spi channel being used */
+    uint8_t devAddr;                    /** < the device i2c address **/
+    uint8_t commsHandle;                /** < can be used to hold a device handle */
+    void *fifoBuffer;                   /** < ptr to fifo buffer memory **/
+    /** cbuffer settings **/
+    bool use_cbuffer;                   /**< use a cbuffer as fifo storage **/
+    bool cbuff_store_packets;           /**< store fifo data packets as cbuffer packets - formats should match! **/
+    bool cbuff_store_raw;               /**< if true, store the raw integers, else store converted **/
     CBuff cbuff;                        /**< cbuffer handle, NULL if unused **/                    
-    TaskHandle_t taskHandle;           /** < handle to the task **/
-
+    /** event settings **/
+    bool use_events;                    /**< raise events if events are enabled **/
+    uint8_t event_mask;                 /**< event mask bits - OR'd byte of event bits above **/
+    esp_event_loop_handle_t loop;       /**< loop to post events to **/
+    TaskHandle_t taskHandle;            /** < handle to the task **/
 
 } LSM_DriverHandle_t;
 
@@ -1011,7 +1065,7 @@ esp_err_t LSM_get_function_en(LSMDEV dev, bool *mode);
 /** \brief: samples latest measurements. Waits status 
  * 
  * **/
-esp_err_t LSM_sampleLatest(LSMDEV dev);
+esp_err_t LSM_sample_latest(LSMDEV dev);
 
 /** \brief  getGyroX - returns most recent gyro X axis value
  *  \param  dev - pointer to device struct 
@@ -1064,7 +1118,7 @@ esp_err_t LSM_getAccelZ(LSMDEV dev, float *z);
 /**
  * TODO: Description
  **/
-esp_err_t LSM_getFIFOmode(LSMDEV dev, uint8_t *mode);
+esp_err_t LSM_get_fifo_mode(LSMDEV dev, uint8_t *mode);
 
 /** \brief  setFifoMode - set the fifo mode 
  *                      - only bypass/standard currently supported
@@ -1072,21 +1126,21 @@ esp_err_t LSM_getFIFOmode(LSMDEV dev, uint8_t *mode);
  *  \param  mode   - pointer to value 
  *  \return ESP_OK or error
  **/
-esp_err_t LSM_setFIFOmode(LSMDEV dev, LSM_FIFOMode_t *mode);
+esp_err_t LSM_set_fifo_mode(LSMDEV dev, LSM_FIFOMode_t *mode);
 
 /** \brief  setFIFOwatermark - set the fifo watermark
  *  \param  dev - pointer to device struct 
  *  \param  x   - pointer to value 
  *  \return ESP_OK or error
  **/
-esp_err_t LSM_setFIFOwatermark(LSMDEV dev, uint16_t *watermark);
+esp_err_t LSM_set_fifo_watermark(LSMDEV dev, uint16_t *watermark);
 
 /** \brief  getFIFOwatermark - get the fifo watermark
  *  \param  dev - pointer to device struct 
  *  \param  x   - pointer to value 
  *  \return ESP_OK or error
  **/
-esp_err_t LSM_getFIFOwatermark(LSMDEV dev, uint16_t *watermark);
+esp_err_t LSM_get_fifo_watermark(LSMDEV dev, uint16_t *watermark);
 
 /** \brief  setFIFOpackets - set the fifo packet type
  *  \param  dev - pointer to device struct 
@@ -1182,6 +1236,7 @@ esp_err_t LSM_get_fifo_odr(LSMDEV dev, uint8_t *odr);
  **/
 esp_err_t LSM_readFifoBlock(LSMDEV device, uint16_t *length);
 
+esp_err_t LSM_update_temperature(LSM_DriverHandle_t *dev);
 
 esp_err_t LSM_get_auto_sample_ready(LSM_DriverHandle_t *dev, bool *en);
 
@@ -1193,6 +1248,12 @@ esp_err_t LSM_set_poll_sample_period_ms(LSM_DriverHandle_t *dev, uint16_t *val);
 
 esp_err_t LSM_get_poll_sample_period_ms(LSM_DriverHandle_t *dev, uint16_t *val);
 
+esp_err_t LSM_get_fifo_pkt_count(LSM_DriverHandle_t *dev, uint16_t *count);
 
+void dump_info(LSM_DriverHandle_t *dev);
+
+esp_err_t LSM_read_fifo_to_cbuffer(LSM_DriverHandle_t *dev);
+
+void print_i2c_register(LSM_DriverHandle_t *dev, uint8_t reg);
 
 #endif /* LSM_DRIVER_H */
