@@ -648,7 +648,7 @@ typedef struct
     float gyro_factor;
     uint16_t pkt_len_pre_proc;
     uint16_t pkt_len_post_proc;
-    bool configured;                                
+    bool configured;
 } LSM_FIFO_packet_descr_t;
 
 

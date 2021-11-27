@@ -66,3 +66,13 @@ void printBytesOrderExplicit(uint8_t val) {
     }
     printf("\n");
 }
+
+
+uint8_t set_bits(uint8_t byte, uint8_t set) {
+    return (byte | set);
+}
+
+uint8_t unset_bits(uint8_t byte, uint8_t unset) {
+    return (byte & ~(unset));
+}
+
