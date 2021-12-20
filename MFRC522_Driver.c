@@ -142,6 +142,44 @@ static void mfrc_reset_registers(MFRC_DEV dev) {
 
 
 
+static esp_err_t mfrc_flush_fifo(MFRC_DEV dev) {
+    return mfrc_write_register_byte(dev, MFRC_REGADDR_FIFO_LEVEL, (1 << 7));
+}
+
+
+static esp_err_t mfrc_clear_interrupts(MFRC_DEV dev) {
+    return mfrc_write_register_byte(dev, MFRC_REGADDR_COMM_IRQ, 0x7F);
+}
+
+
+static esp_err_t mfrc_transceive_data(MFRC_DEV dev, uint8_t *data, uint8_t len) {
+
+    mfrc_clear_interrupts(dev);
+    mfrc_flush_fifo(dev);
+
+    mfrc_write_register_data(dev, MFRC_REGADDR_FIFO_DATA, data, len);
+
+
+    return ESP_ERR_NOT_SUPPORTED;
+}
+
+
+
+static esp_err_t mfrc_poll_for_cards(MFRC_DEV dev, bool card_present) {
+
+    uint8_t buffer[2] = {0};
+
+    /** clear collision clr bit **/
+    dev->registers.collision_reg.bits.clr_rx_on_collision = 0;
+    esp_err_t err = mfrc_write_register_byte(dev, MFRC_REGADDR_COLLISION_DETECT, dev->registers.collision_reg.regval);
+
+    if(!err) {
+
+    }
+
+    return err;
+
+}
 
 
 static esp_err_t mfrc_read_register_byte(MFRC_DEV dev, uint8_t reg_addr, uint8_t *data) {
@@ -185,6 +223,36 @@ static esp_err_t mfrc_write_register_byte(MFRC_DEV dev, uint8_t reg_addr, uint8_
 }
 
 
+static esp_err_t mfrc_write_register_data(MFRC_DEV dev, uint8_t reg_addr, uint8_t *data, uint8_t len) {
+
+    esp_err_t err = ESP_OK;
+
+    uint8_t send_buffer[64] = {0};
+    spi_transaction_t trx = {0};
+
+    if(len > 64) {
+        return ESP_ERR_INVALID_ARG;
+    }
+    else {
+        /** To make this a continuous transaction, copy into a temp buffer **
+         * write address to byte 0 and copy in data afterwards 
+         **/
+        memset(&send_buffer[0], (reg_addr << MFRC_SPI_ADDR_SHIFT), sizeof(uint8_t));
+        memcpy(&send_buffer[1], data, sizeof(uint8_t) * len);
+    }
+
+    trx.length = (len+1) * 8;
+    trx.tx_buffer = send_buffer;
+    err = spi_device_polling_transmit(dev->spi_handle, &trx);
+
+    if(err) {
+        ESP_LOGE(MFRC_TAG, "Error during transmission {%u}", err);
+    }
+
+    return err;
+}
+
+
 static esp_err_t mfrc_configure_spi(MFRC_DEV dev) {
 
     esp_err_t err = ESP_OK;
@@ -202,7 +270,7 @@ static esp_err_t mfrc_configure_spi(MFRC_DEV dev) {
         cfg.clock_speed_hz = 100000;
         cfg.spics_io_num = dev->select_pin;
         cfg.queue_size = 10;
-        cfg.mode = 3;
+        cfg.mode = 0;
 
         err = spi_bus_add_device(dev->comms_bus, &cfg, (spi_device_handle_t *)&dev->spi_handle);
     }
@@ -350,9 +418,58 @@ MFRC_DEV mfrc_init(mfrc_init_t *init) {
     }
 
     /** add the device to the spi bus **/
-    if(handle->comms_mode == MFRC_SPI_COMMS_MODE) {
+    if(!err && handle->comms_mode == MFRC_SPI_COMMS_MODE) {
         err = mfrc_configure_spi(handle);
     }
+
+    /** test register read **/
+    if(!err) {
+        mfrc_read_register_byte(handle, 1, &data);
+        mfrc_read_register_byte(handle, 1, &data);
+        ESP_LOGI(MFRC_TAG, "Test register read Addr 0x01 : 0x%02x", data);
+        mfrc_read_register_byte(handle, 2, &data);
+        ESP_LOGI(MFRC_TAG, "Test register read Addr 0x02 : 0x%02x", data);
+        mfrc_read_register_byte(handle, 3, &data);
+        ESP_LOGI(MFRC_TAG, "Test register read Addr 0x03 : 0x%02x", data);
+    }
+
+
+    /** folling arduino driver's method - set tx timer to auto **/
+    if(!err) {
+        handle->registers.tmr_mode_reg.bits.tmr_auto = 1;
+        err = mfrc_write_register_byte(handle, MFRC_REGADDR_TMR_MODE, handle->registers.tmr_mode_reg.regval);
+    }
+    if(!err) {
+        handle->registers.tmr_prescaler_lsb = 0xA9;
+        err = mfrc_write_register_byte(handle, MFRC_REGADDR_TMR_PRESCALE, handle->registers.tmr_prescaler_lsb);
+    }
+    if(!err) {
+        handle->registers.tmr_reload_msb = 0x03;
+        err = mfrc_write_register_byte(handle, MFRC_REGADDR_TCNTR_RELOAD_MSB, handle->registers.tmr_reload_msb);
+    }
+    if(!err) {
+        handle->registers.tmr_reload_lsb = 0xE8;
+        err = mfrc_write_register_byte(handle, MFRC_REGADDR_TCNTR_RELOAD_LSB, handle->registers.tmr_reload_lsb);
+    }
+    if(!err) {
+        handle->registers.tx_ask_reg.bits.force_100_ask = 1;
+        err = mfrc_write_register_byte(handle, MFRC_REGADDR_TX_ASK, handle->registers.tx_ask_reg.regval);
+    }
+    if(!err) {
+        handle->registers.mode_reg.bits.crc_preset = 1;
+        err = mfrc_write_register_byte(handle, MFRC_REGADDR_MODE, handle->registers.mode_reg.regval);
+    }
+    if(!err) {
+        handle->registers.txcontrol_reg.bits.tx1_rf_en = 1;
+        handle->registers.txcontrol_reg.bits.tx2_rf_en = 1;
+        err = mfrc_write_register_byte(handle, MFRC_REGADDR_TX_CONTROL, handle->registers.txcontrol_reg.regval);
+    }
+
+    if(err) {
+        ESP_LOGE(MFRC_TAG, "Error setting registers {%u}", err);
+    }
+
+
 
 
     if(err) {
@@ -367,13 +484,6 @@ MFRC_DEV mfrc_init(mfrc_init_t *init) {
             mfrc_reset_device(handle);
             vTaskDelay(pdMS_TO_TICKS(2));
         }
-        
-        
-        
-        mfrc_read_register_byte(handle, 1, &data);
-        mfrc_read_register_byte(handle, 1, &data);
-        mfrc_read_register_byte(handle, 2, &data);
-        mfrc_read_register_byte(handle, 3, &data);
     }
 
     return handle;
