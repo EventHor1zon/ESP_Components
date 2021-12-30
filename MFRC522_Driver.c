@@ -4,6 +4,50 @@
 *
 * \date     November 2021
 * \author   RJAM
+
+Notes:
+    PICC Card: 16 * 4 * 16byte memory
+    Block0 : Manufacturer/Data
+    Block1 : Data
+    Block2 : Data 
+    Block3 : Sector Trailer
+
+
+    Sector Trailer: 
+        [0:5] - KeySecXA
+        [6:9] - Access Conditions
+        [10:15] - KeySecXB (Optional)
+
+    Access Conditions:
+        b   7   6   5   4   3   2   1   0
+        `c2x3 `c2x2  `c2x1 `c2x0  `c1x3 `c1x2 `c1x1 `c1x0
+         c1x3  c1x2   c1x1  c1x0  `c3x3 `c3x2 `c3x1 `c3x0
+         c3x3  c3x2   c3x1  c3x0   c2x3  c2x2  c2x1  c2x0 
+         opt   opt   opt    opt    opt   opt   opt   opt
+
+    Sector Trailer Access
+    C1X3        C2X3      C3X3    r       w     incr        decr/xfer/restore
+     0            0         0     keyA    0     
+     0            1         0     keyA    0
+     1           0          0     A/B     0
+     1          1           0     A/B     0
+     0          0           1     A       A    
+     0          1           1     A/B     B
+     1          0           1     A/B     B
+     1          1           1     A/B     0
+
+    Block Access
+    C1XY        C2XY        C3XY
+    0           0           0       A/B   A/B    A/B        A/B
+    0           1           0       A/B     0     0         0
+    1           0           0       A/B     B     0         0
+    1           1           0       A/B     B     B         A/B
+    0           0           1       A/B     0       0       A/B
+    0           1           1       B       B       0       0
+    1           0           1       B       0       0       0
+    1           1           1       0       0       0       0
+
+
 ****************************************/
 
 /********* Includes *******************/
@@ -23,6 +67,35 @@
 #include "MFRC522_Driver.h"
 
 /****** Global Data *******************/
+
+
+/**
+ *  To read sector - read data block -> 
+ * 
+ * 
+ * 
+ * 
+ * 
+ **/
+
+
+
+
+/** \brief: reads the access conditions data to 
+ *          find the access conditions for the block
+ *  \param: pointer to access data - this should be 4 bytes long
+ *  \param: block - pointer to block_descr_t struct to populate
+ **/
+// static esp_err_t gen_block_properties(uint8_t *access_data, block_descr_t *block) {
+//     esp_err_t err = ESP_OK;
+
+
+
+
+//     return err;
+// }
+
+
 
 const char *MFRC_TAG = "MFRC Driver";
 

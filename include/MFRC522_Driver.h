@@ -23,46 +23,46 @@
 /********* Definitions *****************/
 
 
-#define MRFC_REGADDR_COMMAND            0x01
-#define MRFC_REGADDR_COMM_INTR_EN       0x02
-#define MRFC_REGADDR_DEV_INTR_EN        0x03
-#define MRFC_REGADDR_COMM_IRQ           0x04
-#define MRFC_REGADDR_DIV_IRQ            0x05
-#define MRFC_REGADDR_ERRORS             0x06
-#define MRFC_REGADDR_STATUS_1           0x07
-#define MRFC_REGADDR_STATUS_2           0x08
-#define MRFC_REGADDR_FIFO_DATA          0x09
-#define MRFC_REGADDR_FIFO_LEVEL         0x0A
-#define MRFC_REGADDR_FIFO_WATERLEVEL    0x0B
-#define MRFC_REGADDR_CONTROL            0x0C
-#define MRFC_REGADDR_BIT_FRAMING        0x0D
-#define MRFC_REGADDR_COLLISION_DETECT   0x0E
-#define MRFC_REGADDR_MODE               0x11
-#define MRFC_REGADDR_TX_MODE            0x12
-#define MRFC_REGADDR_RX_MODE            0x13
-#define MRFC_REGADDR_TX_CONTROL         0x14
-#define MRFC_REGADDR_TX_ASK             0x15
-#define MRFC_REGADDR_TX_SELECT          0x16
-#define MRFC_REGADDR_RX_SELECT          0x17
-#define MRFC_REGADDR_RX_THRESH          0x18
-#define MRFC_REGADDR_DEMODULATOR        0x19
-#define MRFC_REGADDR_MIFARE_TX          0x1C
-#define MRFC_REGADDR_MIFARE_RX          0x1D
-#define MRFC_REGADDR_SERIAL_SPEED       0x1F
+#define MFRC_REGADDR_COMMAND            0x01
+#define MFRC_REGADDR_COMM_INTR_EN       0x02
+#define MFRC_REGADDR_DEV_INTR_EN        0x03
+#define MFRC_REGADDR_COMM_IRQ           0x04
+#define MFRC_REGADDR_DIV_IRQ            0x05
+#define MFRC_REGADDR_ERRORS             0x06
+#define MFRC_REGADDR_STATUS_1           0x07
+#define MFRC_REGADDR_STATUS_2           0x08
+#define MFRC_REGADDR_FIFO_DATA          0x09
+#define MFRC_REGADDR_FIFO_LEVEL         0x0A
+#define MFRC_REGADDR_FIFO_WATERLEVEL    0x0B
+#define MFRC_REGADDR_CONTROL            0x0C
+#define MFRC_REGADDR_BIT_FRAMING        0x0D
+#define MFRC_REGADDR_COLLISION_DETECT   0x0E
+#define MFRC_REGADDR_MODE               0x11
+#define MFRC_REGADDR_TX_MODE            0x12
+#define MFRC_REGADDR_RX_MODE            0x13
+#define MFRC_REGADDR_TX_CONTROL         0x14
+#define MFRC_REGADDR_TX_ASK             0x15
+#define MFRC_REGADDR_TX_SELECT          0x16
+#define MFRC_REGADDR_RX_SELECT          0x17
+#define MFRC_REGADDR_RX_THRESH          0x18
+#define MFRC_REGADDR_DEMODULATOR        0x19
+#define MFRC_REGADDR_MIFARE_TX          0x1C
+#define MFRC_REGADDR_MIFARE_RX          0x1D
+#define MFRC_REGADDR_SERIAL_SPEED       0x1F
 
-#define MRFC_REGADDR_CRC_RESULT_MSB     0x21
-#define MRFC_REGADDR_CRC_RESULT_LSB     0x22
-#define MRFC_REGADDR_MOD_WIDTH          0x24
-#define MRFC_REGADDR_RFC_GAIN           0x26
-#define MRFC_REGADDR_GS_N               0x27
-#define MRFC_REGADDR_CWF_SP             0x28
-#define MRFC_REGADDR_MODG_SP            0x29
-#define MRFC_REGADDR_TMR_MODE           0x2A
-#define MRFC_REGADDR_TMR_PRESCALE       0x2B
+#define MFRC_REGADDR_CRC_RESULT_MSB     0x21
+#define MFRC_REGADDR_CRC_RESULT_LSB     0x22
+#define MFRC_REGADDR_MOD_WIDTH          0x24
+#define MFRC_REGADDR_RFC_GAIN           0x26
+#define MFRC_REGADDR_GS_N               0x27
+#define MFRC_REGADDR_CWF_SP             0x28
+#define MFRC_REGADDR_MODG_SP            0x29
+#define MFRC_REGADDR_TMR_MODE           0x2A
+#define MFRC_REGADDR_TMR_PRESCALE       0x2B
 #define MFRC_REGADDR_TCNTR_RELOAD_MSB   0x2C
 #define MFRC_REGADDR_TCNTR_RELOAD_LSB   0x2D
-#define MRFC_REGADDR_TCNTR_MSB          0x2E
-#define MRFC_REGADDR_TCNTR_LSB          0x2F
+#define MFRC_REGADDR_TCNTR_MSB          0x2E
+#define MFRC_REGADDR_TCNTR_LSB          0x2F
 
 #define MFRC_REGADDR_TEST_SEL_1         0x31
 #define MFRC_REGADDR_TEST_SEL_2         0x32
@@ -93,8 +93,16 @@
 #define MFRC_FIFO_SIZE_BYTES            64
 
 #define MFRC_TIMER_INPUT_FREQ_HZ        13560000
+#define MIFARE_BLOCK_LEN_BYTES          16
 
 /********** Types **********************/
+
+typedef enum {
+    BLK_ACC_COND_NEVER,
+    BLK_ACC_COND_A,
+    BLK_ACC_COND_B,
+    BLK_ACC_COND_A_OR_B,
+} blk_access_cond_t;
 
 
 typedef enum {
@@ -140,6 +148,26 @@ typedef enum {
 } mfrc_intr_src_t;
 
 
+typedef struct sector_trailer
+{
+    uint8_t keysec_a[6];
+    uint8_t access_cond[4];
+    uint8_t keysec_b[6];
+} sector_trailer_t;
+
+
+typedef struct block_contents {
+    uint8_t block_0[MIFARE_BLOCK_LEN_BYTES];
+    uint8_t block_1[MIFARE_BLOCK_LEN_BYTES];
+    uint8_t block_2[MIFARE_BLOCK_LEN_BYTES];
+    sector_trailer_t trailer;
+} block_content_t;
+
+typedef struct block_description {
+    blk_access_cond_t access_conditions[4];
+    block_content_t data;
+} block_descr_t;
+
 typedef struct MFRC_Init
 {
     /* data */
@@ -158,6 +186,33 @@ typedef struct MFRC_Init
 
 
 } mfrc_init_t;
+
+
+typedef enum PICC_Command {
+    // The commands used by the PCD to manage communication with several PICCs (ISO 14443-3, Type A, section 6.4)
+    PICC_CMD_REQA			= 0x26,		// REQuest command, Type A. Invites PICCs in state IDLE to go to READY and prepare for anticollision or selection. 7 bit frame.
+    PICC_CMD_WUPA			= 0x52,		// Wake-UP command, Type A. Invites PICCs in state IDLE and HALT to go to READY(*) and prepare for anticollision or selection. 7 bit frame.
+    PICC_CMD_CT				= 0x88,		// Cascade Tag. Not really a command, but used during anti collision.
+    PICC_CMD_SEL_CL1		= 0x93,		// Anti collision/Select, Cascade Level 1
+    PICC_CMD_SEL_CL2		= 0x95,		// Anti collision/Select, Cascade Level 2
+    PICC_CMD_SEL_CL3		= 0x97,		// Anti collision/Select, Cascade Level 3
+    PICC_CMD_HLTA			= 0x50,		// HaLT command, Type A. Instructs an ACTIVE PICC to go to state HALT.
+    PICC_CMD_RATS           = 0xE0,     // Request command for Answer To Reset.
+    // The commands used for MIFARE Classic (from http://www.mouser.com/ds/2/302/MF1S503x-89574.pdf, Section 9)
+    // Use PCD_MFAuthent to authenticate access to a sector, then use these commands to read/write/modify the blocks on the sector.
+    // The read/write commands can also be used for MIFARE Ultralight.
+    PICC_CMD_MF_AUTH_KEY_A	= 0x60,		// Perform authentication with Key A
+    PICC_CMD_MF_AUTH_KEY_B	= 0x61,		// Perform authentication with Key B
+    PICC_CMD_MF_READ		= 0x30,		// Reads one 16 byte block from the authenticated sector of the PICC. Also used for MIFARE Ultralight.
+    PICC_CMD_MF_WRITE		= 0xA0,		// Writes one 16 byte block to the authenticated sector of the PICC. Called "COMPATIBILITY WRITE" for MIFARE Ultralight.
+    PICC_CMD_MF_DECREMENT	= 0xC0,		// Decrements the contents of a block and stores the result in the internal data register.
+    PICC_CMD_MF_INCREMENT	= 0xC1,		// Increments the contents of a block and stores the result in the internal data register.
+    PICC_CMD_MF_RESTORE		= 0xC2,		// Reads the contents of a block into the internal data register.
+    PICC_CMD_MF_TRANSFER	= 0xB0,		// Writes the contents of the internal data register to a block.
+    // The commands used for MIFARE Ultralight (from http://www.nxp.com/documents/data_sheet/MF0ICU1.pdf, Section 8.6)
+    // The PICC_CMD_MF_READ and PICC_CMD_MF_WRITE can also be used for MIFARE Ultralight.
+    PICC_CMD_UL_WRITE		= 0xA2		// Writes one 4 byte page to the PICC.
+} picc_cmd_t;
 
 
 /** Gonna give this struct register thing a go, might 
