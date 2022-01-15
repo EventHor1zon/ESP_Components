@@ -1438,7 +1438,19 @@ esp_err_t LSM_get_gyro_full_scale(LSM_DriverHandle_t *dev, uint8_t *fs) {
 /** TODO: These things at some point maybe... **/
 
 esp_err_t LSM_set_interrupt_pp_od(LSM_DriverHandle_t *dev, bool *val) {
-    esp_err_t err = ESP_ERR_NOT_SUPPORTED;
+    esp_err_t err = ESP_OK;
+    bool value = *val;
+    uint8_t regval = 0;
+    err = gcd_i2c_read_address(dev->commsChannel, dev->devAddr, LSM_CTRL3_C_REG, 1, &regval);
+    if(!err) {
+        if(value) {
+            regval |= (value << 4);
+        } else {
+            regval &= ~(value << 4);
+        }
+        err = gcd_i2c_write_address(dev->commsChannel, dev->devAddr, LSM_CTRL3_C_REG, 1, &regval);
+    }
+
     return err;
 }
 
@@ -2406,7 +2418,7 @@ esp_err_t LSM_set_fifo_watermark(LSM_DriverHandle_t *dev, uint16_t *watermark)
         writeval[1] = (uint8_t)(val >> 8);
         esp_err_t status = gcd_i2c_read_address(dev->commsChannel, dev->devAddr, LSM_FIFO_CTRL2_REG, 1, &regval);
         writeval[1] |= regval; 
-        status = gcd_i2c_write_address(dev->commsChannel, dev->devAddr, LSM_FIFO_CTRL1_REG, 2, &writeval);
+        status = gcd_i2c_write_address(dev->commsChannel, dev->devAddr, LSM_FIFO_CTRL1_REG, 2, writeval);
 
         if(status == ESP_OK) {
             dev->settings.watermark = val;
@@ -2613,6 +2625,10 @@ esp_err_t LSM_read_fifo_to_cbuffer(LSM_DriverHandle_t *dev) {
                 break;
             }
         }
+
+        if(!err) {
+            ESP_LOGI("LSM Driver", "Stored %u packets in cbuffer!", full_packets);
+        }
     }
     else {
         uint16_t chunk_size = 128;
@@ -2711,7 +2727,6 @@ esp_err_t LSM_set_interrupt_1(LSM_DriverHandle_t *device, uint8_t *int_t)
 
     if (device->i1Pin > 0)
     {
-
         status = gcd_i2c_write_address(device->commsChannel, device->devAddr, LSM_INT1_CTRL_REG, 1, &intr);
     }
     else

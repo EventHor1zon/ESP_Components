@@ -78,7 +78,7 @@ static bool is_prx_valid(APDS_DEV dev);
 /************ ISR *********************/
 
 
-static IRAM_ATTR void apds_intr_handler(void *args) {
+IRAM_ATTR void apds_intr_handler(void *args) {
     APDS_DEV dev = (adps_handle_t *)args;
     BaseType_t higherPrio = pdFALSE;
     xTaskNotifyFromISR(dev->t_handle, 0, eIncrement, &higherPrio);

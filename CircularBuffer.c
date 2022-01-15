@@ -829,6 +829,7 @@ static void cbuff_dispatch_task(void *args) {
     void *ptr = NULL;
     bool pkt_dispatch = false;
     bool done = false;
+    uint8_t THRESHOLD_PACKET_N = 5;
 
     if(task->current_task == CBUFF_TASK_PACKET_DISPATCH_CONTINUOUS) {
         pkt_dispatch = true;
@@ -841,10 +842,10 @@ static void cbuff_dispatch_task(void *args) {
     while(!done) {
         
         /** if data available, dispatch via io **/
-        if((pkt_dispatch && handle->pkts_available > 0) ||
+        if((pkt_dispatch && handle->pkts_available > THRESHOLD_PACKET_N) ||
             (!pkt_dispatch && buffer_unread_bytes(handle) >= task->chunk_sz) 
         ) {
-
+            ESP_LOGI("CBuff", "Sending data to io");
             switch(task->io_type) {
                 case CBUFF_IO_TYPE_CAN:
                     /** TODO: Can send from cbuffer **/
@@ -857,40 +858,31 @@ static void cbuff_dispatch_task(void *args) {
                     break;
                 case CBUFF_IO_TYPE_UART:
                     /** place a packet into the uart queue **/
-
-                    ptr = handle->read_ptr;
-                    err = cbuff_dump_uart(handle, task->io_bus, io_sz);
-                    if(!err && pkt_dispatch) {
-                        handle->pkts_available--;
+                    if(pkt_dispatch && handle->pkts_available) {
+                        err = cbuff_dump_packets_uart(handle, task->io_bus);
+                    } 
+                    else {
+                        err = cbuff_dump_uart(handle, task->io_bus, io_sz);
                     }
-                    else if(err && pkt_dispatch) {
-                        /** if we didn't send the whole packet, reset the read ptr to pre-read
-                         *  so things don't get out of sync.
-                         * **/
-                        handle->read_ptr = ptr;
-                    }
-                    else if(err && !pkt_dispatch) {
-                        /** do the same here, why not **/
-                        handle->read_ptr = ptr;
+                    // err = uart_wait_tx_done(task->io_bus, pdMS_TO_TICKS(CBUFFER_CONFIG_WAIT_PKT_MS));
+                    if(err) {
+                        ESP_LOGE("CBuff", "Error waiting for uart tx {%u}", err);
                     }
                     break;
                 default:
                     ESP_LOGE(CBUFF_TAG, "Error, invalid IO Type");
                     break;
-
             }
-
-            vTaskDelay(pdMS_TO_TICKS(CBUFFER_CONFIG_DISPATCH_YIELD_MS));
         }
         /** there are no bytes left to send and task not continous **/
-        else if(!task->continuous) {
+        if(!task->continuous) {
             task->is_complete = true;
             done = true;
         }
+
         /** task is continous and no data available - wait new data **/
-        else {
-            vTaskDelay(pdMS_TO_TICKS(CBUFFER_CONFIG_WAIT_PKT_MS));
-        }
+        vTaskDelay(pdMS_TO_TICKS(CBUFFER_CONFIG_WAIT_PKT_MS));
+
     }
     /** here be dragons **/
 
@@ -946,10 +938,10 @@ esp_err_t cbuffer_start_task(CBuff handle, cbuffer_data_io_t io_type, uint8_t io
         err = ESP_ERR_INVALID_STATE;
     }
 
-    else if((type == CBUFF_TASK_PACKET_DISPATCH_AVAILABLE ||
-             type == CBUFF_TASK_PACKET_DISPATCH_CONTINUOUS ||
-             type == CBUFF_TASK_DATA_DISPATCH_AVAILABLE || 
-             type == CBUFF_TASK_PACKET_DISPATCH_AVAILABLE) &&
+    else if((type == CBUFF_TASK_PACKET_DISPATCH_AVAILABLE   ||
+             type == CBUFF_TASK_PACKET_DISPATCH_CONTINUOUS  ||
+             type == CBUFF_TASK_DATA_DISPATCH_AVAILABLE     || 
+             type == CBUFF_TASK_PACKET_DISPATCH_AVAILABLE)  &&
         handle->tx_task.active) {
         ESP_LOGE(CBUFF_TAG, "Error TX task is currently active");
         err = ESP_ERR_INVALID_STATE;
@@ -1171,17 +1163,24 @@ esp_err_t cbuffer_read_i2c_block(CBuff handle, uint8_t bus, uint8_t device_addr,
 }
 
 
-esp_err_t cbuffer_dump_packet_uart(CBuff handle, uint8_t bus) {
+esp_err_t cbuff_dump_packets_uart(CBuff handle, uint8_t bus) {
     
     /** read a packet **/
     esp_err_t err = ESP_OK;
-
-    /** send packet over uart **/
-    err = gcd_uart_transmit_blocking(bus, handle->read_ptr, handle->pkt_settings.packet_sz_bytes);
+    uint8_t tx_buffer[CBUFFER_MAX_PACKET_SIZE_BYTES] = {0};
+    uint8_t sent = 0;
+    bool fifo_full = false;     /** is the uart fifo full? **/
+    uint8_t pkts_sent = 0;
+    /** send packets over uart **/
+    while(handle->pkts_available > 0) {
+        cbuffer_read_ll(handle, tx_buffer, handle->pkt_settings.packet_sz_bytes);
+        sent = uart_write_bytes(bus, (char *)tx_buffer, handle->pkt_settings.packet_sz_bytes);
+        pkts_sent++;
+        handle->pkts_available--;
+    }
+    ESP_LOGI("CBuff", "Packets loaded into uart: Packets sent: %u remaining %u", pkts_sent, handle->pkts_available);
 
     /** clear buffer **/
-    handle->pkts_available--;
-
     return err;
 }
 
@@ -1229,48 +1228,48 @@ esp_err_t cbuff_dump_uart(CBuff handle, uint8_t bus, uint32_t len) {
 }
 
 
-esp_err_t cbuff_dump_packets_uart(CBuff handle, uint8_t uart_bus) {
+// esp_err_t cbuff_dump_packets_uart(CBuff handle, uint8_t uart_bus) {
 
-    esp_err_t err = ESP_OK;
-    uint8_t mid_buffer[CBUFFER_MAX_PACKET_SIZE_BYTES] = {0};
-    uint16_t avail_packets = 0;
+//     esp_err_t err = ESP_OK;
+//     uint8_t mid_buffer[CBUFFER_MAX_PACKET_SIZE_BYTES] = {0};
+//     uint16_t avail_packets = 0;
     
-    if(!handle->use_packets) {
-        err = ESP_ERR_INVALID_STATE;
-        ESP_LOGE("CBUFF_UTILS", "Error - packets not configured for this cbuffer!");
-    }
+//     if(!handle->use_packets) {
+//         err = ESP_ERR_INVALID_STATE;
+//         ESP_LOGE("CBUFF_UTILS", "Error - packets not configured for this cbuffer!");
+//     }
 
-    if(handle->pkts_available < 1) {
-        err = ESP_ERR_INVALID_STATE;
-        ESP_LOGE("CBUFF_UTILS", "Error - no packets available");        
-    }
+//     if(handle->pkts_available < 1) {
+//         err = ESP_ERR_INVALID_STATE;
+//         ESP_LOGE("CBUFF_UTILS", "Error - no packets available");        
+//     }
 
-    if(!err) {
-        uint16_t tx_size = handle->pkt_settings.packet_sz_bytes;
-        ESP_LOGI(CBUFF_TAG, "Dumping %u packets of bytes %u on uart bus %u", handle->pkts_available, tx_size, uart_bus);
-        avail_packets = handle->pkts_available;
+//     if(!err) {
+//         uint16_t tx_size = handle->pkt_settings.packet_sz_bytes;
+//         ESP_LOGI(CBUFF_TAG, "Dumping %u packets of bytes %u on uart bus %u", handle->pkts_available, tx_size, uart_bus);
+//         avail_packets = handle->pkts_available;
 
-        for(uint16_t i=0; i < avail_packets; i++) {
-            /** read a packet **/
-            err = cbuffer_read_packet(handle, mid_buffer);
+//         for(uint16_t i=0; i < avail_packets; i++) {
+//             /** read a packet **/
+//             err = cbuffer_read_packet(handle, mid_buffer);
 
-            if(err) {
-                ESP_LOGE(CBUFF_TAG, "Error reading packet %u - break [%u]", i, err);
-                break;
-            }
-            /** send packet over uart **/
-            err = gcd_uart_transmit_blocking(uart_bus, mid_buffer, tx_size);
+//             if(err) {
+//                 ESP_LOGE(CBUFF_TAG, "Error reading packet %u - break [%u]", i, err);
+//                 break;
+//             }
+//             /** send packet over uart **/
+//             err = gcd_uart_transmit_blocking(uart_bus, mid_buffer, tx_size);
             
-            /** clear buffer **/
-            memset(mid_buffer, 0, CBUFFER_MAX_PACKET_SIZE_BYTES);
-            if(err) {
-                ESP_LOGE(CBUFF_TAG, "Error dumping packet %u - break [%u]", i, err);
-                break;
-            }
+//             /** clear buffer **/
+//             memset(mid_buffer, 0, CBUFFER_MAX_PACKET_SIZE_BYTES);
+//             if(err) {
+//                 ESP_LOGE(CBUFF_TAG, "Error dumping packet %u - break [%u]", i, err);
+//                 break;
+//             }
 
-            handle->pkts_available--;
-        }
-    }
+//             handle->pkts_available--;
+//         }
+//     }
 
-    return err;
-}
+//     return err;
+// }

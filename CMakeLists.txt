@@ -24,7 +24,7 @@ set(srcs
     # "RGB_Driver.c"
     "CircularBuffer.c"
     # "FutabaVFD_Driver.c"
-    "MFRC522_Driver.c"
+    # "MFRC522_Driver.c"
     )
 
 set(includes "include"

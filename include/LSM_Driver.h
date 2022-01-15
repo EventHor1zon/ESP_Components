@@ -1236,6 +1236,8 @@ esp_err_t LSM_get_fifo_odr(LSMDEV dev, uint8_t *odr);
  **/
 esp_err_t LSM_readFifoBlock(LSMDEV device, uint16_t *length);
 
+esp_err_t LSM_set_interrupt_pp_od(LSM_DriverHandle_t *dev, bool *val);
+
 esp_err_t LSM_update_temperature(LSM_DriverHandle_t *dev);
 
 esp_err_t LSM_get_auto_sample_ready(LSM_DriverHandle_t *dev, bool *en);
