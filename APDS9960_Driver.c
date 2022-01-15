@@ -100,8 +100,11 @@ static esp_err_t regSetMask(APDS_DEV dev, uint8_t regaddr, uint8_t mask) {
     err = gcd_i2c_read_address(dev->bus, dev->addr, regaddr, 1, &regval);
 
     if(!err) {
-        regval |= mask;
-        err = gcd_i2c_write_address(dev->bus, dev->addr, regaddr, 1, &regval);
+        // check if mask is already set
+        if((regval & mask) != mask) {
+            regval |= mask;
+            err = gcd_i2c_write_address(dev->bus, dev->addr, regaddr, 1, &regval);
+        }
     }
 
     return err;
