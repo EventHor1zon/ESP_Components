@@ -92,14 +92,14 @@ const peripheral_t apds_periph_template;
 #define APDS_REGBIT_PRX_INT_EN  (1 << 5)
 #define APDS_REGBIT_GST_EN      (1 << 6)
 
-/** persistence bits **/
+/** persistence bits **/         
 
 #define APDS_PROX_INT_PERSIST_MASK  0xf0
 #define APDS_ALS_INT_PERSIST_MASK   0x0f
 
 /** CONFIG 1 BITS **/
-#define APDS_CONFIG_1_MASK          0b01100000;
-#define APDS_REGBIT_WLON_EN         (1 << 1)
+#define APDS_CONFIG_1_MASK          0b01100000
+#define APDS_REGBITS_WLON_EN        (APDS_CONFIG_1_MASK | (1 << 1))
 
 /** CONTROL REG 1 **/
 #define APDS_REG_OFFSET_LDRIVE      6
@@ -124,7 +124,7 @@ const peripheral_t apds_periph_template;
 #define APDS_REGBIT_ALS_VALID       (1 << 0)
 
 /** CONFIG 3 **/
-#define APDS_REGBIT_SLP_POST_INT    (1 << 4)
+#define APDS_REGBIT_SLP_POST_INT   (1 << 4)
 #define APDS_REGBIT_PMASK_U_DIS    (1 << 3)
 #define APDS_REGBIT_PMASK_D_DIS    (1 << 3)
 #define APDS_REGBIT_PMASK_L_DIS    (1 << 3)
@@ -163,6 +163,14 @@ const peripheral_t apds_periph_template;
 
 
 typedef enum {
+    APDS_FIFO_THRESH_1,
+    APDS_FIFO_THRESH_4,
+    APDS_FIFO_THRESH_8,
+    APDS_FIFO_THRESH_16,
+    APDS_FIFO_THRESH_MAX
+} gst_fifo_thresh_t;
+
+typedef enum {
     APDS_GST_PLSLEN_4US,
     APDS_GST_PLSLEN_8US,
     APDS_GST_PLSLEN_16US,
@@ -195,12 +203,12 @@ typedef enum {
 }als_gain_t ; 
 
 typedef enum {
-    APDS_GST_LEDDRIVE_100MA,
-    APDS_GST_LEDDRIVE_50MA,
-    APDS_GST_LEDDRIVE_25MA,
-    APDS_GST_LEDDRIVE_12_5MA,
-    APDS_GST_LEDDRIVE_MAX,
-}gst_led_drive_t ; 
+    APDS_LEDDRIVE_100MA,
+    APDS_LEDDRIVE_50MA,
+    APDS_LEDDRIVE_25MA,
+    APDS_LEDDRIVE_12_5MA,
+    APDS_LEDDRIVE_MAX,
+} apds_led_drive_t ; 
 
 typedef enum {
     APDS_GST_WAIT_T_0MS,
@@ -265,10 +273,8 @@ typedef struct APDS9960_ALS_Settings
 {
     /* data */
     bool asl_en;
-    bool wait_long_en;
     bool clr_diode_satr_en;
     bool asl_intr_en;
-    uint8_t wait_time;
     uint8_t als_gain;
     uint8_t als_persist;
     uint8_t adc_intg_time;
@@ -302,7 +308,10 @@ typedef struct APDS_GeneralSettings
     /* data */
     bool sleep_after_intr;
     bool pwr_on;
-
+    uint32_t wait_time_ms;
+    uint8_t wait_time;
+    bool wait_long_en;
+    bool wait_en;
 } gen_settings_t;
 
 
@@ -310,6 +319,7 @@ typedef struct APDS9960_GST_Settings
 {
     /* data */
     bool gst_en;
+    bool gmode;
     bool low_pwr_clk;
     bool gst_int_en;
 
@@ -332,6 +342,7 @@ typedef struct APDS9960_GST_Settings
 } gst_settings_t;
 
 
+
 typedef struct APDS9960_Driver
 {
     /* data */
@@ -339,12 +350,15 @@ typedef struct APDS9960_Driver
     uint8_t bus;
     uint8_t addr;
 
+    bool intr_en;
     gpio_num_t intr_pin;
 
     gst_settings_t gst_settings;
     prx_settings_t prx_settings;
     als_settings_t als_settings;
     gen_settings_t gen_settings;
+
+
 
     apds_data_t data;
 
@@ -440,6 +454,24 @@ esp_err_t apds_set_gesture_status(APDS_DEV dev, uint8_t *on);
 
 
 /**
+ * \brief - Set wait state enabled (wait once between each loop)
+ * \param dev - apds handle
+ * \param val - pointer to value 
+ * \return ESP_OK or error
+ **/
+esp_err_t apds_set_wait_enable(APDS_DEV dev, uint8_t *val);
+
+
+/**
+ * \brief - Get wait enabled
+ * \param dev - apds handle
+ * \param val - pointer to value storage
+ * \return ESP_OK or error
+ **/
+esp_err_t apds_get_wait_enable(APDS_DEV dev, uint8_t *val);
+
+
+/**
  * \brief - Get wait time (time to wait in idle state each loop)
  * \param dev - apds handle
  * \param wait - pointer to value storage (see gst_wait_t)
@@ -455,49 +487,177 @@ esp_err_t apds_get_wait_time(APDS_DEV dev, uint8_t *wait);
  **/
 esp_err_t apds_set_wait_time(APDS_DEV dev, uint8_t *wait);
 
-
+/**
+ * \brief - Get long wait enabled
+ * \param dev - apds handle
+ * \param thr - pointer to value storage
+ * \return ESP_OK or error
+ **/
 esp_err_t apds_get_longwait_en(APDS_DEV dev, uint8_t *thr);
 
+/**
+ * \brief - Set long wait enabled - increases the wait time if enabled
+ * \param dev - apds handle
+ * \param thr - pointer to value storage
+ * \return ESP_OK or error
+ **/
 esp_err_t apds_set_longwait_en(APDS_DEV dev, uint8_t *thr);
 
-esp_err_t apds_set_led_drive_strength(APDS_DEV dev, gst_led_drive_t *drive);
+/**
+ * \brief - set led drive strength - one of gst_led_drive_t
+ * \param dev - apds handle
+ * \param drive - pointer to value
+ * \return ESP_OK or error
+ **/
+esp_err_t apds_set_led_drive(APDS_DEV dev, apds_led_drive_t *drive);
 
-esp_err_t apds_get_led_drive_strength(APDS_DEV dev, gst_led_drive_t *drive);
+
+/**
+ * \brief - get current proximity led drive strength
+ * \param dev - apds handle
+ * \param drive - pointer to value storage
+ * \return ESP_OK or error
+ **/
+esp_err_t apds_get_led_drive(APDS_DEV dev, apds_led_drive_t *drive);
 
 
 /** TODO: Interrupt settings **/
 
+
+/**
+ * \brief - get sleep after interrupt setting
+ * \param dev - apds handle
+ * \param en - pointer to value storage
+ * \return ESP_OK or error
+ **/
 esp_err_t apds_get_sleep_after_intr(APDS_DEV dev, uint8_t *en);
 
+
+/**
+ * \brief - set sleep after interrupt setting
+ * \param dev - apds handle
+ * \param en - pointer to value storage
+ * \return ESP_OK or error
+ **/
 esp_err_t apds_set_sleep_after_intr(APDS_DEV dev, uint8_t *en);
 
+
+/**
+ * \brief - set gesture interupt enabled
+ * \param dev - apds handle
+ * \param en - pointer to value storage
+ * \return ESP_OK or error
+ **/
 esp_err_t apds_set_gst_intr(APDS_DEV dev, uint8_t *en);
 
+
+/**
+ * \brief - get gesture interupt enabled
+ * \param dev - apds handle
+ * \param en - pointer to value storage
+ * \return ESP_OK or error
+ **/
 esp_err_t apds_get_gst_intr(APDS_DEV dev, uint8_t *en);
 
+
+/**
+ * \brief - set proximity interupt enabled
+ * \param dev - apds handle
+ * \param en - pointer to value storage
+ * \return ESP_OK or error
+ **/
 esp_err_t apds_set_prox_intr(APDS_DEV dev, uint8_t *en);
 
+
+/**
+ * \brief - set proximity threshold interupt enabled
+ * \param dev - apds handle
+ * \param en - pointer to value storage
+ * \return ESP_OK or error
+ **/
 esp_err_t apds_get_prox_intr(APDS_DEV dev, uint8_t *en);
 
+
+/**
+ * \brief - set als/colour threshold interupt enabled
+ * \param dev - apds handle
+ * \param en - pointer to value storage
+ * \return ESP_OK or error
+ **/
 esp_err_t apds_set_als_intr(APDS_DEV dev, uint8_t *en);
 
+
+/**
+ * \brief - set als/colour threshold interupt enabled state
+ * \param dev - apds handle
+ * \param en - pointer to value storage
+ * \return ESP_OK or error
+ **/
 esp_err_t apds_get_als_intr(APDS_DEV dev, uint8_t *en);
 
 
 /** ALS **/
 
+
+/**
+ * \brief - get ADC conversion time setting
+ * \param dev - apds handle
+ * \param adct - pointer to value storage
+ * \return ESP_OK or error
+ **/
 esp_err_t apds_get_adc_time(APDS_DEV dev, uint8_t *adct);
 
+/**
+ * \brief - set ADC conversion time
+ *          set to 0xFF at power-on. Saturation value = 1-25 * CYCLES (max 65535)
+ *          register value 0 - 256 cycles ~ 712ms 
+ *                          = 256 - VALUE / 2.78 ms
+ *                         255 - 1 cycle ~ 2.78ms 
+ * \param dev - apds handle
+ * \param adct - pointer to value storage
+ * \return ESP_OK or error
+ **/
 esp_err_t apds_set_adc_time(APDS_DEV dev, uint8_t *adct);
 
+/**
+ * \brief - get ALS low interrupt threshold
+ * \param dev - apds handle
+ * \param thr - pointer to value storage
+ * \return ESP_OK or error
+ **/
 esp_err_t apds_get_alsintr_low_thr(APDS_DEV dev, uint16_t *thr);
 
+/**
+ * \brief - set ALS low interrupt threshold
+ * \param dev - apds handle
+ * \param thr - pointer to value storage
+ * \return ESP_OK or error
+ **/
 esp_err_t apds_set_alsintr_low_thr(APDS_DEV dev, uint16_t *thr);
 
+/**
+ * \brief - get ALS high interrupt threshold
+ * \param dev - apds handle
+ * \param thr - pointer to value storage
+ * \return ESP_OK or error
+ **/
 esp_err_t apds_get_alsintr_hi_thr(APDS_DEV dev, uint16_t *thr);
 
+/**
+ * \brief - set ALS high interrupt threshold
+ * \param dev - apds handle
+ * \param thr - pointer to value storage
+ * \return ESP_OK or error
+ **/
 esp_err_t apds_set_alsintr_hi_thr(APDS_DEV dev, uint16_t *thr);
 
+/**
+ * \brief - get ALS interrupt persistence - a divisor for number of
+ *          out of thresh measures before interrupt is triggered
+ * \param dev - apds handle
+ * \param thr - pointer to value storage
+ * \return ESP_OK or error
+ **/
 esp_err_t apds_get_als_intr_persistence(APDS_DEV dev, uint8_t *cnt);
 
 esp_err_t apds_set_als_intr_persistence(APDS_DEV dev, uint8_t *cnt);
@@ -544,14 +704,29 @@ esp_err_t apds_get_gst_proximity_ext_thr(APDS_DEV dev, uint8_t *d);
 
 esp_err_t apds_set_gst_proximity_ext_thr(APDS_DEV dev, uint8_t *d);
 
-esp_err_t apds_get_prx_direction_mode(APDS_DEV dev, uint8_t *mode);
+esp_err_t apds_set_gst_direction_mode(APDS_DEV dev, uint8_t *mode);
 
-esp_err_t apds_set_prx_direction_mode(APDS_DEV dev, uint8_t *mode);
+esp_err_t apds_get_gst_direction_mode(APDS_DEV dev, uint8_t *mode);
 
 esp_err_t apds_get_gst_ext_persist(APDS_DEV dev, uint8_t *val);
 
 esp_err_t apds_set_gst_ext_persist(APDS_DEV dev, uint8_t *val);
 
+esp_err_t apds_get_gst_pulse_len(APDS_DEV dev, uint8_t *cnt);
+
+esp_err_t apds_set_gst_pulse_len(APDS_DEV dev, uint8_t *cnt);
+
+esp_err_t apds_set_gst_gmode(APDS_DEV dev, uint8_t *val);
+
+esp_err_t apds_get_gst_gmode(APDS_DEV dev, uint8_t *val);
+
+esp_err_t apds_set_gst_gain(APDS_DEV dev, uint8_t *gain);
+
+esp_err_t apds_get_gst_gain(APDS_DEV dev, uint8_t *gain);
+
+esp_err_t apds_set_gst_led_drive(APDS_DEV dev, apds_led_drive_t *drive);
+
+esp_err_t apds_get_gst_led_drive(APDS_DEV dev, apds_led_drive_t *drive);
 
 /** Get results **/
 

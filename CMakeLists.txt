@@ -3,7 +3,7 @@ set(srcs
     # "LedEffects.c"
     # "SystemComponent.c"
     # "APA102_Driver.c"
-    # "APDS9960_Driver.c"
+    "APDS9960_Driver.c"
     # "BME280_Driver.c"
     # "CCS811_Driver.c"
     # "DS2321_Driver.c"

@@ -27,7 +27,7 @@
 
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
-const peripheral_t apds_parameter_map[apds_param_len] {
+const parameter_t apds_parameter_map[apds_param_len] = {
     { "Power status", 1, &apds_get_pwr_on_status, &apds_set_pwr_on_status, NULL, PARAMTYPE_BOOL, 1, (GET_FLAG | SET_FLAG)},
     { "Proximity status", 2, &apds_get_proximity_status, &apds_set_proximity_status, NULL, PARAMTYPE_BOOL, 1, (GET_FLAG | SET_FLAG)},
     { "RGB status", 3, &apds_get_als_status, &apds_set_als_status, NULL, PARAMTYPE_BOOL, 1, (GET_FLAG | SET_FLAG)},
@@ -43,10 +43,9 @@ const peripheral_t apds_parameter_map[apds_param_len] {
     { "RGB Intr perist", 13, &apds_get_als_intr_persistence, &apds_set_als_intr_persistence, NULL, PARAMTYPE_UINT8, 16, (GET_FLAG | SET_FLAG)},
     { "Prox Pulse time", 14, &apds_get_prx_ledpulse_t, &apds_set_prx_ledpulse_t, NULL, PARAMTYPE_UINT8, 3, (GET_FLAG | SET_FLAG)}, 
     { "Prox Pulse count", 15, &apds_get_prx_pulses, &apds_set_prx_pulses, NULL, PARAMTYPE_UINT8, 64, (GET_FLAG | SET_FLAG)}, 
-    { "Led Drive str", 16, &apds_get_led_drive_strength, &apds_set_led_drive_strength, NULL, PARAMTYPE_UINT8, 3, (GET_FLAG | SET_FLAG)}, 
+    { "Led Drive str", 16, &apds_get_led_drive, &apds_set_led_drive, NULL, PARAMTYPE_UINT8, 3, (GET_FLAG | SET_FLAG)}, 
     { "Prox Gain", 17, &apds_get_prx_gain, &apds_set_prx_gain, NULL, PARAMTYPE_UINT8, 4, (GET_FLAG | SET_FLAG)}, 
     { "RGB Gain", 18, &apds_get_als_gain, &apds_set_als_gain, NULL, PARAMTYPE_UINT8, 4, (GET_FLAG | SET_FLAG)}, 
-
 };
 
 const peripheral_t apds_periph_template = {
@@ -56,6 +55,7 @@ const peripheral_t apds_periph_template = {
     .peripheral_name = "APDS9960",
     .peripheral_id = 0
 };
+
 #endif
 
 
@@ -144,9 +144,9 @@ static uint8_t get_interrupt_source_and_clear(APDS_DEV dev) {
             gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_ALS_ISR_CLR, 1, &clear);
 
         }
-        if(regval & APDS_REGBIT_GST_INT) {
-            retval |= APDS_REGBIT_GST_INT;
-        }
+        // if(regval & APDS_REGBIT_GST_INT) {
+        //     retval |= APDS_REGBIT_GST_INT;
+        // }
     }
 
     return retval;
@@ -184,7 +184,7 @@ static esp_err_t apds_initialise_device(APDS_DEV dev) {
     /** set some default values - looks like rest are 0 default? **/
 
     dev->als_settings.adc_intg_time = 0xff;
-    dev->als_settings.wait_time = 0xff;
+    dev->gen_settings.wait_time = 0xff;
     return err;
 }
 
@@ -217,43 +217,49 @@ static esp_err_t apds_gst_clr_fifo(APDS_DEV dev) {
 
 
 static esp_err_t testmode(APDS_DEV dev) {
+    /** try to work out the gesture sensor ... **/
 
-    /** set the prx en & als en **/
+    uint8_t byte = 0;
+    uint16_t val = 0;
 
-    uint8_t byte = 0; 
+    // byte = 2;
+    // apds_set_gst_ext_persist(dev, &byte);
 
-    uint8_t  prx = 0;
-    uint8_t crgbraw[8] = {0};
+    /** set to gst ext tp zero to stay in gesture detect mode **/
+    byte = 0;
+    apds_set_gst_proximity_ext_thr(dev, &byte);
 
+    /** set the entr threshold to ~5/10ths **/
+    byte = 128;
+    apds_set_gst_proximity_ent_thr(dev, &byte);
 
+    /** set the fifo threshold to 16 **/
+    byte = 3;
+    apds_set_fifo_thresh(dev, &byte);
 
-    /** set the wait time to ~100ms **/
-    byte = 200;
-    ESP_ERROR_CHECK(gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_WAITTIME, 1, &byte));
-    
-    /** set the prox led drive strength **/
+    /** enable gesture interrupts - not sure if needed for fifo threshold but probably **/
+    byte = 1;
+    apds_set_gst_intr(dev, &byte);
 
-    byte = (APDS_GST_LEDDRIVE_50MA << APDS_REG_OFFSET_LDRIVE);
-    ESP_ERROR_CHECK(gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_GAIN_CTRL, 1, &byte));
+    /** set the gesture direction sampling to all  **/
+    byte = 0;
+    apds_set_gst_direction_mode(dev, &byte);
 
-    byte = 220;
-    ESP_ERROR_CHECK(gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_ADCTIME, 1, &byte));
+    /** set the led to be full current **/
+    apds_set_gst_led_drive(dev, &byte);
 
-    byte = (APDS_REGBIT_ALS_EN | APDS_REGBIT_PRX_EN | APDS_REGBIT_PWR_ON);
-    ESP_ERROR_CHECK(gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_ENABLE, 1, &byte));
+    /**  **/
 
-    for(uint16_t i=0; i < 200; i++) {
+    /** reset/clear the fifo **/
+    apds_gst_clr_fifo(dev);
 
-        ESP_ERROR_CHECK(gcd_i2c_read_address(dev->bus, dev->addr, APDS_REGADDR_PROX_DATA, 1, &prx));
-        ESP_ERROR_CHECK(gcd_i2c_read_address(dev->bus, dev->addr, APDS_REGADDR_CLRCHAN_DATA_LSB, 8, crgbraw));
-        uint16_t c = (crgbraw[0] | crgbraw[1] << 8);
-        uint16_t r = (crgbraw[2] | crgbraw[3] << 8);
-        uint16_t g = (crgbraw[4] | crgbraw[5] << 8);
-        uint16_t b = (crgbraw[6] | crgbraw[7] << 8);
+    /** set Gst En, pwr own and GMODE **/
+    byte = 1;
+    apds_set_gst_gmode(dev, &byte);
 
-        ESP_LOGI(APDS_TAG, "Results: PRX: %u  C: %u R: %u G: %u B: %u ", prx, c, r, g, b);
-        vTaskDelay(pdMS_TO_TICKS(100));
-    }
+    apds_set_gesture_status(dev, &byte);
+
+    apds_set_pwr_on_status(dev, &byte);
 
     return ESP_OK;
 }
@@ -284,29 +290,45 @@ static void apds_driver_task(void *args) {
         uint8_t interrupt_source = get_interrupt_source_and_clear(dev);
         ESP_LOGI(APDS_TAG, "Got interrupt value 0x%02x", interrupt_source);
 
-        switch (interrupt_source)
-        {
-        case APDS_REGBIT_CP_SAT:
-            break;
-        case APDS_REGBIT_PRX_GST_SAT:
-            break;
-        case APDS_REGBIT_PRX_INT:
-            break;
-        case APDS_REGBIT_ALS_INT:
-            break;
-        case APDS_REGBIT_GST_INT:
-            break;
-        case APDS_REGBIT_PRX_VALID:
-            break;
-        case APDS_REGBIT_ALS_VALID:
-            break;
-        
-        default:
-            break;
+        /** TODO: Take actions!
+         *  if data valid, set the bit in the struct so user can poll easily
+         *  if saturation occured, mark in struct too
+         *  **/
+
+        if(interrupt_source & APDS_REGBIT_CP_SAT) {
+            ESP_LOGI(APDS_TAG, "Clear LED Channel ADC was Saturated!");
+        }
+        if(interrupt_source & APDS_REGBIT_PRX_GST_SAT) {
+            ESP_LOGI(APDS_TAG, "Clear Gesture ADC was Saturated!");
+        }
+        if(interrupt_source & APDS_REGBIT_PRX_INT) {
+            ESP_LOGI(APDS_TAG, "Proximity Interrupt threshold interrupt!");
+        }
+        if(interrupt_source & APDS_REGBIT_ALS_INT) {
+            ESP_LOGI(APDS_TAG, "ALS Interrupt threshold interrupt!");
+        }
+        if(interrupt_source & APDS_REGBIT_GST_INT) {
+            ESP_LOGI(APDS_TAG, "Gesture Interrupt threshold interrupt!");
+        }
+        if(interrupt_source & APDS_REGBIT_PRX_VALID) {
+            ESP_LOGI(APDS_TAG, "Proximity is valid!");            
+        }
+        if(interrupt_source & APDS_REGBIT_ALS_VALID) {
+            ESP_LOGI(APDS_TAG, "ALS is valid!");
+        }
+        if(dev->gst_settings.gmode > 0) {
+            apds_read_fifo_full(dev);
+            for(uint8_t i=0; i<32; i++) {
+                printf("New FIFO Data: U: %u D: %u L: %u R: %u\n",
+                        dev->data.gst_fifo_u_data[i],
+                        dev->data.gst_fifo_d_data[i],
+                        dev->data.gst_fifo_l_data[i],
+                        dev->data.gst_fifo_r_data[i]
+                    );
+            }
         }
 
-
-        vTaskDelay(pdMS_TO_TICKS(100));
+        vTaskDelay(pdMS_TO_TICKS(10));
     }
     /** here be dragons **/
 }
@@ -348,20 +370,26 @@ APDS_DEV apds_init(apds_init_t *init) {
     if(init->intr_pin != 0) {
         dev->intr_pin = init->intr_pin;
         err = apds_config_intr_pin(dev);
+        if(!err) {
+            dev->intr_en = true;
+        }
     }
 
-    if(!err && xTaskCreate(apds_driver_task, "apds_driver_task", 5012, dev, 3, &t_handle) != pdTRUE) {
+    if(!err && xTaskCreate(apds_driver_task, "apds_driver_task", 5012, dev, 3, &dev->t_handle) != pdTRUE) {
         ESP_LOGE(APDS_TAG, "Error creating driver task");
         err = ESP_ERR_NO_MEM;
     }
 
     if(!err) {
+        ESP_LOGI(APDS_TAG, "Entering test mode!");
         testmode(dev);
     }
     
     return dev;
 }
 
+
+/*************** ENABLE SETTINGS **************************/
 
  
 esp_err_t apds_get_pwr_on_status(APDS_DEV dev, uint8_t *on) {
@@ -473,49 +501,96 @@ esp_err_t apds_set_gesture_status(APDS_DEV dev, uint8_t *on) {
 }
 
 
-/**************** General Settings ***************/
+
+
+/**************** GENERAL SETTINGS ***************/
+
+
+
+esp_err_t apds_set_wait_enable(APDS_DEV dev, uint8_t *val) {
+    uint8_t state = *val;
+    uint8_t regval = 0;
+    esp_err_t err = ESP_OK;
+
+    if(state && dev->gen_settings.wait_en) {
+        ESP_LOGI(APDS_TAG, "Gesture engine alreay enabled");
+        return ESP_OK;
+    }
+    else if (!state && !(dev->gen_settings.wait_en)) {
+        ESP_LOGI(APDS_TAG, "Gesture engine alreay disabled");
+        return ESP_OK;
+    }
+    else {
+        err = gcd_i2c_read_address(dev->bus, dev->addr, APDS_REGADDR_ENABLE, 1, &regval);
+        if(state) {
+            regval |= APDS_REGBIT_WAIT_EN;
+        }
+        else {
+            regval &= ~APDS_REGBIT_WAIT_EN;
+        }
+        if(!err) {
+            gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_ENABLE, 1, &regval);
+            if(!err) {
+                dev->gen_settings.wait_en = (state ? 1 : 0);
+            }
+        }
+    }
+
+    return ESP_OK;  
+
+}
+
+esp_err_t apds_get_wait_enable(APDS_DEV dev, uint8_t *val) {
+    *val = dev->gen_settings.wait_en;
+    return ESP_OK;
+}
+
+
 
 esp_err_t apds_get_wait_time(APDS_DEV dev, uint8_t *wait){
-    *wait = dev->als_settings.wait_time;
+    *wait = dev->gen_settings.wait_time;
     return ESP_OK;
 }
 
 
 esp_err_t apds_set_wait_time(APDS_DEV dev, uint8_t *wait) {
     uint8_t byte = *wait;
-    esp_err_t err = regSetMask(dev, APDS_REGADDR_WAITTIME, byte);
+    esp_err_t err = gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_WAITTIME, 1, &byte);
+    if(!err) {
+        dev->gen_settings.wait_time = byte;
+    }
     return err;
 }
 
 
-esp_err_t apds_get_longwait_en(APDS_DEV dev, uint8_t *thr) {
-    *thr = dev->als_settings.wait_long_en;
+esp_err_t apds_get_longwait_en(APDS_DEV dev, uint8_t *en) {
+    *en = dev->gen_settings.wait_long_en;
     return ESP_OK;
 }
 
 
-esp_err_t apds_set_longwait_en(APDS_DEV dev, uint8_t *thr) {
-    uint8_t val = *thr;
+esp_err_t apds_set_longwait_en(APDS_DEV dev, uint8_t *en) {
+    uint8_t val = *en;
     esp_err_t err = ESP_OK;
     if(val) {
-        err = regSetMask(dev, APDS_REGADDR_CONFIG_1, APDS_REGBIT_WLON_EN);
+        err = regSetMask(dev, APDS_REGADDR_CONFIG_1, APDS_REGBITS_WLON_EN);
     }
     else {
-        err = regUnsetMask(dev, APDS_REGADDR_CONFIG_1, APDS_REGBIT_WLON_EN);
+        err = regUnsetMask(dev, APDS_REGADDR_CONFIG_1, APDS_CONFIG_1_MASK);
     }
 
     if(!err) {
-        dev->als_settings.wait_long_en = val;
+        dev->gen_settings.wait_long_en = val;
     }
 
     return ESP_OK;
 }
 
 
-esp_err_t apds_set_led_drive_strength(APDS_DEV dev, gst_led_drive_t *drive) {
+esp_err_t apds_set_led_drive(APDS_DEV dev, apds_led_drive_t *drive) {
     uint8_t d = *drive;
     esp_err_t err = ESP_OK;
-    if(d > APDS_GST_LEDDRIVE_MAX) {
+    if(d > APDS_LEDDRIVE_MAX) {
         err = ESP_ERR_INVALID_ARG;
         ESP_LOGE(APDS_TAG, "Invalid args");
     }
@@ -533,7 +608,7 @@ esp_err_t apds_set_led_drive_strength(APDS_DEV dev, gst_led_drive_t *drive) {
 }
 
 
-esp_err_t apds_get_led_drive_strength(APDS_DEV dev, gst_led_drive_t *drive) {
+esp_err_t apds_get_led_drive(APDS_DEV dev, apds_led_drive_t *drive) {
     *drive = dev->gst_settings.gst_led_drive_str;
     return ESP_OK;
 }
@@ -550,7 +625,10 @@ esp_err_t apds_get_adc_time(APDS_DEV dev, uint8_t *adct) {
 
 esp_err_t apds_set_adc_time(APDS_DEV dev, uint8_t *adct) {
     uint8_t byte = *adct;
-    esp_err_t err = regSetMask(dev, APDS_REGADDR_ADCTIME, byte);
+    esp_err_t err = gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_ADCTIME, 1, &byte);
+    if(!err) {
+        dev->als_settings.adc_intg_time = byte;
+    }
     return err;
 }
 
@@ -583,11 +661,8 @@ esp_err_t apds_get_alsintr_hi_thr(APDS_DEV dev, uint16_t *thr) {
 
 esp_err_t apds_set_alsintr_hi_thr(APDS_DEV dev, uint16_t *thr) {
     uint16_t val = *thr;
-    uint8_t bytes[2] = {
-        (uint8_t )val,
-        ((uint8_t )val >> 8),
-    };
-    esp_err_t err = gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_ALS_THR_HIGH_LSB, 2, bytes);
+
+    esp_err_t err = gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_ALS_THR_HIGH_LSB, 2, &val);
     if(!err) {
         dev->als_settings.als_thresh_h = val;
     }
@@ -604,15 +679,19 @@ esp_err_t apds_get_als_intr_persistence(APDS_DEV dev, uint8_t *cnt) {
 esp_err_t apds_set_als_intr_persistence(APDS_DEV dev, uint8_t *cnt) {
     esp_err_t err = ESP_OK;
     uint8_t val = *cnt;
+    uint8_t regval = 0;
     if(val > 15) {
         err= ESP_ERR_INVALID_ARG;
     }
     else {
-        err = regUnsetMask(dev, APDS_REGADDR_ISR_PERSIST_FLTR, 0x0f);
-        if(!err && val) {
-            err =regSetMask(dev, APDS_REGADDR_ISR_PERSIST_FLTR, val);
+        err = gcd_i2c_read_address(dev->bus, dev->addr, APDS_REGADDR_ISR_PERSIST_FLTR, 1, &regval);
+        if(!err) {
+            regval &= 0xf0;
+            regval |= val;
+            err = gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_ISR_PERSIST_FLTR, 1, &regval);
         }
     }
+
     if(!err) {
         dev->als_settings.als_persist = val;
     }
@@ -774,7 +853,7 @@ esp_err_t apds_set_prx_gain(APDS_DEV dev, gst_gain_t *g) {
 
     uint8_t val = *g;
     esp_err_t err = ESP_OK;
-    if(val > APDS_GST_GAIN_MAX) {
+    if(val > APDS_PRX_GAIN_MAX) {
         err = ESP_ERR_INVALID_ARG;
         ESP_LOGE(APDS_TAG, "Invalid args");
     }
@@ -831,7 +910,7 @@ esp_err_t apds_set_gst_proximity_ext_thr(APDS_DEV dev, uint8_t *d) {
 }
 
 
-esp_err_t apds_set_prx_direction_mode(APDS_DEV dev, uint8_t *mode) {
+esp_err_t apds_set_gst_direction_mode(APDS_DEV dev, uint8_t *mode) {
 
     uint8_t regval = *mode;
     if(regval > APDS_DIR_LEFTRIGHT_ONLY) {
@@ -845,7 +924,7 @@ esp_err_t apds_set_prx_direction_mode(APDS_DEV dev, uint8_t *mode) {
 }
 
 
-esp_err_t apds_get_prx_direction_mode(APDS_DEV dev, uint8_t *mode) {
+esp_err_t apds_get_gst_direction_mode(APDS_DEV dev, uint8_t *mode) {
     *mode = dev->gst_settings.gst_dir_select;
     return ESP_OK;
 }
@@ -913,8 +992,88 @@ esp_err_t apds_set_gst_pulse_cnt(APDS_DEV dev, uint8_t *cnt) {
 }
 
 
+esp_err_t apds_set_gst_gmode(APDS_DEV dev, uint8_t *val) {
 
-/*** INTERRUPT SETTINGS **/
+    uint8_t en = *val;
+    esp_err_t err = ESP_OK;
+
+    if(en) {
+        err = regSetMask(dev, APDS_REGADDR_GST_CONFIG_4, APDS_REGBIT_GST_MODE);
+    }
+    else {
+        err = regUnsetMask(dev, APDS_REGADDR_GST_CONFIG_4, APDS_REGBIT_GST_MODE);
+    }
+
+    if(!err) {
+        dev->gst_settings.gmode = (en > 0) ? true : false;
+    }
+
+    return err;
+}
+
+
+esp_err_t apds_get_gst_gmode(APDS_DEV dev, uint8_t *val) {
+    *val = dev->gst_settings.gmode;
+    return ESP_OK;
+}
+
+
+esp_err_t apds_set_gst_gain(APDS_DEV dev, uint8_t *gain) {
+    esp_err_t err = ESP_OK;
+    uint8_t val = *gain;
+    uint8_t regval = 0;
+    if(val >= APDS_GST_GAIN_MAX) {
+        err = ESP_ERR_INVALID_ARG;
+    }
+    else {
+        err = gcd_i2c_read_address(dev->bus, dev->addr, APDS_REGADDR_GST_CONFIG_2, 1, &regval);
+        BYTE_UNSET_BITS(regval, 0b11100000);
+        BYTE_SET_BITS(regval, (val << APDS_REGOFFSET_GST_GAIN));
+
+        err = gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_GST_CONFIG_2, 1, &regval);
+        if(!err) {
+            dev->gst_settings.gst_gain_ctrl = val;
+        }
+    }
+    
+    return err;  
+}
+
+
+esp_err_t apds_get_gst_gain(APDS_DEV dev, uint8_t *gain) {
+    *gain = dev->gst_settings.gst_gain_ctrl;
+    return ESP_OK;
+}
+
+
+esp_err_t apds_set_gst_led_drive(APDS_DEV dev, apds_led_drive_t *drive) {
+    uint8_t d = *drive;
+    esp_err_t err = ESP_OK;
+    if(d > APDS_LEDDRIVE_MAX) {
+        err = ESP_ERR_INVALID_ARG;
+        ESP_LOGE(APDS_TAG, "Invalid args");
+    }
+    else {
+        d = (d << 6);
+        err = regUnsetMask(dev, APDS_REGADDR_GST_CONFIG_2, (3 << 6));
+        if(!err && d) {
+            err = regSetMask(dev, APDS_REGADDR_GAIN_CTRL, d);
+        }
+    }
+    if(!err) {
+        dev->gst_settings.gst_led_drive_str = d;
+    }
+    return err;
+}
+
+
+esp_err_t apds_get_gst_led_drive(APDS_DEV dev, apds_led_drive_t *drive) {
+    *drive = dev->gst_settings.gst_led_drive_str;
+    return ESP_OK;
+}
+
+
+/******************** INTERRUPT SETTINGS *********************/
 
 
 esp_err_t apds_get_sleep_after_intr(APDS_DEV dev, uint8_t *en) {
@@ -1059,32 +1218,37 @@ esp_err_t apds_read_fifo_full(APDS_DEV dev) {
         return ESP_ERR_INVALID_RESPONSE;
     }
     else {
+        /* num bytes contains #fifo rows - of 4 bytes each */
         num_bytes *= 4;
         err = gcd_i2c_read_address(dev->bus,dev->addr, APDS_REGADDR_GST_FIFO_U, num_bytes, data);
     }
     if(!err) {
         /** copy/sort data **/
+
+        /** debug **/
+        showmem(data, num_bytes);
+
         memset(dev->data.gst_fifo_u_data, 0, (sizeof(uint8_t) * 8 * 4));
         uint8_t j=0;
         for(uint8_t i=0; i<num_bytes; i++) {
             switch (i % 4)
             {
-            case 0:
-                dev->data.gst_fifo_u_data[j] = data[i];
-                break;
-            case 1:
-                dev->data.gst_fifo_d_data[j] = data[i];
-                break;
-            case 2:
-                dev->data.gst_fifo_l_data[j] = data[i];
-                break;
-            case 3:
-                dev->data.gst_fifo_r_data[j] = data[i];
-                j++;
-                break;
-            default:
-                break;
-            }            
+                case 0:
+                    dev->data.gst_fifo_u_data[j] = data[i];
+                    break;
+                case 1:
+                    dev->data.gst_fifo_d_data[j] = data[i];
+                    break;
+                case 2:
+                    dev->data.gst_fifo_l_data[j] = data[i];
+                    break;
+                case 3:
+                    dev->data.gst_fifo_r_data[j] = data[i];
+                    j++;
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
@@ -1139,7 +1303,7 @@ esp_err_t apds_set_fifo_thresh(APDS_DEV dev, uint8_t *thr) {
     esp_err_t err = ESP_OK;
     uint8_t regval = 0;
     
-    if(thresh > 3) {
+    if(thresh >= APDS_FIFO_THRESH_MAX) {
         return ESP_ERR_INVALID_ARG;
     }
     
