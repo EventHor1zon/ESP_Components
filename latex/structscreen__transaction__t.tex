@@ -1,0 +1,56 @@
+\hypertarget{structscreen__transaction__t}{}\section{screen\+\_\+transaction\+\_\+t Struct Reference}
+\label{structscreen__transaction__t}\index{screen\+\_\+transaction\+\_\+t@{screen\+\_\+transaction\+\_\+t}}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structscreen__transaction__t_af29c3c70326c33692c8f1aab31170093}\label{structscreen__transaction__t_af29c3c70326c33692c8f1aab31170093}} 
+bool {\bfseries mode}
+\item 
+\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$ \hyperlink{structscreen__transaction__t_ad61b850a61304532df31ac1699b71911}{send}
+\item 
+\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$ \hyperlink{structscreen__transaction__t_ac00eeb10dbec656aeb6d4cd81bc4533c}{recv}
+\item 
+\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} \hyperlink{structscreen__transaction__t_ade485ce9cfd695b682aa0827ef8dd8ce}{s\+\_\+len}
+\item 
+\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} \hyperlink{structscreen__transaction__t_a5f7bed33270626b40a9e44bbdc73c7e0}{r\+\_\+len}
+\item 
+esp\+\_\+err\+\_\+t \hyperlink{structscreen__transaction__t_a1ee2e2ae378bc746fb656a0d5ec31d8b}{trx\+\_\+status}
+\end{DoxyCompactItemize}
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{structscreen__transaction__t_a5f7bed33270626b40a9e44bbdc73c7e0}\label{structscreen__transaction__t_a5f7bed33270626b40a9e44bbdc73c7e0}} 
+\index{screen\+\_\+transaction\+\_\+t@{screen\+\_\+transaction\+\_\+t}!r\+\_\+len@{r\+\_\+len}}
+\index{r\+\_\+len@{r\+\_\+len}!screen\+\_\+transaction\+\_\+t@{screen\+\_\+transaction\+\_\+t}}
+\subsubsection{\texorpdfstring{r\+\_\+len}{r\_len}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} screen\+\_\+transaction\+\_\+t\+::r\+\_\+len}
+
+$<$ send length \mbox{\Hypertarget{structscreen__transaction__t_ac00eeb10dbec656aeb6d4cd81bc4533c}\label{structscreen__transaction__t_ac00eeb10dbec656aeb6d4cd81bc4533c}} 
+\index{screen\+\_\+transaction\+\_\+t@{screen\+\_\+transaction\+\_\+t}!recv@{recv}}
+\index{recv@{recv}!screen\+\_\+transaction\+\_\+t@{screen\+\_\+transaction\+\_\+t}}
+\subsubsection{\texorpdfstring{recv}{recv}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t}$\ast$ screen\+\_\+transaction\+\_\+t\+::recv}
+
+$<$ pointer to send buffer \mbox{\Hypertarget{structscreen__transaction__t_ade485ce9cfd695b682aa0827ef8dd8ce}\label{structscreen__transaction__t_ade485ce9cfd695b682aa0827ef8dd8ce}} 
+\index{screen\+\_\+transaction\+\_\+t@{screen\+\_\+transaction\+\_\+t}!s\+\_\+len@{s\+\_\+len}}
+\index{s\+\_\+len@{s\+\_\+len}!screen\+\_\+transaction\+\_\+t@{screen\+\_\+transaction\+\_\+t}}
+\subsubsection{\texorpdfstring{s\+\_\+len}{s\_len}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} screen\+\_\+transaction\+\_\+t\+::s\+\_\+len}
+
+$<$ pointer to recv buffer \mbox{\Hypertarget{structscreen__transaction__t_ad61b850a61304532df31ac1699b71911}\label{structscreen__transaction__t_ad61b850a61304532df31ac1699b71911}} 
+\index{screen\+\_\+transaction\+\_\+t@{screen\+\_\+transaction\+\_\+t}!send@{send}}
+\index{send@{send}!screen\+\_\+transaction\+\_\+t@{screen\+\_\+transaction\+\_\+t}}
+\subsubsection{\texorpdfstring{send}{send}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t}$\ast$ screen\+\_\+transaction\+\_\+t\+::send}
+
+$<$ 0 -\/ command write 1 -\/ memory write \mbox{\Hypertarget{structscreen__transaction__t_a1ee2e2ae378bc746fb656a0d5ec31d8b}\label{structscreen__transaction__t_a1ee2e2ae378bc746fb656a0d5ec31d8b}} 
+\index{screen\+\_\+transaction\+\_\+t@{screen\+\_\+transaction\+\_\+t}!trx\+\_\+status@{trx\+\_\+status}}
+\index{trx\+\_\+status@{trx\+\_\+status}!screen\+\_\+transaction\+\_\+t@{screen\+\_\+transaction\+\_\+t}}
+\subsubsection{\texorpdfstring{trx\+\_\+status}{trx\_status}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t screen\+\_\+transaction\+\_\+t\+::trx\+\_\+status}
+
+$<$ recv length 
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+S\+T7735\+\_\+\+Driver/S\+T7735\+\_\+\+Screen.\+h\end{DoxyCompactItemize}

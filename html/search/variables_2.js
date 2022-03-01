@@ -1,0 +1,19 @@
+var searchData=
+[
+  ['b_5fchannel',['b_channel',['../structRGB__Driver.html#a2ce6a8d15b7a1411f68cd26c67e8cd4a',1,'RGB_Driver']]],
+  ['b_5fduty',['b_duty',['../structRGB__Driver.html#ab0a18173b1c3080386c2a2439d04befd',1,'RGB_Driver']]],
+  ['b_5fpin',['b_pin',['../structRGB__DriverInit.html#ac543562dcdccdf37a02426f180f0584b',1,'RGB_DriverInit']]],
+  ['bitframe_5freg',['bitframe_reg',['../structstruct.html#a875453616cf061da36e0ed90d46d380c',1,'struct']]],
+  ['brightness',['brightness',['../structledEffectData.html#a8d68875aadb518d5292e93d79918d0ae',1,'ledEffectData']]],
+  ['bston',['bston',['../structscreen__settings__t.html#aac406fcdf039a835479da26647ecf6bd',1,'screen_settings_t']]],
+  ['btn_5fsetting',['btn_setting',['../structbuttonData.html#a77b4789cd0f59ad4238149317efa20c0',1,'buttonData']]],
+  ['btndebouncestate',['btnDebounceState',['../structbuttonData.html#afa9608155098295140e8fbae290c162c',1,'buttonData']]],
+  ['btnpin',['btnPin',['../structbuttonData.html#a22a4c876c877761e6380b7712e86db3b',1,'buttonData']]],
+  ['btnstate',['btnState',['../structbuttonData.html#a738bdc48430aa378eb278a8759cfcd0f',1,'buttonData']]],
+  ['buffer_5fend',['buffer_end',['../structCBuffer__Handle.html#aa8573cb52319451c021516d1a906c970',1,'CBuffer_Handle']]],
+  ['buffer_5flen',['buffer_len',['../structCBuffer__Handle.html#af0549758ada54a9e9117a0c4ff0a4955',1,'CBuffer_Handle']]],
+  ['buffer_5fstart',['buffer_start',['../structCBuffer__Handle.html#ace9001395e4926b7da1c5ec82afd20b3',1,'CBuffer_Handle']]],
+  ['buffersize',['BufferSize',['../structVL53L0X__HistogramMeasurementData__t.html#a342f6defb445fe6d189c9507cf0fd2db',1,'VL53L0X_HistogramMeasurementData_t']]],
+  ['build',['build',['../structVL53L0X__Version__t.html#a504ac1ff3cd99738e1e5a368867a0d40',1,'VL53L0X_Version_t']]],
+  ['bytes_5fper_5fpixel',['bytes_per_pixel',['../structStrandData.html#a627df352791351af4c92b6249608c58f',1,'StrandData']]]
+];

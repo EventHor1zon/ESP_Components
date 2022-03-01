@@ -1,0 +1,8 @@
+<map id="VL53L0X cut1.1 Function Definition" name="VL53L0X cut1.1 Function Definition">
+<area shape="rect" id="node1" href="$group__VL53L0X__interrupt__group.html" title="Functions used for interrupt managements. " alt="" coords="223,5,411,32"/>
+<area shape="rect" id="node2" href="$group__VL53L0X__SPADfunctions__group.html" title="Functions used for SPAD managements. " alt="" coords="228,56,405,83"/>
+<area shape="rect" id="node4" href="$group__VL53L0X__parameters__group.html" title="Functions used to prepare and setup the device. " alt="" coords="243,107,390,149"/>
+<area shape="rect" id="node5" href="$group__VL53L0X__general__group.html" title="General functions and definitions. " alt="" coords="224,173,409,200"/>
+<area shape="rect" id="node6" href="$group__VL53L0X__measurement__group.html" title="Functions used for the measurements. " alt="" coords="237,225,396,266"/>
+<area shape="rect" id="node7" href="$group__VL53L0X__init__group.html" title="VL53L0X Init Functions. " alt="" coords="237,291,396,317"/>
+</map>

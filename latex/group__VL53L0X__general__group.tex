@@ -1,0 +1,548 @@
+\hypertarget{group__VL53L0X__general__group}{}\section{V\+L53\+L0X General Functions}
+\label{group__VL53L0X__general__group}\index{V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}}
+
+
+General functions and definitions.  
+
+
+Collaboration diagram for V\+L53\+L0X General Functions\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{group__VL53L0X__general__group}
+\end{center}
+\end{figure}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__general__group_gadb15b4f97b7218b3bdf571f90c27ec5e}{V\+L53\+L0\+X\+\_\+\+Get\+Version} (\hyperlink{structVL53L0X__Version__t}{V\+L53\+L0\+X\+\_\+\+Version\+\_\+t} $\ast$p\+Version)
+\begin{DoxyCompactList}\small\item\em Return the V\+L53\+L0X P\+AL Implementation Version. \end{DoxyCompactList}\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__general__group_gad66c4309fbbf14d68692c18982158fba}{V\+L53\+L0\+X\+\_\+\+Get\+Pal\+Spec\+Version} (\hyperlink{structVL53L0X__Version__t}{V\+L53\+L0\+X\+\_\+\+Version\+\_\+t} $\ast$p\+Pal\+Spec\+Version)
+\begin{DoxyCompactList}\small\item\em Return the P\+AL Specification Version used for the current implementation. \end{DoxyCompactList}\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__general__group_ga61bbb7db521494b59d82f0c0ee359260}{V\+L53\+L0\+X\+\_\+\+Get\+Product\+Revision} (\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV} Dev, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$p\+Product\+Revision\+Major, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$p\+Product\+Revision\+Minor)
+\begin{DoxyCompactList}\small\item\em Reads the Product Revision for a for given Device This function can be used to distinguish cut1.\+0 from cut1.\+1. \end{DoxyCompactList}\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__general__group_ga608dd0345885215992789821cb094e17}{V\+L53\+L0\+X\+\_\+\+Get\+Device\+Info} (\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV} Dev, \hyperlink{structVL53L0X__DeviceInfo__t}{V\+L53\+L0\+X\+\_\+\+Device\+Info\+\_\+t} $\ast$p\+V\+L53\+L0\+X\+\_\+\+Device\+Info)
+\begin{DoxyCompactList}\small\item\em Reads the Device information for given Device. \end{DoxyCompactList}\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__general__group_gad8bd4b6c24974fd55102615aed0efa14}{V\+L53\+L0\+X\+\_\+\+Get\+Device\+Error\+Status} (\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV} Dev, V\+L53\+L0\+X\+\_\+\+Device\+Error $\ast$p\+Device\+Error\+Status)
+\begin{DoxyCompactList}\small\item\em Read current status of the error register for the selected device. \end{DoxyCompactList}\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__general__group_gad9a6d74d1c0b18a2180b896dc144ad7c}{V\+L53\+L0\+X\+\_\+\+Get\+Range\+Status\+String} (\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} Range\+Status, char $\ast$p\+Range\+Status\+String)
+\begin{DoxyCompactList}\small\item\em Human readable Range Status string for a given Range\+Status. \end{DoxyCompactList}\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__general__group_ga3532722a77431334a391fb8247cd334f}{V\+L53\+L0\+X\+\_\+\+Get\+Device\+Error\+String} (V\+L53\+L0\+X\+\_\+\+Device\+Error Error\+Code, char $\ast$p\+Device\+Error\+String)
+\begin{DoxyCompactList}\small\item\em Human readable error string for a given Error Code. \end{DoxyCompactList}\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__general__group_gaa647e7ed8b78178968fab9b3562ebac7}{V\+L53\+L0\+X\+\_\+\+Get\+Pal\+Error\+String} (V\+L53\+L0\+X\+\_\+\+Error Pal\+Error\+Code, char $\ast$p\+Pal\+Error\+String)
+\begin{DoxyCompactList}\small\item\em Human readable error string for current P\+AL error status. \end{DoxyCompactList}\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__general__group_ga1897c54c56a85fab54012ea53a444b23}{V\+L53\+L0\+X\+\_\+\+Get\+Pal\+State\+String} (V\+L53\+L0\+X\+\_\+\+State Pal\+State\+Code, char $\ast$p\+Pal\+State\+String)
+\begin{DoxyCompactList}\small\item\em Human readable P\+AL State string. \end{DoxyCompactList}\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__general__group_gac4b91d3adc134655064fcc2c4a9adf24}{V\+L53\+L0\+X\+\_\+\+Get\+Pal\+State} (\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV} Dev, V\+L53\+L0\+X\+\_\+\+State $\ast$p\+Pal\+State)
+\begin{DoxyCompactList}\small\item\em Reads the internal state of the P\+AL for a given Device. \end{DoxyCompactList}\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__general__group_ga8b435ab0813267fca1546c7da732c1f2}{V\+L53\+L0\+X\+\_\+\+Set\+Power\+Mode} (\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV} Dev, V\+L53\+L0\+X\+\_\+\+Power\+Modes Power\+Mode)
+\begin{DoxyCompactList}\small\item\em Set the power mode for a given Device \hyperlink{structThe}{The} power mode can be Standby or Idle. Different level of both Standby and Idle can exists. This function should not be used when device is in Ranging state. \end{DoxyCompactList}\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__general__group_ga53faed55c6951878c58b6a19d613ee9b}{V\+L53\+L0\+X\+\_\+\+Get\+Power\+Mode} (\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV} Dev, V\+L53\+L0\+X\+\_\+\+Power\+Modes $\ast$p\+Power\+Mode)
+\begin{DoxyCompactList}\small\item\em Get the power mode for a given Device. \end{DoxyCompactList}\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__general__group_ga6d87e7c39e30ede9f158362624487718}{V\+L53\+L0\+X\+\_\+\+Set\+Offset\+Calibration\+Data\+Micro\+Meter} (\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV} Dev, \hyperlink{vl53l0x__types_8h_a32f2e37ee053cf2ce8ca28d1f74630e5}{int32\+\_\+t} Offset\+Calibration\+Data\+Micro\+Meter)
+\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__general__group_ga724ec9400a6d5667e10bda476cc43029}{V\+L53\+L0\+X\+\_\+\+Get\+Offset\+Calibration\+Data\+Micro\+Meter} (\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV} Dev, \hyperlink{vl53l0x__types_8h_a32f2e37ee053cf2ce8ca28d1f74630e5}{int32\+\_\+t} $\ast$p\+Offset\+Calibration\+Data\+Micro\+Meter)
+\begin{DoxyCompactList}\small\item\em Get part to part calibration offset. \end{DoxyCompactList}\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__general__group_ga9dca9bb612d109f31caae8f1eef38ac7}{V\+L53\+L0\+X\+\_\+\+Set\+Linearity\+Corrective\+Gain} (\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV} Dev, \hyperlink{vl53l0x__types_8h_aa343fa3b3d06292b959ffdd4c4703b06}{int16\+\_\+t} Linearity\+Corrective\+Gain)
+\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__general__group_ga921717fe0182527ce358b9c5ded340f1}{V\+L53\+L0\+X\+\_\+\+Get\+Linearity\+Corrective\+Gain} (\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV} Dev, \hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} $\ast$p\+Linearity\+Corrective\+Gain)
+\begin{DoxyCompactList}\small\item\em Get the linearity corrective gain. \end{DoxyCompactList}\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__general__group_ga907d0e788b6ea0c7368a4c5133e0cb6a}{V\+L53\+L0\+X\+\_\+\+Set\+Group\+Param\+Hold} (\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV} Dev, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} Group\+Param\+Hold)
+\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__general__group_gafa2d49e10b749cd6e57e50823184fea7}{V\+L53\+L0\+X\+\_\+\+Get\+Upper\+Limit\+Milli\+Meter} (\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV} Dev, \hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} $\ast$p\+Upper\+Limit\+Milli\+Meter)
+\begin{DoxyCompactList}\small\item\em Get the maximal distance for actual setup. \end{DoxyCompactList}\item 
+V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__general__group_gaee98657af1e74394c5e3fc4d4b383dbf}{V\+L53\+L0\+X\+\_\+\+Get\+Total\+Signal\+Rate} (\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV} Dev, \hyperlink{vl53l0x__types_8h_afb910790161809fc76e1a274a6349384}{Fix\+Point1616\+\_\+t} $\ast$p\+Total\+Signal\+Rate)
+\begin{DoxyCompactList}\small\item\em Get the Total Signal Rate. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+General functions and definitions. 
+
+
+
+\subsection{Function Documentation}
+\mbox{\Hypertarget{group__VL53L0X__general__group_gad8bd4b6c24974fd55102615aed0efa14}\label{group__VL53L0X__general__group_gad8bd4b6c24974fd55102615aed0efa14}} 
+\index{V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}!V\+L53\+L0\+X\+\_\+\+Get\+Device\+Error\+Status@{V\+L53\+L0\+X\+\_\+\+Get\+Device\+Error\+Status}}
+\index{V\+L53\+L0\+X\+\_\+\+Get\+Device\+Error\+Status@{V\+L53\+L0\+X\+\_\+\+Get\+Device\+Error\+Status}!V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Get\+Device\+Error\+Status()}{VL53L0X\_GetDeviceErrorStatus()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Get\+Device\+Error\+Status (\begin{DoxyParamCaption}\item[{\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV}}]{Dev,  }\item[{V\+L53\+L0\+X\+\_\+\+Device\+Error $\ast$}]{p\+Device\+Error\+Status }\end{DoxyParamCaption})}
+
+
+
+Read current status of the error register for the selected device. 
+
+\begin{DoxyNote}{Note}
+This function Access to the device
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Dev} & Device Handle \\
+\hline
+{\em p\+Device\+Error\+Status} & Pointer to current error code of the device \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+NE Success 
+
+\char`\"{}\+Other error code\char`\"{} See \+::\+V\+L53\+L0\+X\+\_\+\+Error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__VL53L0X__general__group_ga3532722a77431334a391fb8247cd334f}\label{group__VL53L0X__general__group_ga3532722a77431334a391fb8247cd334f}} 
+\index{V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}!V\+L53\+L0\+X\+\_\+\+Get\+Device\+Error\+String@{V\+L53\+L0\+X\+\_\+\+Get\+Device\+Error\+String}}
+\index{V\+L53\+L0\+X\+\_\+\+Get\+Device\+Error\+String@{V\+L53\+L0\+X\+\_\+\+Get\+Device\+Error\+String}!V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Get\+Device\+Error\+String()}{VL53L0X\_GetDeviceErrorString()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Get\+Device\+Error\+String (\begin{DoxyParamCaption}\item[{V\+L53\+L0\+X\+\_\+\+Device\+Error}]{Error\+Code,  }\item[{char $\ast$}]{p\+Device\+Error\+String }\end{DoxyParamCaption})}
+
+
+
+Human readable error string for a given Error Code. 
+
+\begin{DoxyNote}{Note}
+This function doesn\textquotesingle{}t access to the device
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Error\+Code} & \hyperlink{structThe}{The} error code as stored on \+::\+V\+L53\+L0\+X\+\_\+\+Device\+Error \\
+\hline
+{\em p\+Device\+Error\+String} & \hyperlink{structThe}{The} error string corresponding to the Error\+Code \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+NE Success 
+
+\char`\"{}\+Other error code\char`\"{} See \+::\+V\+L53\+L0\+X\+\_\+\+Error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__VL53L0X__general__group_ga608dd0345885215992789821cb094e17}\label{group__VL53L0X__general__group_ga608dd0345885215992789821cb094e17}} 
+\index{V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}!V\+L53\+L0\+X\+\_\+\+Get\+Device\+Info@{V\+L53\+L0\+X\+\_\+\+Get\+Device\+Info}}
+\index{V\+L53\+L0\+X\+\_\+\+Get\+Device\+Info@{V\+L53\+L0\+X\+\_\+\+Get\+Device\+Info}!V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Get\+Device\+Info()}{VL53L0X\_GetDeviceInfo()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Get\+Device\+Info (\begin{DoxyParamCaption}\item[{\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV}}]{Dev,  }\item[{\hyperlink{structVL53L0X__DeviceInfo__t}{V\+L53\+L0\+X\+\_\+\+Device\+Info\+\_\+t} $\ast$}]{p\+V\+L53\+L0\+X\+\_\+\+Device\+Info }\end{DoxyParamCaption})}
+
+
+
+Reads the Device information for given Device. 
+
+\begin{DoxyNote}{Note}
+This function Access to the device
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Dev} & Device Handle \\
+\hline
+{\em p\+V\+L53\+L0\+X\+\_\+\+Device\+Info} & Pointer to current device info for a given Device \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+NE Success 
+
+\char`\"{}\+Other error code\char`\"{} See \+::\+V\+L53\+L0\+X\+\_\+\+Error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__VL53L0X__general__group_ga921717fe0182527ce358b9c5ded340f1}\label{group__VL53L0X__general__group_ga921717fe0182527ce358b9c5ded340f1}} 
+\index{V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}!V\+L53\+L0\+X\+\_\+\+Get\+Linearity\+Corrective\+Gain@{V\+L53\+L0\+X\+\_\+\+Get\+Linearity\+Corrective\+Gain}}
+\index{V\+L53\+L0\+X\+\_\+\+Get\+Linearity\+Corrective\+Gain@{V\+L53\+L0\+X\+\_\+\+Get\+Linearity\+Corrective\+Gain}!V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Get\+Linearity\+Corrective\+Gain()}{VL53L0X\_GetLinearityCorrectiveGain()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Get\+Linearity\+Corrective\+Gain (\begin{DoxyParamCaption}\item[{\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV}}]{Dev,  }\item[{\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} $\ast$}]{p\+Linearity\+Corrective\+Gain }\end{DoxyParamCaption})}
+
+
+
+Get the linearity corrective gain. 
+
+\begin{DoxyParagraph}{Function Description}
+Should only be used after a successful call to {\itshape V\+L53\+L0\+X\+\_\+\+Data\+Init} to backup device N\+VM value
+\end{DoxyParagraph}
+\begin{DoxyNote}{Note}
+This function Access to the device
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Dev} & Device Handle \\
+\hline
+{\em p\+Linearity\+Corrective\+Gain} & Pointer to the linearity corrective gain in x1000 if value is 1000 then no modification is applied. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+NE Success 
+
+\char`\"{}\+Other error code\char`\"{} See \+::\+V\+L53\+L0\+X\+\_\+\+Error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__VL53L0X__general__group_ga724ec9400a6d5667e10bda476cc43029}\label{group__VL53L0X__general__group_ga724ec9400a6d5667e10bda476cc43029}} 
+\index{V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}!V\+L53\+L0\+X\+\_\+\+Get\+Offset\+Calibration\+Data\+Micro\+Meter@{V\+L53\+L0\+X\+\_\+\+Get\+Offset\+Calibration\+Data\+Micro\+Meter}}
+\index{V\+L53\+L0\+X\+\_\+\+Get\+Offset\+Calibration\+Data\+Micro\+Meter@{V\+L53\+L0\+X\+\_\+\+Get\+Offset\+Calibration\+Data\+Micro\+Meter}!V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Get\+Offset\+Calibration\+Data\+Micro\+Meter()}{VL53L0X\_GetOffsetCalibrationDataMicroMeter()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Get\+Offset\+Calibration\+Data\+Micro\+Meter (\begin{DoxyParamCaption}\item[{\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV}}]{Dev,  }\item[{\hyperlink{vl53l0x__types_8h_a32f2e37ee053cf2ce8ca28d1f74630e5}{int32\+\_\+t} $\ast$}]{p\+Offset\+Calibration\+Data\+Micro\+Meter }\end{DoxyParamCaption})}
+
+
+
+Get part to part calibration offset. 
+
+\begin{DoxyParagraph}{Function Description}
+Should only be used after a successful call to {\itshape V\+L53\+L0\+X\+\_\+\+Data\+Init} to backup device N\+VM value
+\end{DoxyParagraph}
+\begin{DoxyNote}{Note}
+This function Access to the device
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Dev} & Device Handle \\
+\hline
+{\em p\+Offset\+Calibration\+Data\+Micro\+Meter} & Return part to part calibration offset from device (microns) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+NE Success 
+
+\char`\"{}\+Other error code\char`\"{} See \+::\+V\+L53\+L0\+X\+\_\+\+Error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__VL53L0X__general__group_gaa647e7ed8b78178968fab9b3562ebac7}\label{group__VL53L0X__general__group_gaa647e7ed8b78178968fab9b3562ebac7}} 
+\index{V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}!V\+L53\+L0\+X\+\_\+\+Get\+Pal\+Error\+String@{V\+L53\+L0\+X\+\_\+\+Get\+Pal\+Error\+String}}
+\index{V\+L53\+L0\+X\+\_\+\+Get\+Pal\+Error\+String@{V\+L53\+L0\+X\+\_\+\+Get\+Pal\+Error\+String}!V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Get\+Pal\+Error\+String()}{VL53L0X\_GetPalErrorString()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Get\+Pal\+Error\+String (\begin{DoxyParamCaption}\item[{V\+L53\+L0\+X\+\_\+\+Error}]{Pal\+Error\+Code,  }\item[{char $\ast$}]{p\+Pal\+Error\+String }\end{DoxyParamCaption})}
+
+
+
+Human readable error string for current P\+AL error status. 
+
+\begin{DoxyNote}{Note}
+This function doesn\textquotesingle{}t access to the device
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Pal\+Error\+Code} & \hyperlink{structThe}{The} error code as stored on {\itshape V\+L53\+L0\+X\+\_\+\+Error} \\
+\hline
+{\em p\+Pal\+Error\+String} & \hyperlink{structThe}{The} error string corresponding to the Pal\+Error\+Code \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+NE Success 
+
+\char`\"{}\+Other error code\char`\"{} See \+::\+V\+L53\+L0\+X\+\_\+\+Error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__VL53L0X__general__group_gad66c4309fbbf14d68692c18982158fba}\label{group__VL53L0X__general__group_gad66c4309fbbf14d68692c18982158fba}} 
+\index{V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}!V\+L53\+L0\+X\+\_\+\+Get\+Pal\+Spec\+Version@{V\+L53\+L0\+X\+\_\+\+Get\+Pal\+Spec\+Version}}
+\index{V\+L53\+L0\+X\+\_\+\+Get\+Pal\+Spec\+Version@{V\+L53\+L0\+X\+\_\+\+Get\+Pal\+Spec\+Version}!V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Get\+Pal\+Spec\+Version()}{VL53L0X\_GetPalSpecVersion()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Get\+Pal\+Spec\+Version (\begin{DoxyParamCaption}\item[{\hyperlink{structVL53L0X__Version__t}{V\+L53\+L0\+X\+\_\+\+Version\+\_\+t} $\ast$}]{p\+Pal\+Spec\+Version }\end{DoxyParamCaption})}
+
+
+
+Return the P\+AL Specification Version used for the current implementation. 
+
+\begin{DoxyNote}{Note}
+This function doesn\textquotesingle{}t access to the device
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em p\+Pal\+Spec\+Version} & Pointer to current P\+AL Specification Version \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+NE Success 
+
+\char`\"{}\+Other error code\char`\"{} See \+::\+V\+L53\+L0\+X\+\_\+\+Error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__VL53L0X__general__group_gac4b91d3adc134655064fcc2c4a9adf24}\label{group__VL53L0X__general__group_gac4b91d3adc134655064fcc2c4a9adf24}} 
+\index{V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}!V\+L53\+L0\+X\+\_\+\+Get\+Pal\+State@{V\+L53\+L0\+X\+\_\+\+Get\+Pal\+State}}
+\index{V\+L53\+L0\+X\+\_\+\+Get\+Pal\+State@{V\+L53\+L0\+X\+\_\+\+Get\+Pal\+State}!V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Get\+Pal\+State()}{VL53L0X\_GetPalState()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Get\+Pal\+State (\begin{DoxyParamCaption}\item[{\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV}}]{Dev,  }\item[{V\+L53\+L0\+X\+\_\+\+State $\ast$}]{p\+Pal\+State }\end{DoxyParamCaption})}
+
+
+
+Reads the internal state of the P\+AL for a given Device. 
+
+\begin{DoxyNote}{Note}
+This function doesn\textquotesingle{}t access to the device
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Dev} & Device Handle \\
+\hline
+{\em p\+Pal\+State} & Pointer to current state of the P\+AL for a given Device \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+NE Success 
+
+\char`\"{}\+Other error code\char`\"{} See \+::\+V\+L53\+L0\+X\+\_\+\+Error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__VL53L0X__general__group_ga1897c54c56a85fab54012ea53a444b23}\label{group__VL53L0X__general__group_ga1897c54c56a85fab54012ea53a444b23}} 
+\index{V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}!V\+L53\+L0\+X\+\_\+\+Get\+Pal\+State\+String@{V\+L53\+L0\+X\+\_\+\+Get\+Pal\+State\+String}}
+\index{V\+L53\+L0\+X\+\_\+\+Get\+Pal\+State\+String@{V\+L53\+L0\+X\+\_\+\+Get\+Pal\+State\+String}!V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Get\+Pal\+State\+String()}{VL53L0X\_GetPalStateString()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Get\+Pal\+State\+String (\begin{DoxyParamCaption}\item[{V\+L53\+L0\+X\+\_\+\+State}]{Pal\+State\+Code,  }\item[{char $\ast$}]{p\+Pal\+State\+String }\end{DoxyParamCaption})}
+
+
+
+Human readable P\+AL State string. 
+
+\begin{DoxyNote}{Note}
+This function doesn\textquotesingle{}t access to the device
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Pal\+State\+Code} & \hyperlink{structThe}{The} State code as stored on {\itshape V\+L53\+L0\+X\+\_\+\+State} \\
+\hline
+{\em p\+Pal\+State\+String} & \hyperlink{structThe}{The} State string corresponding to the Pal\+State\+Code \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+NE Success 
+
+\char`\"{}\+Other error code\char`\"{} See \+::\+V\+L53\+L0\+X\+\_\+\+Error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__VL53L0X__general__group_ga53faed55c6951878c58b6a19d613ee9b}\label{group__VL53L0X__general__group_ga53faed55c6951878c58b6a19d613ee9b}} 
+\index{V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}!V\+L53\+L0\+X\+\_\+\+Get\+Power\+Mode@{V\+L53\+L0\+X\+\_\+\+Get\+Power\+Mode}}
+\index{V\+L53\+L0\+X\+\_\+\+Get\+Power\+Mode@{V\+L53\+L0\+X\+\_\+\+Get\+Power\+Mode}!V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Get\+Power\+Mode()}{VL53L0X\_GetPowerMode()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Get\+Power\+Mode (\begin{DoxyParamCaption}\item[{\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV}}]{Dev,  }\item[{V\+L53\+L0\+X\+\_\+\+Power\+Modes $\ast$}]{p\+Power\+Mode }\end{DoxyParamCaption})}
+
+
+
+Get the power mode for a given Device. 
+
+\begin{DoxyNote}{Note}
+This function Access to the device
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Dev} & Device Handle \\
+\hline
+{\em p\+Power\+Mode} & Pointer to the current value of the power mode. see \+::\+V\+L53\+L0\+X\+\_\+\+Power\+Modes Valid values are\+: V\+L53\+L0\+X\+\_\+\+P\+O\+W\+E\+R\+M\+O\+D\+E\+\_\+\+S\+T\+A\+N\+D\+B\+Y\+\_\+\+L\+E\+V\+E\+L1, V\+L53\+L0\+X\+\_\+\+P\+O\+W\+E\+R\+M\+O\+D\+E\+\_\+\+I\+D\+L\+E\+\_\+\+L\+E\+V\+E\+L1 \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+NE Success 
+
+\char`\"{}\+Other error code\char`\"{} See \+::\+V\+L53\+L0\+X\+\_\+\+Error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__VL53L0X__general__group_ga61bbb7db521494b59d82f0c0ee359260}\label{group__VL53L0X__general__group_ga61bbb7db521494b59d82f0c0ee359260}} 
+\index{V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}!V\+L53\+L0\+X\+\_\+\+Get\+Product\+Revision@{V\+L53\+L0\+X\+\_\+\+Get\+Product\+Revision}}
+\index{V\+L53\+L0\+X\+\_\+\+Get\+Product\+Revision@{V\+L53\+L0\+X\+\_\+\+Get\+Product\+Revision}!V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Get\+Product\+Revision()}{VL53L0X\_GetProductRevision()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Get\+Product\+Revision (\begin{DoxyParamCaption}\item[{\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV}}]{Dev,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$}]{p\+Product\+Revision\+Major,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$}]{p\+Product\+Revision\+Minor }\end{DoxyParamCaption})}
+
+
+
+Reads the Product Revision for a for given Device This function can be used to distinguish cut1.\+0 from cut1.\+1. 
+
+\begin{DoxyNote}{Note}
+This function Access to the device
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Dev} & Device Handle \\
+\hline
+{\em p\+Product\+Revision\+Major} & Pointer to Product Revision Major for a given Device \\
+\hline
+{\em p\+Product\+Revision\+Minor} & Pointer to Product Revision Minor for a given Device \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+NE Success 
+
+\char`\"{}\+Other error code\char`\"{} See \+::\+V\+L53\+L0\+X\+\_\+\+Error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__VL53L0X__general__group_gad9a6d74d1c0b18a2180b896dc144ad7c}\label{group__VL53L0X__general__group_gad9a6d74d1c0b18a2180b896dc144ad7c}} 
+\index{V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}!V\+L53\+L0\+X\+\_\+\+Get\+Range\+Status\+String@{V\+L53\+L0\+X\+\_\+\+Get\+Range\+Status\+String}}
+\index{V\+L53\+L0\+X\+\_\+\+Get\+Range\+Status\+String@{V\+L53\+L0\+X\+\_\+\+Get\+Range\+Status\+String}!V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Get\+Range\+Status\+String()}{VL53L0X\_GetRangeStatusString()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Get\+Range\+Status\+String (\begin{DoxyParamCaption}\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t}}]{Range\+Status,  }\item[{char $\ast$}]{p\+Range\+Status\+String }\end{DoxyParamCaption})}
+
+
+
+Human readable Range Status string for a given Range\+Status. 
+
+\begin{DoxyNote}{Note}
+This function doesn\textquotesingle{}t access to the device
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Range\+Status} & \hyperlink{structThe}{The} Range\+Status code as stored on {\itshape \hyperlink{structVL53L0X__RangingMeasurementData__t}{V\+L53\+L0\+X\+\_\+\+Ranging\+Measurement\+Data\+\_\+t}} \\
+\hline
+{\em p\+Range\+Status\+String} & \hyperlink{structThe}{The} returned Range\+Status string. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+NE Success 
+
+\char`\"{}\+Other error code\char`\"{} See \+::\+V\+L53\+L0\+X\+\_\+\+Error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__VL53L0X__general__group_gaee98657af1e74394c5e3fc4d4b383dbf}\label{group__VL53L0X__general__group_gaee98657af1e74394c5e3fc4d4b383dbf}} 
+\index{V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}!V\+L53\+L0\+X\+\_\+\+Get\+Total\+Signal\+Rate@{V\+L53\+L0\+X\+\_\+\+Get\+Total\+Signal\+Rate}}
+\index{V\+L53\+L0\+X\+\_\+\+Get\+Total\+Signal\+Rate@{V\+L53\+L0\+X\+\_\+\+Get\+Total\+Signal\+Rate}!V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Get\+Total\+Signal\+Rate()}{VL53L0X\_GetTotalSignalRate()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Get\+Total\+Signal\+Rate (\begin{DoxyParamCaption}\item[{\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV}}]{Dev,  }\item[{\hyperlink{vl53l0x__types_8h_afb910790161809fc76e1a274a6349384}{Fix\+Point1616\+\_\+t} $\ast$}]{p\+Total\+Signal\+Rate }\end{DoxyParamCaption})}
+
+
+
+Get the Total Signal Rate. 
+
+\begin{DoxyParagraph}{Function Description}
+This function will return the Total Signal Rate after a good ranging is done.
+\end{DoxyParagraph}
+\begin{DoxyNote}{Note}
+This function access to Device
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Dev} & Device Handle \\
+\hline
+{\em p\+Total\+Signal\+Rate} & Total Signal Rate value in Mega count per second \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+NE Success 
+
+\char`\"{}\+Other error code\char`\"{} See \+::\+V\+L53\+L0\+X\+\_\+\+Error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__VL53L0X__general__group_gafa2d49e10b749cd6e57e50823184fea7}\label{group__VL53L0X__general__group_gafa2d49e10b749cd6e57e50823184fea7}} 
+\index{V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}!V\+L53\+L0\+X\+\_\+\+Get\+Upper\+Limit\+Milli\+Meter@{V\+L53\+L0\+X\+\_\+\+Get\+Upper\+Limit\+Milli\+Meter}}
+\index{V\+L53\+L0\+X\+\_\+\+Get\+Upper\+Limit\+Milli\+Meter@{V\+L53\+L0\+X\+\_\+\+Get\+Upper\+Limit\+Milli\+Meter}!V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Get\+Upper\+Limit\+Milli\+Meter()}{VL53L0X\_GetUpperLimitMilliMeter()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Get\+Upper\+Limit\+Milli\+Meter (\begin{DoxyParamCaption}\item[{\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV}}]{Dev,  }\item[{\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} $\ast$}]{p\+Upper\+Limit\+Milli\+Meter }\end{DoxyParamCaption})}
+
+
+
+Get the maximal distance for actual setup. 
+
+\begin{DoxyParagraph}{Function Description}
+Device must be initialized through {\itshape V\+L53\+L0\+X\+\_\+\+Set\+Parameters()} prior calling this function.
+\end{DoxyParagraph}
+Any range value more than the value returned is to be considered as \char`\"{}no target detected\char`\"{} or \char`\"{}no target in detectable range\char`\"{}~\newline
+\begin{DoxyWarning}{Warning}
+\hyperlink{structThe}{The} maximal distance depends on the setup
+\end{DoxyWarning}
+\begin{DoxyNote}{Note}
+This function is not Implemented
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Dev} & Device Handle \\
+\hline
+{\em p\+Upper\+Limit\+Milli\+Meter} & \hyperlink{structThe}{The} maximal range limit for actual setup (in millimeter) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+T\+\_\+\+I\+M\+P\+L\+E\+M\+E\+N\+T\+ED Not implemented 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__VL53L0X__general__group_gadb15b4f97b7218b3bdf571f90c27ec5e}\label{group__VL53L0X__general__group_gadb15b4f97b7218b3bdf571f90c27ec5e}} 
+\index{V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}!V\+L53\+L0\+X\+\_\+\+Get\+Version@{V\+L53\+L0\+X\+\_\+\+Get\+Version}}
+\index{V\+L53\+L0\+X\+\_\+\+Get\+Version@{V\+L53\+L0\+X\+\_\+\+Get\+Version}!V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Get\+Version()}{VL53L0X\_GetVersion()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Get\+Version (\begin{DoxyParamCaption}\item[{\hyperlink{structVL53L0X__Version__t}{V\+L53\+L0\+X\+\_\+\+Version\+\_\+t} $\ast$}]{p\+Version }\end{DoxyParamCaption})}
+
+
+
+Return the V\+L53\+L0X P\+AL Implementation Version. 
+
+\begin{DoxyNote}{Note}
+This function doesn\textquotesingle{}t access to the device
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em p\+Version} & Pointer to current P\+AL Implementation Version \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+NE Success 
+
+\char`\"{}\+Other error code\char`\"{} See \+::\+V\+L53\+L0\+X\+\_\+\+Error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__VL53L0X__general__group_ga907d0e788b6ea0c7368a4c5133e0cb6a}\label{group__VL53L0X__general__group_ga907d0e788b6ea0c7368a4c5133e0cb6a}} 
+\index{V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}!V\+L53\+L0\+X\+\_\+\+Set\+Group\+Param\+Hold@{V\+L53\+L0\+X\+\_\+\+Set\+Group\+Param\+Hold}}
+\index{V\+L53\+L0\+X\+\_\+\+Set\+Group\+Param\+Hold@{V\+L53\+L0\+X\+\_\+\+Set\+Group\+Param\+Hold}!V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Set\+Group\+Param\+Hold()}{VL53L0X\_SetGroupParamHold()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Set\+Group\+Param\+Hold (\begin{DoxyParamCaption}\item[{\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV}}]{Dev,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t}}]{Group\+Param\+Hold }\end{DoxyParamCaption})}
+
+Set Group parameter Hold state
+
+\begin{DoxyParagraph}{Function Description}
+Set or remove device internal group parameter hold
+\end{DoxyParagraph}
+\begin{DoxyNote}{Note}
+This function is not Implemented
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Dev} & Device Handle \\
+\hline
+{\em Group\+Param\+Hold} & Group parameter Hold state to be set (on/off) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+T\+\_\+\+I\+M\+P\+L\+E\+M\+E\+N\+T\+ED Not implemented 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__VL53L0X__general__group_ga9dca9bb612d109f31caae8f1eef38ac7}\label{group__VL53L0X__general__group_ga9dca9bb612d109f31caae8f1eef38ac7}} 
+\index{V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}!V\+L53\+L0\+X\+\_\+\+Set\+Linearity\+Corrective\+Gain@{V\+L53\+L0\+X\+\_\+\+Set\+Linearity\+Corrective\+Gain}}
+\index{V\+L53\+L0\+X\+\_\+\+Set\+Linearity\+Corrective\+Gain@{V\+L53\+L0\+X\+\_\+\+Set\+Linearity\+Corrective\+Gain}!V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Set\+Linearity\+Corrective\+Gain()}{VL53L0X\_SetLinearityCorrectiveGain()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Set\+Linearity\+Corrective\+Gain (\begin{DoxyParamCaption}\item[{\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV}}]{Dev,  }\item[{\hyperlink{vl53l0x__types_8h_aa343fa3b3d06292b959ffdd4c4703b06}{int16\+\_\+t}}]{Linearity\+Corrective\+Gain }\end{DoxyParamCaption})}
+
+Set the linearity corrective gain
+
+\begin{DoxyNote}{Note}
+This function Access to the device
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Dev} & Device Handle \\
+\hline
+{\em Linearity\+Corrective\+Gain} & Linearity corrective gain in x1000 if value is 1000 then no modification is applied. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+NE Success 
+
+\char`\"{}\+Other error code\char`\"{} See \+::\+V\+L53\+L0\+X\+\_\+\+Error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__VL53L0X__general__group_ga6d87e7c39e30ede9f158362624487718}\label{group__VL53L0X__general__group_ga6d87e7c39e30ede9f158362624487718}} 
+\index{V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}!V\+L53\+L0\+X\+\_\+\+Set\+Offset\+Calibration\+Data\+Micro\+Meter@{V\+L53\+L0\+X\+\_\+\+Set\+Offset\+Calibration\+Data\+Micro\+Meter}}
+\index{V\+L53\+L0\+X\+\_\+\+Set\+Offset\+Calibration\+Data\+Micro\+Meter@{V\+L53\+L0\+X\+\_\+\+Set\+Offset\+Calibration\+Data\+Micro\+Meter}!V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Set\+Offset\+Calibration\+Data\+Micro\+Meter()}{VL53L0X\_SetOffsetCalibrationDataMicroMeter()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Set\+Offset\+Calibration\+Data\+Micro\+Meter (\begin{DoxyParamCaption}\item[{\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV}}]{Dev,  }\item[{\hyperlink{vl53l0x__types_8h_a32f2e37ee053cf2ce8ca28d1f74630e5}{int32\+\_\+t}}]{Offset\+Calibration\+Data\+Micro\+Meter }\end{DoxyParamCaption})}
+
+Set or over-\/hide part to part calibration offset \begin{DoxySeeAlso}{See also}
+\hyperlink{group__VL53L0X__init__group_gabb81d6ad638363d555a1b1b038b23354}{V\+L53\+L0\+X\+\_\+\+Data\+Init()} \hyperlink{group__VL53L0X__general__group_ga724ec9400a6d5667e10bda476cc43029}{V\+L53\+L0\+X\+\_\+\+Get\+Offset\+Calibration\+Data\+Micro\+Meter()}
+\end{DoxySeeAlso}
+\begin{DoxyNote}{Note}
+This function Access to the device
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Dev} & Device Handle \\
+\hline
+{\em Offset\+Calibration\+Data\+Micro\+Meter} & Offset (microns) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+NE Success 
+
+\char`\"{}\+Other error code\char`\"{} See \+::\+V\+L53\+L0\+X\+\_\+\+Error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__VL53L0X__general__group_ga8b435ab0813267fca1546c7da732c1f2}\label{group__VL53L0X__general__group_ga8b435ab0813267fca1546c7da732c1f2}} 
+\index{V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}!V\+L53\+L0\+X\+\_\+\+Set\+Power\+Mode@{V\+L53\+L0\+X\+\_\+\+Set\+Power\+Mode}}
+\index{V\+L53\+L0\+X\+\_\+\+Set\+Power\+Mode@{V\+L53\+L0\+X\+\_\+\+Set\+Power\+Mode}!V\+L53\+L0\+X General Functions@{V\+L53\+L0\+X General Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Set\+Power\+Mode()}{VL53L0X\_SetPowerMode()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Set\+Power\+Mode (\begin{DoxyParamCaption}\item[{\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV}}]{Dev,  }\item[{V\+L53\+L0\+X\+\_\+\+Power\+Modes}]{Power\+Mode }\end{DoxyParamCaption})}
+
+
+
+Set the power mode for a given Device \hyperlink{structThe}{The} power mode can be Standby or Idle. Different level of both Standby and Idle can exists. This function should not be used when device is in Ranging state. 
+
+\begin{DoxyNote}{Note}
+This function Access to the device
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Dev} & Device Handle \\
+\hline
+{\em Power\+Mode} & \hyperlink{structThe}{The} value of the power mode to set. see \+::\+V\+L53\+L0\+X\+\_\+\+Power\+Modes Valid values are\+: V\+L53\+L0\+X\+\_\+\+P\+O\+W\+E\+R\+M\+O\+D\+E\+\_\+\+S\+T\+A\+N\+D\+B\+Y\+\_\+\+L\+E\+V\+E\+L1, V\+L53\+L0\+X\+\_\+\+P\+O\+W\+E\+R\+M\+O\+D\+E\+\_\+\+I\+D\+L\+E\+\_\+\+L\+E\+V\+E\+L1 \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+NE Success 
+
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+M\+O\+D\+E\+\_\+\+N\+O\+T\+\_\+\+S\+U\+P\+P\+O\+R\+T\+ED This error occurs when Power\+Mode is not in the supported list 
+
+\char`\"{}\+Other error code\char`\"{} See \+::\+V\+L53\+L0\+X\+\_\+\+Error 
+\end{DoxyReturn}

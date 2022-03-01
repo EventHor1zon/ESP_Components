@@ -1,0 +1,110 @@
+\hypertarget{structbuttonData}{}\section{button\+Data Struct Reference}
+\label{structbuttonData}\index{button\+Data@{button\+Data}}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structbuttonData_abda9de5ae492f575ac826531b6c13249}\label{structbuttonData_abda9de5ae492f575ac826531b6c13249}} 
+bool {\bfseries btn\+Debounce\+Enable}
+\item 
+bool \hyperlink{structbuttonData_afa9608155098295140e8fbae290c162c}{btn\+Debounce\+State}
+\item 
+bool \hyperlink{structbuttonData_a738bdc48430aa378eb278a8759cfcd0f}{btn\+State}
+\item 
+bool \hyperlink{structbuttonData_a4a60f7d8d5649d2470790f43244c8a3f}{alert\+Btn}
+\item 
+bool \hyperlink{structbuttonData_a04bf36fc0adf605c9f7352ab41af134c}{half\+Btn\+Interrupt}
+\item 
+btn\+\_\+config\+\_\+t \hyperlink{structbuttonData_a77b4789cd0f59ad4238149317efa20c0}{btn\+\_\+setting}
+\item 
+\mbox{\Hypertarget{structbuttonData_a28871f000e0e6eeca11fb5bcf48cbe9c}\label{structbuttonData_a28871f000e0e6eeca11fb5bcf48cbe9c}} 
+\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} {\bfseries btn\+Count}
+\item 
+\hyperlink{vl53l0x__types_8h_a435d1572bf3f880d55459d9805097f62}{uint32\+\_\+t} \hyperlink{structbuttonData_ad8db5fdf61df4a87f43d487cc35d65bf}{t\+Last\+Btn}
+\item 
+\hyperlink{vl53l0x__types_8h_a435d1572bf3f880d55459d9805097f62}{uint32\+\_\+t} \hyperlink{structbuttonData_a325b9db7bb86ad831153318656891a8b}{t\+Btn\+Press}
+\item 
+\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} \hyperlink{structbuttonData_a172467069638e0427e606e58408f25b3}{t\+Debounce}
+\item 
+esp\+\_\+event\+\_\+loop\+\_\+handle\+\_\+t \hyperlink{structbuttonData_a78456e82e30bcce95328039367be38dd}{loop}
+\item 
+\mbox{\Hypertarget{structbuttonData_af98a75d1042dbd7254f92846ff4e572f}\label{structbuttonData_af98a75d1042dbd7254f92846ff4e572f}} 
+Timer\+Handle\+\_\+t {\bfseries debounce\+Timer}
+\item 
+Task\+Handle\+\_\+t \hyperlink{structbuttonData_a9ab9462764966d50b44f0b8cfc0dd202}{parent\+Task}
+\item 
+gpio\+\_\+num\+\_\+t \hyperlink{structbuttonData_a22a4c876c877761e6380b7712e86db3b}{btn\+Pin}
+\end{DoxyCompactItemize}
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{structbuttonData_a4a60f7d8d5649d2470790f43244c8a3f}\label{structbuttonData_a4a60f7d8d5649d2470790f43244c8a3f}} 
+\index{button\+Data@{button\+Data}!alert\+Btn@{alert\+Btn}}
+\index{alert\+Btn@{alert\+Btn}!button\+Data@{button\+Data}}
+\subsubsection{\texorpdfstring{alert\+Btn}{alertBtn}}
+{\footnotesize\ttfamily bool button\+Data\+::alert\+Btn}
+
+$<$ bool btn\+State\+: current state of button (ie pin state) \mbox{\Hypertarget{structbuttonData_a77b4789cd0f59ad4238149317efa20c0}\label{structbuttonData_a77b4789cd0f59ad4238149317efa20c0}} 
+\index{button\+Data@{button\+Data}!btn\+\_\+setting@{btn\+\_\+setting}}
+\index{btn\+\_\+setting@{btn\+\_\+setting}!button\+Data@{button\+Data}}
+\subsubsection{\texorpdfstring{btn\+\_\+setting}{btn\_setting}}
+{\footnotesize\ttfamily btn\+\_\+config\+\_\+t button\+Data\+::btn\+\_\+setting}
+
+$<$ send the notify on each edge change, rather than whole button cycle \mbox{\Hypertarget{structbuttonData_afa9608155098295140e8fbae290c162c}\label{structbuttonData_afa9608155098295140e8fbae290c162c}} 
+\index{button\+Data@{button\+Data}!btn\+Debounce\+State@{btn\+Debounce\+State}}
+\index{btn\+Debounce\+State@{btn\+Debounce\+State}!button\+Data@{button\+Data}}
+\subsubsection{\texorpdfstring{btn\+Debounce\+State}{btnDebounceState}}
+{\footnotesize\ttfamily bool button\+Data\+::btn\+Debounce\+State}
+
+$<$ bool btn\+Debounce\+Enable\+: enable to button debounce \mbox{\Hypertarget{structbuttonData_a22a4c876c877761e6380b7712e86db3b}\label{structbuttonData_a22a4c876c877761e6380b7712e86db3b}} 
+\index{button\+Data@{button\+Data}!btn\+Pin@{btn\+Pin}}
+\index{btn\+Pin@{btn\+Pin}!button\+Data@{button\+Data}}
+\subsubsection{\texorpdfstring{btn\+Pin}{btnPin}}
+{\footnotesize\ttfamily gpio\+\_\+num\+\_\+t button\+Data\+::btn\+Pin}
+
+$<$ Task to notify \mbox{\Hypertarget{structbuttonData_a738bdc48430aa378eb278a8759cfcd0f}\label{structbuttonData_a738bdc48430aa378eb278a8759cfcd0f}} 
+\index{button\+Data@{button\+Data}!btn\+State@{btn\+State}}
+\index{btn\+State@{btn\+State}!button\+Data@{button\+Data}}
+\subsubsection{\texorpdfstring{btn\+State}{btnState}}
+{\footnotesize\ttfamily bool button\+Data\+::btn\+State}
+
+$<$ bool btn\+Debounce\+State\+: button debounce state \mbox{\Hypertarget{structbuttonData_a04bf36fc0adf605c9f7352ab41af134c}\label{structbuttonData_a04bf36fc0adf605c9f7352ab41af134c}} 
+\index{button\+Data@{button\+Data}!half\+Btn\+Interrupt@{half\+Btn\+Interrupt}}
+\index{half\+Btn\+Interrupt@{half\+Btn\+Interrupt}!button\+Data@{button\+Data}}
+\subsubsection{\texorpdfstring{half\+Btn\+Interrupt}{halfBtnInterrupt}}
+{\footnotesize\ttfamily bool button\+Data\+::half\+Btn\+Interrupt}
+
+$<$ bool alert\+Btn\+: send task notification if button pressed -\/ default on with parent\+Task \mbox{\Hypertarget{structbuttonData_a78456e82e30bcce95328039367be38dd}\label{structbuttonData_a78456e82e30bcce95328039367be38dd}} 
+\index{button\+Data@{button\+Data}!loop@{loop}}
+\index{loop@{loop}!button\+Data@{button\+Data}}
+\subsubsection{\texorpdfstring{loop}{loop}}
+{\footnotesize\ttfamily esp\+\_\+event\+\_\+loop\+\_\+handle\+\_\+t button\+Data\+::loop}
+
+$<$ length of DB timer cooldown in ms \mbox{\Hypertarget{structbuttonData_a9ab9462764966d50b44f0b8cfc0dd202}\label{structbuttonData_a9ab9462764966d50b44f0b8cfc0dd202}} 
+\index{button\+Data@{button\+Data}!parent\+Task@{parent\+Task}}
+\index{parent\+Task@{parent\+Task}!button\+Data@{button\+Data}}
+\subsubsection{\texorpdfstring{parent\+Task}{parentTask}}
+{\footnotesize\ttfamily Task\+Handle\+\_\+t button\+Data\+::parent\+Task}
+
+$<$ Timer for debounce \mbox{\Hypertarget{structbuttonData_a325b9db7bb86ad831153318656891a8b}\label{structbuttonData_a325b9db7bb86ad831153318656891a8b}} 
+\index{button\+Data@{button\+Data}!t\+Btn\+Press@{t\+Btn\+Press}}
+\index{t\+Btn\+Press@{t\+Btn\+Press}!button\+Data@{button\+Data}}
+\subsubsection{\texorpdfstring{t\+Btn\+Press}{tBtnPress}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_a435d1572bf3f880d55459d9805097f62}{uint32\+\_\+t} button\+Data\+::t\+Btn\+Press}
+
+$<$ time since last button push \mbox{\Hypertarget{structbuttonData_a172467069638e0427e606e58408f25b3}\label{structbuttonData_a172467069638e0427e606e58408f25b3}} 
+\index{button\+Data@{button\+Data}!t\+Debounce@{t\+Debounce}}
+\index{t\+Debounce@{t\+Debounce}!button\+Data@{button\+Data}}
+\subsubsection{\texorpdfstring{t\+Debounce}{tDebounce}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} button\+Data\+::t\+Debounce}
+
+$<$ time the button is held down for \mbox{\Hypertarget{structbuttonData_ad8db5fdf61df4a87f43d487cc35d65bf}\label{structbuttonData_ad8db5fdf61df4a87f43d487cc35d65bf}} 
+\index{button\+Data@{button\+Data}!t\+Last\+Btn@{t\+Last\+Btn}}
+\index{t\+Last\+Btn@{t\+Last\+Btn}!button\+Data@{button\+Data}}
+\subsubsection{\texorpdfstring{t\+Last\+Btn}{tLastBtn}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_a435d1572bf3f880d55459d9805097f62}{uint32\+\_\+t} button\+Data\+::t\+Last\+Btn}
+
+$<$ number of button pushes 
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+Pushbutton\+\_\+\+Driver/Push\+Button\+\_\+\+Driver.\+h\end{DoxyCompactItemize}

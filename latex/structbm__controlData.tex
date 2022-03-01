@@ -1,0 +1,108 @@
+\hypertarget{structbm__controlData}{}\section{bm\+\_\+control\+Data Struct Reference}
+\label{structbm__controlData}\index{bm\+\_\+control\+Data@{bm\+\_\+control\+Data}}
+
+
+Collaboration diagram for bm\+\_\+control\+Data\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=278pt]{structbm__controlData__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{structBM__CalibrationData}{bm\+\_\+calibration\+Data\+\_\+t} \hyperlink{structbm__controlData_ac4a27ff2241323607245cbcb92f116f1}{calibration\+Data}
+\item 
+\hyperlink{structBM__sensorData}{bm\+\_\+sensor\+Data\+\_\+t} \hyperlink{structbm__controlData_a193dc45579d41ddf5273944cc8e0280c}{sensor\+Data}
+\item 
+\hyperlink{structbm__deviceSettings}{bm\+\_\+device\+Settings\+\_\+t} \hyperlink{structbm__controlData_af23dc8bec3148792f6fa2b437b6c4b7e}{dev\+Settings}
+\item 
+\hyperlink{structbm__initData}{bm\+\_\+init\+Data\+\_\+t} $\ast$ \hyperlink{structbm__controlData_a80c9c43ce6ae374806c612da04e03fd0}{init\+Data}
+\item 
+\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} \hyperlink{structbm__controlData_a7364074fe9f7b59f28e97613070cc633}{peripheral\+ID}
+\item 
+\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} \hyperlink{structbm__controlData_a22557e44c56d8291489a7e2d419bac88}{device\+Address}
+\item 
+\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} \hyperlink{structbm__controlData_af40ad56e060f5584e4d4d31e3c3c48d8}{i2c\+Channel}
+\item 
+bool \hyperlink{structbm__controlData_a7309b6bd58f8c9fb1f5770f9eb1df3ee}{calibration\+Aquired}
+\item 
+\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} \hyperlink{structbm__controlData_a895f3f4166087e92d8217c116f397bcf}{sample\+Mask}
+\item 
+\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} \hyperlink{structbm__controlData_ae1f1f25c8af3e53abb7b98b6f109075e}{config\+Mask}
+\item 
+\mbox{\Hypertarget{structbm__controlData_aae381dd947ceca89878f4fa94896cc00}\label{structbm__controlData_aae381dd947ceca89878f4fa94896cc00}} 
+bool {\bfseries use\+\_\+cbuffer}
+\item 
+\mbox{\Hypertarget{structbm__controlData_ab84eff19f4d1f3a54aa37d9533bbc70c}\label{structbm__controlData_ab84eff19f4d1f3a54aa37d9533bbc70c}} 
+\hyperlink{structCBuffer__Handle}{C\+Buff} {\bfseries cbuff}
+\end{DoxyCompactItemize}
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{structbm__controlData_a7309b6bd58f8c9fb1f5770f9eb1df3ee}\label{structbm__controlData_a7309b6bd58f8c9fb1f5770f9eb1df3ee}} 
+\index{bm\+\_\+control\+Data@{bm\+\_\+control\+Data}!calibration\+Aquired@{calibration\+Aquired}}
+\index{calibration\+Aquired@{calibration\+Aquired}!bm\+\_\+control\+Data@{bm\+\_\+control\+Data}}
+\subsubsection{\texorpdfstring{calibration\+Aquired}{calibrationAquired}}
+{\footnotesize\ttfamily bool bm\+\_\+control\+Data\+::calibration\+Aquired}
+
+calibration data aquired \mbox{\Hypertarget{structbm__controlData_ac4a27ff2241323607245cbcb92f116f1}\label{structbm__controlData_ac4a27ff2241323607245cbcb92f116f1}} 
+\index{bm\+\_\+control\+Data@{bm\+\_\+control\+Data}!calibration\+Data@{calibration\+Data}}
+\index{calibration\+Data@{calibration\+Data}!bm\+\_\+control\+Data@{bm\+\_\+control\+Data}}
+\subsubsection{\texorpdfstring{calibration\+Data}{calibrationData}}
+{\footnotesize\ttfamily \hyperlink{structBM__CalibrationData}{bm\+\_\+calibration\+Data\+\_\+t} bm\+\_\+control\+Data\+::calibration\+Data}
+
+the device calibrationdata \mbox{\Hypertarget{structbm__controlData_ae1f1f25c8af3e53abb7b98b6f109075e}\label{structbm__controlData_ae1f1f25c8af3e53abb7b98b6f109075e}} 
+\index{bm\+\_\+control\+Data@{bm\+\_\+control\+Data}!config\+Mask@{config\+Mask}}
+\index{config\+Mask@{config\+Mask}!bm\+\_\+control\+Data@{bm\+\_\+control\+Data}}
+\subsubsection{\texorpdfstring{config\+Mask}{configMask}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} bm\+\_\+control\+Data\+::config\+Mask}
+
+config mask \mbox{\Hypertarget{structbm__controlData_a22557e44c56d8291489a7e2d419bac88}\label{structbm__controlData_a22557e44c56d8291489a7e2d419bac88}} 
+\index{bm\+\_\+control\+Data@{bm\+\_\+control\+Data}!device\+Address@{device\+Address}}
+\index{device\+Address@{device\+Address}!bm\+\_\+control\+Data@{bm\+\_\+control\+Data}}
+\subsubsection{\texorpdfstring{device\+Address}{deviceAddress}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} bm\+\_\+control\+Data\+::device\+Address}
+
+the device\textquotesingle{}s I2C address \mbox{\Hypertarget{structbm__controlData_af23dc8bec3148792f6fa2b437b6c4b7e}\label{structbm__controlData_af23dc8bec3148792f6fa2b437b6c4b7e}} 
+\index{bm\+\_\+control\+Data@{bm\+\_\+control\+Data}!dev\+Settings@{dev\+Settings}}
+\index{dev\+Settings@{dev\+Settings}!bm\+\_\+control\+Data@{bm\+\_\+control\+Data}}
+\subsubsection{\texorpdfstring{dev\+Settings}{devSettings}}
+{\footnotesize\ttfamily \hyperlink{structbm__deviceSettings}{bm\+\_\+device\+Settings\+\_\+t} bm\+\_\+control\+Data\+::dev\+Settings}
+
+the device settings \mbox{\Hypertarget{structbm__controlData_af40ad56e060f5584e4d4d31e3c3c48d8}\label{structbm__controlData_af40ad56e060f5584e4d4d31e3c3c48d8}} 
+\index{bm\+\_\+control\+Data@{bm\+\_\+control\+Data}!i2c\+Channel@{i2c\+Channel}}
+\index{i2c\+Channel@{i2c\+Channel}!bm\+\_\+control\+Data@{bm\+\_\+control\+Data}}
+\subsubsection{\texorpdfstring{i2c\+Channel}{i2cChannel}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} bm\+\_\+control\+Data\+::i2c\+Channel}
+
+the i2c channel used \mbox{\Hypertarget{structbm__controlData_a80c9c43ce6ae374806c612da04e03fd0}\label{structbm__controlData_a80c9c43ce6ae374806c612da04e03fd0}} 
+\index{bm\+\_\+control\+Data@{bm\+\_\+control\+Data}!init\+Data@{init\+Data}}
+\index{init\+Data@{init\+Data}!bm\+\_\+control\+Data@{bm\+\_\+control\+Data}}
+\subsubsection{\texorpdfstring{init\+Data}{initData}}
+{\footnotesize\ttfamily \hyperlink{structbm__initData}{bm\+\_\+init\+Data\+\_\+t}$\ast$ bm\+\_\+control\+Data\+::init\+Data}
+
+pointer to the init data \mbox{\Hypertarget{structbm__controlData_a7364074fe9f7b59f28e97613070cc633}\label{structbm__controlData_a7364074fe9f7b59f28e97613070cc633}} 
+\index{bm\+\_\+control\+Data@{bm\+\_\+control\+Data}!peripheral\+ID@{peripheral\+ID}}
+\index{peripheral\+ID@{peripheral\+ID}!bm\+\_\+control\+Data@{bm\+\_\+control\+Data}}
+\subsubsection{\texorpdfstring{peripheral\+ID}{peripheralID}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} bm\+\_\+control\+Data\+::peripheral\+ID}
+
+the periph\+\_\+id \mbox{\Hypertarget{structbm__controlData_a895f3f4166087e92d8217c116f397bcf}\label{structbm__controlData_a895f3f4166087e92d8217c116f397bcf}} 
+\index{bm\+\_\+control\+Data@{bm\+\_\+control\+Data}!sample\+Mask@{sample\+Mask}}
+\index{sample\+Mask@{sample\+Mask}!bm\+\_\+control\+Data@{bm\+\_\+control\+Data}}
+\subsubsection{\texorpdfstring{sample\+Mask}{sampleMask}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} bm\+\_\+control\+Data\+::sample\+Mask}
+
+sample mask \mbox{\Hypertarget{structbm__controlData_a193dc45579d41ddf5273944cc8e0280c}\label{structbm__controlData_a193dc45579d41ddf5273944cc8e0280c}} 
+\index{bm\+\_\+control\+Data@{bm\+\_\+control\+Data}!sensor\+Data@{sensor\+Data}}
+\index{sensor\+Data@{sensor\+Data}!bm\+\_\+control\+Data@{bm\+\_\+control\+Data}}
+\subsubsection{\texorpdfstring{sensor\+Data}{sensorData}}
+{\footnotesize\ttfamily \hyperlink{structBM__sensorData}{bm\+\_\+sensor\+Data\+\_\+t} bm\+\_\+control\+Data\+::sensor\+Data}
+
+the device sensor data 
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+B\+M\+E280\+\_\+\+Driver/B\+M\+E280\+\_\+\+Driver.\+h\end{DoxyCompactItemize}

@@ -1,0 +1,394 @@
+\hypertarget{structstruct}{}\section{struct Struct Reference}
+\label{structstruct}\index{struct@{struct}}
+
+
+{\ttfamily \#include $<$M\+F\+R\+C522\+\_\+\+Driver.\+h$>$}
+
+
+
+Collaboration diagram for struct\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=173pt]{structstruct__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} \hyperlink{structstruct_a98137858bbe84718f27b15f7f524ee23}{reserved\+\_\+0}
+\item 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries regval}\\
+\>struct \{\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries command}: 4\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries pwr\_down}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries rcv\_off}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries rsvd\_0}: 2\\
+\>\} {\bfseries regbits}\\
+\} \hyperlink{structstruct_a4ad4bf4bdf213b87b9b52e993c0a7793}{command\_reg}\\
+
+\end{tabbing}\item 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries regval}\\
+\>struct \{\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries tmr\_irq\_en}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries err\_irq\_en}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries flo\_irq\_en}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries fhi\_irq\_en}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries idle\_irq\_en}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries rx\_irq\_en}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries tx\_irq\_en}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries irq\_invert}: 1\\
+\>\} {\bfseries regbits}\\
+\} \hyperlink{structstruct_aaaae33aa946f3e8116c2c852830d8291}{command\_en\_reg}\\
+
+\end{tabbing}\item 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries regval}\\
+\>struct \{\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries rsvd\_0}: 2\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries crc\_irq\_en}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries rsvd\_1}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries mfin\_irq\_en}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries rsvd\_2}: 2\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries irq\_pp\_od}: 1\\
+\>\} {\bfseries regbits}\\
+\} \hyperlink{structstruct_aa5145a6200deee0b11aa3f5f5cc259f8}{irq\_passing\_reg}\\
+
+\end{tabbing}\item 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries regval}\\
+\>struct \{\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries tmr\_irq}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries err\_irq}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries flo\_irq}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries fli\_irq}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries idle\_irq}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries rx\_irq}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries tx\_irq}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries irq\_set}: 1\\
+\>\} {\bfseries regbits}\\
+\} \hyperlink{structstruct_a2732e86723cc2f90559edb4721ccb79a}{com\_irq\_reg}\\
+
+\end{tabbing}\item 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries regByte}\\
+\>struct \{\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries rsvd\_0}: 2\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries crc\_irq}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries rsvd\_1}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries mfin\_irq}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries rsvd\_2}: 2\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries irq\_set\_2}: 1\\
+\>\} {\bfseries regBits}\\
+\} \hyperlink{structstruct_afe48e85a7251b6182a5f8a6be7344d5f}{div\_irq\_reg}\\
+
+\end{tabbing}\item 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries regByte}\\
+\>struct \{\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries protocol\_err}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries parity\_err}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries crc\_err}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries coll\_err}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries buffer\_ovr\_err}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries rsvd\_0}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries tempr\_err}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries wrt\_err}: 1\\
+\>\} {\bfseries regBits}\\
+\} \hyperlink{structstruct_a712e569a0385acfa82147baac2dd096b}{error\_reg}\\
+
+\end{tabbing}\item 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries regByte}\\
+\>struct \{\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries fifo\_lo\_alert}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries fifo\_hi\_alert}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries rsvd\_0}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries tmr\_running}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries irq\_alert}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries crc\_ready}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries crc\_ok}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries rsvd\_1}: 1\\
+\>\} {\bfseries regBits}\\
+\} \hyperlink{structstruct_a3af413aba8342123dc8bd7d2d5e6663c}{status\_1\_reg}\\
+
+\end{tabbing}\item 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries regByte}\\
+\>struct \{\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries modem\_state}: 2\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries mifare\_crypt1\_on}: 2\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries rsvd\_0}: 2\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries i2c\_force\_hs}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries temp\_sens\_clr}: 1\\
+\>\} {\bfseries regBits}\\
+\} \hyperlink{structstruct_a01781aef0edd49d172a2b5df5ec1c138}{status\_2\_reg}\\
+
+\end{tabbing}\item 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries regByte}\\
+\>struct \{\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries fifo\_data}: 8\\
+\>\} {\bfseries regBits}\\
+\} \hyperlink{structstruct_a0c4836d627c24316e95a54b24bc569a9}{fifo\_data\_reg}\\
+
+\end{tabbing}\item 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries regByte}\\
+\>struct \{\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries fifo\_level}: 7\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries flush\_buffer}: 1\\
+\>\} {\bfseries regBits}\\
+\} \hyperlink{structstruct_a8d30208f95a8160e46c989f5bcb6d770}{fifo\_lvl\_reg}\\
+
+\end{tabbing}\item 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries regByte}\\
+\>struct \{\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries fifo\_watermark}: 6\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries rsvd\_0}: 2\\
+\>\} {\bfseries regBits}\\
+\} \hyperlink{structstruct_a9d47568f82f8554a6869d7e026ff9382}{fifo\_watermark\_reg}\\
+
+\end{tabbing}\item 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries regByte}\\
+\>struct \{\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries rx\_last\_bits}: 3\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries rsvd\_0}: 3\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries tmr\_start\_now}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries tmr\_stop\_now}: 1\\
+\>\} {\bfseries regBits}\\
+\} \hyperlink{structstruct_a721f276d7231c2e85a8fd2c78e554de4}{control\_reg}\\
+
+\end{tabbing}\item 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries regByte}\\
+\>struct \{\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries tx\_last\_bits}: 3\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries rsvd\_0}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries rx\_align}: 3\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries start\_send}: 1\\
+\>\} {\bfseries regBits}\\
+\} \hyperlink{structstruct_a875453616cf061da36e0ed90d46d380c}{bitframe\_reg}\\
+
+\end{tabbing}\item 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries regByte}\\
+\>struct \{\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries collision\_pos}: 5\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries coll\_pos\_invalid}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries rsvd\_0}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries clr\_rx\_on\_collision}: 1\\
+\>\} {\bfseries regBits}\\
+\} \hyperlink{structstruct_ac0256f75f90f8e0587b10bd273eb127e}{collision\_reg}\\
+
+\end{tabbing}\item 
+\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} \hyperlink{structstruct_a2024e673a4ec7a81da3a35fe74ff6a51}{reserved\+\_\+1}
+\item 
+\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} \hyperlink{structstruct_a7be82c5d2760e33db4ce747304d98ffe}{reserved\+\_\+2}
+\item 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries regByte}\\
+\>struct \{\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries crc\_preset}: 2\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries rsvd\_0}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries pol\_mf\_in}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries rsvd\_1}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries tx\_wait\_rf}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries rsvd\_2}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries crc\_msb\_first}: 1\\
+\>\} {\bfseries regBits}\\
+\} \hyperlink{structstruct_ad6f64ca923a5a6d1ed05aae900c7889d}{mode\_register}\\
+
+\end{tabbing}\item 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries regByte}\\
+\>struct \{\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries rsvd\_0}: 3\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries invert\_modulation}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries tx\_speed}: 3\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries tx\_crc\_en}: 1\\
+\>\} {\bfseries regBits}\\
+\} \hyperlink{structstruct_a1dd825787c2f3275c00463af6fb446a8}{tx\_mode\_reg}\\
+
+\end{tabbing}\item 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries regByte}\\
+\>struct \{\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries rsvd\_0}: 2\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries rx\_multiple}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries rx\_no\_err}: 1\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries rx\_speed}: 3\\
+\>\>\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\_t} {\bfseries rx\_crc\_en}: 1\\
+\>\} {\bfseries regBits}\\
+\} \hyperlink{structstruct_a7209689ecea0fda4ba3ccddf5234e452}{rx\_mode\_reg}\\
+
+\end{tabbing}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Gonna give this struct register thing a go, might be easier to manager device settings? 
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{structstruct_a875453616cf061da36e0ed90d46d380c}\label{structstruct_a875453616cf061da36e0ed90d46d380c}} 
+\index{struct@{struct}!bitframe\+\_\+reg@{bitframe\+\_\+reg}}
+\index{bitframe\+\_\+reg@{bitframe\+\_\+reg}!struct@{struct}}
+\subsubsection{\texorpdfstring{bitframe\+\_\+reg}{bitframe\_reg}}
+{\footnotesize\ttfamily union \{ ... \}   struct\+::bitframe\+\_\+reg}
+
+0x0D \mbox{\Hypertarget{structstruct_ac0256f75f90f8e0587b10bd273eb127e}\label{structstruct_ac0256f75f90f8e0587b10bd273eb127e}} 
+\index{struct@{struct}!collision\+\_\+reg@{collision\+\_\+reg}}
+\index{collision\+\_\+reg@{collision\+\_\+reg}!struct@{struct}}
+\subsubsection{\texorpdfstring{collision\+\_\+reg}{collision\_reg}}
+{\footnotesize\ttfamily union \{ ... \}   struct\+::collision\+\_\+reg}
+
+0x0E \mbox{\Hypertarget{structstruct_a2732e86723cc2f90559edb4721ccb79a}\label{structstruct_a2732e86723cc2f90559edb4721ccb79a}} 
+\index{struct@{struct}!com\+\_\+irq\+\_\+reg@{com\+\_\+irq\+\_\+reg}}
+\index{com\+\_\+irq\+\_\+reg@{com\+\_\+irq\+\_\+reg}!struct@{struct}}
+\subsubsection{\texorpdfstring{com\+\_\+irq\+\_\+reg}{com\_irq\_reg}}
+{\footnotesize\ttfamily union \{ ... \}   struct\+::com\+\_\+irq\+\_\+reg}
+
+0x04 \mbox{\Hypertarget{structstruct_aaaae33aa946f3e8116c2c852830d8291}\label{structstruct_aaaae33aa946f3e8116c2c852830d8291}} 
+\index{struct@{struct}!command\+\_\+en\+\_\+reg@{command\+\_\+en\+\_\+reg}}
+\index{command\+\_\+en\+\_\+reg@{command\+\_\+en\+\_\+reg}!struct@{struct}}
+\subsubsection{\texorpdfstring{command\+\_\+en\+\_\+reg}{command\_en\_reg}}
+{\footnotesize\ttfamily union \{ ... \}   struct\+::command\+\_\+en\+\_\+reg}
+
+0x02 \mbox{\Hypertarget{structstruct_a4ad4bf4bdf213b87b9b52e993c0a7793}\label{structstruct_a4ad4bf4bdf213b87b9b52e993c0a7793}} 
+\index{struct@{struct}!command\+\_\+reg@{command\+\_\+reg}}
+\index{command\+\_\+reg@{command\+\_\+reg}!struct@{struct}}
+\subsubsection{\texorpdfstring{command\+\_\+reg}{command\_reg}}
+{\footnotesize\ttfamily union \{ ... \}   struct\+::command\+\_\+reg}
+
+0x01 \mbox{\Hypertarget{structstruct_a721f276d7231c2e85a8fd2c78e554de4}\label{structstruct_a721f276d7231c2e85a8fd2c78e554de4}} 
+\index{struct@{struct}!control\+\_\+reg@{control\+\_\+reg}}
+\index{control\+\_\+reg@{control\+\_\+reg}!struct@{struct}}
+\subsubsection{\texorpdfstring{control\+\_\+reg}{control\_reg}}
+{\footnotesize\ttfamily union \{ ... \}   struct\+::control\+\_\+reg}
+
+0x0C \mbox{\Hypertarget{structstruct_afe48e85a7251b6182a5f8a6be7344d5f}\label{structstruct_afe48e85a7251b6182a5f8a6be7344d5f}} 
+\index{struct@{struct}!div\+\_\+irq\+\_\+reg@{div\+\_\+irq\+\_\+reg}}
+\index{div\+\_\+irq\+\_\+reg@{div\+\_\+irq\+\_\+reg}!struct@{struct}}
+\subsubsection{\texorpdfstring{div\+\_\+irq\+\_\+reg}{div\_irq\_reg}}
+{\footnotesize\ttfamily union \{ ... \}   struct\+::div\+\_\+irq\+\_\+reg}
+
+0x05 \mbox{\Hypertarget{structstruct_a712e569a0385acfa82147baac2dd096b}\label{structstruct_a712e569a0385acfa82147baac2dd096b}} 
+\index{struct@{struct}!error\+\_\+reg@{error\+\_\+reg}}
+\index{error\+\_\+reg@{error\+\_\+reg}!struct@{struct}}
+\subsubsection{\texorpdfstring{error\+\_\+reg}{error\_reg}}
+{\footnotesize\ttfamily union \{ ... \}   struct\+::error\+\_\+reg}
+
+0x06 \mbox{\Hypertarget{structstruct_a0c4836d627c24316e95a54b24bc569a9}\label{structstruct_a0c4836d627c24316e95a54b24bc569a9}} 
+\index{struct@{struct}!fifo\+\_\+data\+\_\+reg@{fifo\+\_\+data\+\_\+reg}}
+\index{fifo\+\_\+data\+\_\+reg@{fifo\+\_\+data\+\_\+reg}!struct@{struct}}
+\subsubsection{\texorpdfstring{fifo\+\_\+data\+\_\+reg}{fifo\_data\_reg}}
+{\footnotesize\ttfamily union \{ ... \}   struct\+::fifo\+\_\+data\+\_\+reg}
+
+0x09 \mbox{\Hypertarget{structstruct_a8d30208f95a8160e46c989f5bcb6d770}\label{structstruct_a8d30208f95a8160e46c989f5bcb6d770}} 
+\index{struct@{struct}!fifo\+\_\+lvl\+\_\+reg@{fifo\+\_\+lvl\+\_\+reg}}
+\index{fifo\+\_\+lvl\+\_\+reg@{fifo\+\_\+lvl\+\_\+reg}!struct@{struct}}
+\subsubsection{\texorpdfstring{fifo\+\_\+lvl\+\_\+reg}{fifo\_lvl\_reg}}
+{\footnotesize\ttfamily union \{ ... \}   struct\+::fifo\+\_\+lvl\+\_\+reg}
+
+0x0A \mbox{\Hypertarget{structstruct_a9d47568f82f8554a6869d7e026ff9382}\label{structstruct_a9d47568f82f8554a6869d7e026ff9382}} 
+\index{struct@{struct}!fifo\+\_\+watermark\+\_\+reg@{fifo\+\_\+watermark\+\_\+reg}}
+\index{fifo\+\_\+watermark\+\_\+reg@{fifo\+\_\+watermark\+\_\+reg}!struct@{struct}}
+\subsubsection{\texorpdfstring{fifo\+\_\+watermark\+\_\+reg}{fifo\_watermark\_reg}}
+{\footnotesize\ttfamily union \{ ... \}   struct\+::fifo\+\_\+watermark\+\_\+reg}
+
+0x0B \mbox{\Hypertarget{structstruct_aa5145a6200deee0b11aa3f5f5cc259f8}\label{structstruct_aa5145a6200deee0b11aa3f5f5cc259f8}} 
+\index{struct@{struct}!irq\+\_\+passing\+\_\+reg@{irq\+\_\+passing\+\_\+reg}}
+\index{irq\+\_\+passing\+\_\+reg@{irq\+\_\+passing\+\_\+reg}!struct@{struct}}
+\subsubsection{\texorpdfstring{irq\+\_\+passing\+\_\+reg}{irq\_passing\_reg}}
+{\footnotesize\ttfamily union \{ ... \}   struct\+::irq\+\_\+passing\+\_\+reg}
+
+0x03 \mbox{\Hypertarget{structstruct_ad6f64ca923a5a6d1ed05aae900c7889d}\label{structstruct_ad6f64ca923a5a6d1ed05aae900c7889d}} 
+\index{struct@{struct}!mode\+\_\+register@{mode\+\_\+register}}
+\index{mode\+\_\+register@{mode\+\_\+register}!struct@{struct}}
+\subsubsection{\texorpdfstring{mode\+\_\+register}{mode\_register}}
+{\footnotesize\ttfamily union \{ ... \}   struct\+::mode\+\_\+register}
+
+0x11 \mbox{\Hypertarget{structstruct_a98137858bbe84718f27b15f7f524ee23}\label{structstruct_a98137858bbe84718f27b15f7f524ee23}} 
+\index{struct@{struct}!reserved\+\_\+0@{reserved\+\_\+0}}
+\index{reserved\+\_\+0@{reserved\+\_\+0}!struct@{struct}}
+\subsubsection{\texorpdfstring{reserved\+\_\+0}{reserved\_0}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} struct\+::reserved\+\_\+0}
+
+0x00 \mbox{\Hypertarget{structstruct_a2024e673a4ec7a81da3a35fe74ff6a51}\label{structstruct_a2024e673a4ec7a81da3a35fe74ff6a51}} 
+\index{struct@{struct}!reserved\+\_\+1@{reserved\+\_\+1}}
+\index{reserved\+\_\+1@{reserved\+\_\+1}!struct@{struct}}
+\subsubsection{\texorpdfstring{reserved\+\_\+1}{reserved\_1}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} struct\+::reserved\+\_\+1}
+
+0x0F \mbox{\Hypertarget{structstruct_a7be82c5d2760e33db4ce747304d98ffe}\label{structstruct_a7be82c5d2760e33db4ce747304d98ffe}} 
+\index{struct@{struct}!reserved\+\_\+2@{reserved\+\_\+2}}
+\index{reserved\+\_\+2@{reserved\+\_\+2}!struct@{struct}}
+\subsubsection{\texorpdfstring{reserved\+\_\+2}{reserved\_2}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} struct\+::reserved\+\_\+2}
+
+0x10 \mbox{\Hypertarget{structstruct_a7209689ecea0fda4ba3ccddf5234e452}\label{structstruct_a7209689ecea0fda4ba3ccddf5234e452}} 
+\index{struct@{struct}!rx\+\_\+mode\+\_\+reg@{rx\+\_\+mode\+\_\+reg}}
+\index{rx\+\_\+mode\+\_\+reg@{rx\+\_\+mode\+\_\+reg}!struct@{struct}}
+\subsubsection{\texorpdfstring{rx\+\_\+mode\+\_\+reg}{rx\_mode\_reg}}
+{\footnotesize\ttfamily union \{ ... \}   struct\+::rx\+\_\+mode\+\_\+reg}
+
+0x13 \mbox{\Hypertarget{structstruct_a3af413aba8342123dc8bd7d2d5e6663c}\label{structstruct_a3af413aba8342123dc8bd7d2d5e6663c}} 
+\index{struct@{struct}!status\+\_\+1\+\_\+reg@{status\+\_\+1\+\_\+reg}}
+\index{status\+\_\+1\+\_\+reg@{status\+\_\+1\+\_\+reg}!struct@{struct}}
+\subsubsection{\texorpdfstring{status\+\_\+1\+\_\+reg}{status\_1\_reg}}
+{\footnotesize\ttfamily union \{ ... \}   struct\+::status\+\_\+1\+\_\+reg}
+
+0x07 \mbox{\Hypertarget{structstruct_a01781aef0edd49d172a2b5df5ec1c138}\label{structstruct_a01781aef0edd49d172a2b5df5ec1c138}} 
+\index{struct@{struct}!status\+\_\+2\+\_\+reg@{status\+\_\+2\+\_\+reg}}
+\index{status\+\_\+2\+\_\+reg@{status\+\_\+2\+\_\+reg}!struct@{struct}}
+\subsubsection{\texorpdfstring{status\+\_\+2\+\_\+reg}{status\_2\_reg}}
+{\footnotesize\ttfamily union \{ ... \}   struct\+::status\+\_\+2\+\_\+reg}
+
+0x08 \mbox{\Hypertarget{structstruct_a1dd825787c2f3275c00463af6fb446a8}\label{structstruct_a1dd825787c2f3275c00463af6fb446a8}} 
+\index{struct@{struct}!tx\+\_\+mode\+\_\+reg@{tx\+\_\+mode\+\_\+reg}}
+\index{tx\+\_\+mode\+\_\+reg@{tx\+\_\+mode\+\_\+reg}!struct@{struct}}
+\subsubsection{\texorpdfstring{tx\+\_\+mode\+\_\+reg}{tx\_mode\_reg}}
+{\footnotesize\ttfamily union \{ ... \}   struct\+::tx\+\_\+mode\+\_\+reg}
+
+0x12 
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+M\+F\+R\+C522\+\_\+\+Driver/M\+F\+R\+C522\+\_\+\+Driver.\+h\end{DoxyCompactItemize}

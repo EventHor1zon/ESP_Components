@@ -1,0 +1,53 @@
+A small library of my E\+S\+P-\/\+I\+D\+F/\+Free\+R\+T\+OS based Components for various devices.
+
+\subsubsection*{Design}
+
+Each driver is written using E\+S\+P-\/\+I\+DF and Free\+R\+T\+OS v9(?).
+
+Each driver follows a basic pattern
+
+
+\begin{DoxyItemize}
+\item Each driver has a task. This task is periodic if device mode requires, else waits on task notifications
+\item Each driver has an init function which should take a pointer to an init structure and return a handle to the driver structure or N\+U\+LL
+\item \hyperlink{structThe}{The} driver structures are stored in allocated heap memory (I know it\textquotesingle{}s baad practice, but the E\+SP has so much memory... where else could I store them, I wonder?)
+\item Each driver controls a single device (lookin at you, W\+S2812b driver!)
+\item Each driver has a set of public Getter/\+Setter functions, which take as arguments a device handle and a pointer to a value (set) or value storage (get)
+\item Each driver contains a map of parameters for use with my peripheral manager (see E\+S\+P\+Home for more deets)
+\item Each driver should have a Task\+Handle for notifications
+\end{DoxyItemize}
+
+\subsubsection*{Current Drivers}
+
+
+\begin{DoxyItemize}
+\item A4988 Stepper motor IC (beta)
+\item A\+P\+A102 Addressable L\+E\+Ds (beta)
+\item A\+P\+DS Color/\+Prox/\+Gesture sensor (beta)
+\item BM(P$\vert$E) 280 Temperature sensor (ok)
+\item C\+Buffer\+\_\+\+Utils (not complete)
+\item C\+C\+S811 Gas sensor (not complete)
+\item Circular\+Buffer (beta -\/ now with packet storage!)
+\item D\+S2321 R\+TC IC (beta)
+\item Futaba V\+FD (not working)
+\item H\+M\+C5883 Magnetometer (beta)
+\item H\+P\+D\+L1414 Bubble L\+ED display (beta)
+\item Led\+Effects for ws2812/apa102 (beta)
+\item L\+S\+M6\+D\+S3 Accel/\+Gyro sensor (beta)
+\item Lo\+Ra S\+X1276 chipset (not complete)
+\item Max30102 Heartbeat sensor (not complete)
+\item M\+S\+G\+E\+Q7 Audio spectrum ic (alpha)
+\item Push\+Button driver (beta)
+\item Rotary\+Encoder driver (beta)
+\item R\+GB 3 $\ast$ P\+WM channel driver (beta)
+\item S\+S\+D1306 O\+L\+ED screen (alpha) (credit to \href{https://github.com/yanbe/ssd1306-esp-idf-i2c.git}{\tt https\+://github.\+com/yanbe/ssd1306-\/esp-\/idf-\/i2c.\+git})
+\item S\+T7735 Screen (not complete)
+\item E\+S\+P32 System interface (not complete)
+\item W\+S2812 Addressable L\+E\+Ds (beta) (credit to E\+S\+P-\/\+I\+DF\textquotesingle{}s W\+S2812 example)
+\item V\+L53\+L0X Time of flight sensor (beta) (credit to ST\textquotesingle{}s V\+L53\+L0X api -\/ included for ease of use)
+\item Utilities (various bits) (beta)
+\end{DoxyItemize}
+
+\subsubsection*{Informations}
+
+Some of these drivers built with inspiration or borrowed sections from other\textquotesingle{}s code. Credit where it\textquotesingle{}s due. 

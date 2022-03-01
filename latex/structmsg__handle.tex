@@ -1,0 +1,124 @@
+\hypertarget{structmsg__handle}{}\section{msg\+\_\+handle Struct Reference}
+\label{structmsg__handle}\index{msg\+\_\+handle@{msg\+\_\+handle}}
+
+
+Collaboration diagram for msg\+\_\+handle\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=187pt]{structmsg__handle__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+gpio\+\_\+num\+\_\+t \hyperlink{structmsg__handle_a6ecce9c5946c5ea3abf2f6a03a3a56d4}{data\+\_\+pin}
+\item 
+gpio\+\_\+num\+\_\+t \hyperlink{structmsg__handle_ad94640677937313338f02b7f5028d1eb}{rst\+\_\+pin}
+\item 
+gpio\+\_\+num\+\_\+t \hyperlink{structmsg__handle_a63d6c0448a1ade1b6713b385b1d48fa5}{strobe\+\_\+pin}
+\item 
+adc\+\_\+channel\+\_\+t \hyperlink{structmsg__handle_abe01e1ee941e2bec055bc2dc49b012d7}{adc\+\_\+channel}
+\item 
+adc\+\_\+bits\+\_\+width\+\_\+t \hyperlink{structmsg__handle_acab455fa1ecba62ef057c6ff402f4e56}{adc\+\_\+bits}
+\item 
+bool \hyperlink{structmsg__handle_aef7fc68f0d9d9029114e84c241581d3e}{autosample}
+\item 
+\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} \hyperlink{structmsg__handle_aa33b97382eac6687734713ec1748f01d}{autosample\+\_\+period\+\_\+ms}
+\item 
+Task\+Handle\+\_\+t \hyperlink{structmsg__handle_a7da2ef315ab07363c565ef5f745f6888}{task}
+\item 
+Timer\+Handle\+\_\+t \hyperlink{structmsg__handle_a1a3b5ad7116584ac06779562d8b41ec2}{timer}
+\item 
+\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} \hyperlink{structmsg__handle_aa5ad7cd77c31f44c49a979bfda5a65ba}{pulse\+\_\+count}
+\item 
+\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} \hyperlink{structmsg__handle_aa813acda542b8df85aff47b8c481b636}{reset\+\_\+n}
+\item 
+\mbox{\Hypertarget{structmsg__handle_a73fe56492bd18326849ce81f59d50f27}\label{structmsg__handle_a73fe56492bd18326849ce81f59d50f27}} 
+bool {\bfseries enable\+\_\+oversample}
+\item 
+\mbox{\Hypertarget{structmsg__handle_a3673348c0666fb2d7b8c67a2744a6b88}\label{structmsg__handle_a3673348c0666fb2d7b8c67a2744a6b88}} 
+\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} {\bfseries oversample\+\_\+factor}
+\item 
+\hyperlink{structMSGEQ7__Measures}{msg\+\_\+measure\+\_\+t} \hyperlink{structmsg__handle_ab8254aa210bf3218eb7c5aeae4751a76}{data}
+\end{DoxyCompactItemize}
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{structmsg__handle_acab455fa1ecba62ef057c6ff402f4e56}\label{structmsg__handle_acab455fa1ecba62ef057c6ff402f4e56}} 
+\index{msg\+\_\+handle@{msg\+\_\+handle}!adc\+\_\+bits@{adc\+\_\+bits}}
+\index{adc\+\_\+bits@{adc\+\_\+bits}!msg\+\_\+handle@{msg\+\_\+handle}}
+\subsubsection{\texorpdfstring{adc\+\_\+bits}{adc\_bits}}
+{\footnotesize\ttfamily adc\+\_\+bits\+\_\+width\+\_\+t msg\+\_\+handle\+::adc\+\_\+bits}
+
+adc resolution \mbox{\Hypertarget{structmsg__handle_abe01e1ee941e2bec055bc2dc49b012d7}\label{structmsg__handle_abe01e1ee941e2bec055bc2dc49b012d7}} 
+\index{msg\+\_\+handle@{msg\+\_\+handle}!adc\+\_\+channel@{adc\+\_\+channel}}
+\index{adc\+\_\+channel@{adc\+\_\+channel}!msg\+\_\+handle@{msg\+\_\+handle}}
+\subsubsection{\texorpdfstring{adc\+\_\+channel}{adc\_channel}}
+{\footnotesize\ttfamily adc\+\_\+channel\+\_\+t msg\+\_\+handle\+::adc\+\_\+channel}
+
+adc channel used on pin \mbox{\Hypertarget{structmsg__handle_aef7fc68f0d9d9029114e84c241581d3e}\label{structmsg__handle_aef7fc68f0d9d9029114e84c241581d3e}} 
+\index{msg\+\_\+handle@{msg\+\_\+handle}!autosample@{autosample}}
+\index{autosample@{autosample}!msg\+\_\+handle@{msg\+\_\+handle}}
+\subsubsection{\texorpdfstring{autosample}{autosample}}
+{\footnotesize\ttfamily bool msg\+\_\+handle\+::autosample}
+
+automatically sample at rate specified \mbox{\Hypertarget{structmsg__handle_aa33b97382eac6687734713ec1748f01d}\label{structmsg__handle_aa33b97382eac6687734713ec1748f01d}} 
+\index{msg\+\_\+handle@{msg\+\_\+handle}!autosample\+\_\+period\+\_\+ms@{autosample\+\_\+period\+\_\+ms}}
+\index{autosample\+\_\+period\+\_\+ms@{autosample\+\_\+period\+\_\+ms}!msg\+\_\+handle@{msg\+\_\+handle}}
+\subsubsection{\texorpdfstring{autosample\+\_\+period\+\_\+ms}{autosample\_period\_ms}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} msg\+\_\+handle\+::autosample\+\_\+period\+\_\+ms}
+
+period between each sample \mbox{\Hypertarget{structmsg__handle_ab8254aa210bf3218eb7c5aeae4751a76}\label{structmsg__handle_ab8254aa210bf3218eb7c5aeae4751a76}} 
+\index{msg\+\_\+handle@{msg\+\_\+handle}!data@{data}}
+\index{data@{data}!msg\+\_\+handle@{msg\+\_\+handle}}
+\subsubsection{\texorpdfstring{data}{data}}
+{\footnotesize\ttfamily \hyperlink{structMSGEQ7__Measures}{msg\+\_\+measure\+\_\+t} msg\+\_\+handle\+::data}
+
+latest sampled data from device \mbox{\Hypertarget{structmsg__handle_a6ecce9c5946c5ea3abf2f6a03a3a56d4}\label{structmsg__handle_a6ecce9c5946c5ea3abf2f6a03a3a56d4}} 
+\index{msg\+\_\+handle@{msg\+\_\+handle}!data\+\_\+pin@{data\+\_\+pin}}
+\index{data\+\_\+pin@{data\+\_\+pin}!msg\+\_\+handle@{msg\+\_\+handle}}
+\subsubsection{\texorpdfstring{data\+\_\+pin}{data\_pin}}
+{\footnotesize\ttfamily gpio\+\_\+num\+\_\+t msg\+\_\+handle\+::data\+\_\+pin}
+
+pin connected to data output of chip \mbox{\Hypertarget{structmsg__handle_aa5ad7cd77c31f44c49a979bfda5a65ba}\label{structmsg__handle_aa5ad7cd77c31f44c49a979bfda5a65ba}} 
+\index{msg\+\_\+handle@{msg\+\_\+handle}!pulse\+\_\+count@{pulse\+\_\+count}}
+\index{pulse\+\_\+count@{pulse\+\_\+count}!msg\+\_\+handle@{msg\+\_\+handle}}
+\subsubsection{\texorpdfstring{pulse\+\_\+count}{pulse\_count}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} msg\+\_\+handle\+::pulse\+\_\+count}
+
+pulses since last reset \mbox{\Hypertarget{structmsg__handle_aa813acda542b8df85aff47b8c481b636}\label{structmsg__handle_aa813acda542b8df85aff47b8c481b636}} 
+\index{msg\+\_\+handle@{msg\+\_\+handle}!reset\+\_\+n@{reset\+\_\+n}}
+\index{reset\+\_\+n@{reset\+\_\+n}!msg\+\_\+handle@{msg\+\_\+handle}}
+\subsubsection{\texorpdfstring{reset\+\_\+n}{reset\_n}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} msg\+\_\+handle\+::reset\+\_\+n}
+
+number of reads between resets \mbox{\Hypertarget{structmsg__handle_ad94640677937313338f02b7f5028d1eb}\label{structmsg__handle_ad94640677937313338f02b7f5028d1eb}} 
+\index{msg\+\_\+handle@{msg\+\_\+handle}!rst\+\_\+pin@{rst\+\_\+pin}}
+\index{rst\+\_\+pin@{rst\+\_\+pin}!msg\+\_\+handle@{msg\+\_\+handle}}
+\subsubsection{\texorpdfstring{rst\+\_\+pin}{rst\_pin}}
+{\footnotesize\ttfamily gpio\+\_\+num\+\_\+t msg\+\_\+handle\+::rst\+\_\+pin}
+
+pin connected to the reset pin of chip \mbox{\Hypertarget{structmsg__handle_a63d6c0448a1ade1b6713b385b1d48fa5}\label{structmsg__handle_a63d6c0448a1ade1b6713b385b1d48fa5}} 
+\index{msg\+\_\+handle@{msg\+\_\+handle}!strobe\+\_\+pin@{strobe\+\_\+pin}}
+\index{strobe\+\_\+pin@{strobe\+\_\+pin}!msg\+\_\+handle@{msg\+\_\+handle}}
+\subsubsection{\texorpdfstring{strobe\+\_\+pin}{strobe\_pin}}
+{\footnotesize\ttfamily gpio\+\_\+num\+\_\+t msg\+\_\+handle\+::strobe\+\_\+pin}
+
+pin connected to the strobe pin of chip \mbox{\Hypertarget{structmsg__handle_a7da2ef315ab07363c565ef5f745f6888}\label{structmsg__handle_a7da2ef315ab07363c565ef5f745f6888}} 
+\index{msg\+\_\+handle@{msg\+\_\+handle}!task@{task}}
+\index{task@{task}!msg\+\_\+handle@{msg\+\_\+handle}}
+\subsubsection{\texorpdfstring{task}{task}}
+{\footnotesize\ttfamily Task\+Handle\+\_\+t msg\+\_\+handle\+::task}
+
+driver task handle \mbox{\Hypertarget{structmsg__handle_a1a3b5ad7116584ac06779562d8b41ec2}\label{structmsg__handle_a1a3b5ad7116584ac06779562d8b41ec2}} 
+\index{msg\+\_\+handle@{msg\+\_\+handle}!timer@{timer}}
+\index{timer@{timer}!msg\+\_\+handle@{msg\+\_\+handle}}
+\subsubsection{\texorpdfstring{timer}{timer}}
+{\footnotesize\ttfamily Timer\+Handle\+\_\+t msg\+\_\+handle\+::timer}
+
+driver timer handle 
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+M\+S\+G\+E\+Q7\+\_\+\+Driver/M\+S\+G\+E\+Q7\+\_\+\+Driver.\+h\end{DoxyCompactItemize}

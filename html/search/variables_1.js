@@ -1,0 +1,23 @@
+var searchData=
+[
+  ['accelaa',['accelAA',['../structLSM__deviceSettings.html#ae9bfe4e1b72fde4f37df849563092908',1,'LSM_deviceSettings']]],
+  ['active',['active',['../structCBuffer__tasks.html#ab90079d87c7dd70bc9ed9196c01ef572',1,'CBuffer_tasks']]],
+  ['active_5flevel',['active_level',['../structRGB__Driver.html#a37da49d052a49bd9e57357bdab8c0591',1,'RGB_Driver']]],
+  ['adc_5fbits',['adc_bits',['../structmsg__handle.html#acab455fa1ecba62ef057c6ff402f4e56',1,'msg_handle']]],
+  ['adc_5fchannel',['adc_channel',['../structmsg__handle.html#abe01e1ee941e2bec055bc2dc49b012d7',1,'msg_handle']]],
+  ['adc_5fintg_5ftime',['adc_intg_time',['../structAPDS9960__ALS__Settings.html#a9681be9a91aa906eeb398645f94becc0',1,'APDS9960_ALS_Settings']]],
+  ['addr',['addr',['../structCBuffer__tasks.html#ac62a33234165a13d7fc5e4d45d63effc',1,'CBuffer_tasks']]],
+  ['addrpinstate',['addrPinState',['../structLSM__initData.html#a53b58c95bfcef402318923290252796a',1,'LSM_initData']]],
+  ['alertbtn',['alertBtn',['../structbuttonData.html#a4a60f7d8d5649d2470790f43244c8a3f',1,'buttonData']]],
+  ['alertstep',['alertStep',['../structrotaryEncoder.html#a4262a64e13a2c9f3fb8c803651defde3',1,'rotaryEncoder']]],
+  ['allow_5foverwrite',['allow_overwrite',['../structCBuffer__Handle.html#a1a41fc5596188b457815ca1c5afafccd',1,'CBuffer_Handle']]],
+  ['als_5fgain',['als_gain',['../structAPDS9960__ALS__Settings.html#adbc2a3d7172e0451c90e11e196c241d5',1,'APDS9960_ALS_Settings']]],
+  ['als_5fpersist',['als_persist',['../structAPDS9960__ALS__Settings.html#a36d6caae376181839fa2b288c9ca328d',1,'APDS9960_ALS_Settings']]],
+  ['als_5fthresh_5fh',['als_thresh_h',['../structAPDS9960__ALS__Settings.html#a4c57f6e6fa364b5be74d3cff2d10aa4e',1,'APDS9960_ALS_Settings']]],
+  ['als_5fthresh_5fl',['als_thresh_l',['../structAPDS9960__ALS__Settings.html#ad4e2846fe1592a7eb847a4a423ea0bb9',1,'APDS9960_ALS_Settings']]],
+  ['ambientratertnmegacps',['AmbientRateRtnMegaCps',['../structVL53L0X__RangingMeasurementData__t.html#afa99e15ec37a360662ab34ccb8929805',1,'VL53L0X_RangingMeasurementData_t']]],
+  ['ambtuningwindowfactor_5fk',['AmbTuningWindowFactor_K',['../structVL53L0X__DMaxData__t.html#a1618b8087f5f90030ea2474315078ac6',1,'VL53L0X_DMaxData_t']]],
+  ['asl_5fintr_5fen',['asl_intr_en',['../structAPDS9960__ALS__Settings.html#a9fe68f158b9ed512801d6344ae0e345f',1,'APDS9960_ALS_Settings']]],
+  ['autosample',['autosample',['../structmsg__handle.html#aef7fc68f0d9d9029114e84c241581d3e',1,'msg_handle']]],
+  ['autosample_5fperiod_5fms',['autosample_period_ms',['../structmsg__handle.html#aa33b97382eac6687734713ec1748f01d',1,'msg_handle']]]
+];

@@ -1,0 +1,147 @@
+\hypertarget{structCBuffer__Handle}{}\section{C\+Buffer\+\_\+\+Handle Struct Reference}
+\label{structCBuffer__Handle}\index{C\+Buffer\+\_\+\+Handle@{C\+Buffer\+\_\+\+Handle}}
+
+
+{\ttfamily \#include $<$Circular\+Buffer.\+h$>$}
+
+
+
+Collaboration diagram for C\+Buffer\+\_\+\+Handle\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=196pt]{structCBuffer__Handle__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+void $\ast$ \hyperlink{structCBuffer__Handle_ace9001395e4926b7da1c5ec82afd20b3}{buffer\+\_\+start}
+\item 
+void $\ast$ \hyperlink{structCBuffer__Handle_aa8573cb52319451c021516d1a906c970}{buffer\+\_\+end}
+\item 
+void $\ast$ \hyperlink{structCBuffer__Handle_a3e996c49d0c489498b43d16ff1df810b}{read\+\_\+ptr}
+\item 
+void $\ast$ \hyperlink{structCBuffer__Handle_a301255119721b1cc76531ffc045594fb}{write\+\_\+ptr}
+\item 
+\hyperlink{vl53l0x__types_8h_a435d1572bf3f880d55459d9805097f62}{uint32\+\_\+t} \hyperlink{structCBuffer__Handle_af0549758ada54a9e9117a0c4ff0a4955}{buffer\+\_\+len}
+\item 
+\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} \hyperlink{structCBuffer__Handle_aed2d7a4a93b8f607d51b93300c5837b5}{data\+\_\+len}
+\item 
+bool \hyperlink{structCBuffer__Handle_a1a41fc5596188b457815ca1c5afafccd}{allow\+\_\+overwrite}
+\item 
+bool \hyperlink{structCBuffer__Handle_a7019a6c91cfbcc0e02e11b8895450cc6}{is\+\_\+claimed}
+\item 
+bool \hyperlink{structCBuffer__Handle_ad6156a0a6134052e1620d8cd9fb5154b}{use\+\_\+packets}
+\item 
+\hyperlink{structCBuffer__packet__member}{cbuffer\+\_\+pmember\+\_\+t} \hyperlink{structCBuffer__Handle_ad2465a41c6b7bf39ea5a11d47836e841}{packets} \mbox{[}C\+B\+U\+F\+F\+E\+R\+\_\+\+M\+A\+X\+\_\+\+P\+A\+C\+K\+E\+T\+\_\+\+V\+A\+L\+U\+ES\mbox{]}
+\item 
+\hyperlink{structcbuffer__packet__settings}{cbuffer\+\_\+pkt\+\_\+settings\+\_\+t} \hyperlink{structCBuffer__Handle_aa8610091db61fb607b93b5374b076307}{pkt\+\_\+settings}
+\item 
+\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} \hyperlink{structCBuffer__Handle_a54e07db8fad941c1ec2b5eadbeeeb16e}{pkts\+\_\+available}
+\item 
+Semaphore\+Handle\+\_\+t \hyperlink{structCBuffer__Handle_a3774a4f2a54b9cd40367b87ee52c5e69}{sem}
+\item 
+\hyperlink{structCBuffer__tasks}{cbuffer\+\_\+task\+\_\+settings\+\_\+t} \hyperlink{structCBuffer__Handle_acf4f92865eae15d0c64e94550bb0ac9a}{tx\+\_\+task}
+\item 
+\mbox{\Hypertarget{structCBuffer__Handle_ad57ecec79ac6e597d9bc5d093ed26cc5}\label{structCBuffer__Handle_ad57ecec79ac6e597d9bc5d093ed26cc5}} 
+\hyperlink{structCBuffer__tasks}{cbuffer\+\_\+task\+\_\+settings\+\_\+t} {\bfseries rx\+\_\+task}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+the cbuffer handle data structure 
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{structCBuffer__Handle_a1a41fc5596188b457815ca1c5afafccd}\label{structCBuffer__Handle_a1a41fc5596188b457815ca1c5afafccd}} 
+\index{C\+Buffer\+\_\+\+Handle@{C\+Buffer\+\_\+\+Handle}!allow\+\_\+overwrite@{allow\+\_\+overwrite}}
+\index{allow\+\_\+overwrite@{allow\+\_\+overwrite}!C\+Buffer\+\_\+\+Handle@{C\+Buffer\+\_\+\+Handle}}
+\subsubsection{\texorpdfstring{allow\+\_\+overwrite}{allow\_overwrite}}
+{\footnotesize\ttfamily bool C\+Buffer\+\_\+\+Handle\+::allow\+\_\+overwrite}
+
+allow overwrite of unread data \mbox{\Hypertarget{structCBuffer__Handle_aa8573cb52319451c021516d1a906c970}\label{structCBuffer__Handle_aa8573cb52319451c021516d1a906c970}} 
+\index{C\+Buffer\+\_\+\+Handle@{C\+Buffer\+\_\+\+Handle}!buffer\+\_\+end@{buffer\+\_\+end}}
+\index{buffer\+\_\+end@{buffer\+\_\+end}!C\+Buffer\+\_\+\+Handle@{C\+Buffer\+\_\+\+Handle}}
+\subsubsection{\texorpdfstring{buffer\+\_\+end}{buffer\_end}}
+{\footnotesize\ttfamily void$\ast$ C\+Buffer\+\_\+\+Handle\+::buffer\+\_\+end}
+
+buffer end -\/ end of buffer addr \mbox{\Hypertarget{structCBuffer__Handle_af0549758ada54a9e9117a0c4ff0a4955}\label{structCBuffer__Handle_af0549758ada54a9e9117a0c4ff0a4955}} 
+\index{C\+Buffer\+\_\+\+Handle@{C\+Buffer\+\_\+\+Handle}!buffer\+\_\+len@{buffer\+\_\+len}}
+\index{buffer\+\_\+len@{buffer\+\_\+len}!C\+Buffer\+\_\+\+Handle@{C\+Buffer\+\_\+\+Handle}}
+\subsubsection{\texorpdfstring{buffer\+\_\+len}{buffer\_len}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_a435d1572bf3f880d55459d9805097f62}{uint32\+\_\+t} C\+Buffer\+\_\+\+Handle\+::buffer\+\_\+len}
+
+total length of buffer \mbox{\Hypertarget{structCBuffer__Handle_ace9001395e4926b7da1c5ec82afd20b3}\label{structCBuffer__Handle_ace9001395e4926b7da1c5ec82afd20b3}} 
+\index{C\+Buffer\+\_\+\+Handle@{C\+Buffer\+\_\+\+Handle}!buffer\+\_\+start@{buffer\+\_\+start}}
+\index{buffer\+\_\+start@{buffer\+\_\+start}!C\+Buffer\+\_\+\+Handle@{C\+Buffer\+\_\+\+Handle}}
+\subsubsection{\texorpdfstring{buffer\+\_\+start}{buffer\_start}}
+{\footnotesize\ttfamily void$\ast$ C\+Buffer\+\_\+\+Handle\+::buffer\+\_\+start}
+
+buffer start -\/ start of buffer addr \mbox{\Hypertarget{structCBuffer__Handle_aed2d7a4a93b8f607d51b93300c5837b5}\label{structCBuffer__Handle_aed2d7a4a93b8f607d51b93300c5837b5}} 
+\index{C\+Buffer\+\_\+\+Handle@{C\+Buffer\+\_\+\+Handle}!data\+\_\+len@{data\+\_\+len}}
+\index{data\+\_\+len@{data\+\_\+len}!C\+Buffer\+\_\+\+Handle@{C\+Buffer\+\_\+\+Handle}}
+\subsubsection{\texorpdfstring{data\+\_\+len}{data\_len}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} C\+Buffer\+\_\+\+Handle\+::data\+\_\+len}
+
+total length of data \mbox{\Hypertarget{structCBuffer__Handle_a7019a6c91cfbcc0e02e11b8895450cc6}\label{structCBuffer__Handle_a7019a6c91cfbcc0e02e11b8895450cc6}} 
+\index{C\+Buffer\+\_\+\+Handle@{C\+Buffer\+\_\+\+Handle}!is\+\_\+claimed@{is\+\_\+claimed}}
+\index{is\+\_\+claimed@{is\+\_\+claimed}!C\+Buffer\+\_\+\+Handle@{C\+Buffer\+\_\+\+Handle}}
+\subsubsection{\texorpdfstring{is\+\_\+claimed}{is\_claimed}}
+{\footnotesize\ttfamily bool C\+Buffer\+\_\+\+Handle\+::is\+\_\+claimed}
+
+sem is held \mbox{\Hypertarget{structCBuffer__Handle_ad2465a41c6b7bf39ea5a11d47836e841}\label{structCBuffer__Handle_ad2465a41c6b7bf39ea5a11d47836e841}} 
+\index{C\+Buffer\+\_\+\+Handle@{C\+Buffer\+\_\+\+Handle}!packets@{packets}}
+\index{packets@{packets}!C\+Buffer\+\_\+\+Handle@{C\+Buffer\+\_\+\+Handle}}
+\subsubsection{\texorpdfstring{packets}{packets}}
+{\footnotesize\ttfamily \hyperlink{structCBuffer__packet__member}{cbuffer\+\_\+pmember\+\_\+t} C\+Buffer\+\_\+\+Handle\+::packets\mbox{[}C\+B\+U\+F\+F\+E\+R\+\_\+\+M\+A\+X\+\_\+\+P\+A\+C\+K\+E\+T\+\_\+\+V\+A\+L\+U\+ES\mbox{]}}
+
+pattern to load \mbox{\Hypertarget{structCBuffer__Handle_aa8610091db61fb607b93b5374b076307}\label{structCBuffer__Handle_aa8610091db61fb607b93b5374b076307}} 
+\index{C\+Buffer\+\_\+\+Handle@{C\+Buffer\+\_\+\+Handle}!pkt\+\_\+settings@{pkt\+\_\+settings}}
+\index{pkt\+\_\+settings@{pkt\+\_\+settings}!C\+Buffer\+\_\+\+Handle@{C\+Buffer\+\_\+\+Handle}}
+\subsubsection{\texorpdfstring{pkt\+\_\+settings}{pkt\_settings}}
+{\footnotesize\ttfamily \hyperlink{structcbuffer__packet__settings}{cbuffer\+\_\+pkt\+\_\+settings\+\_\+t} C\+Buffer\+\_\+\+Handle\+::pkt\+\_\+settings}
+
+settings for pattern builder \mbox{\Hypertarget{structCBuffer__Handle_a54e07db8fad941c1ec2b5eadbeeeb16e}\label{structCBuffer__Handle_a54e07db8fad941c1ec2b5eadbeeeb16e}} 
+\index{C\+Buffer\+\_\+\+Handle@{C\+Buffer\+\_\+\+Handle}!pkts\+\_\+available@{pkts\+\_\+available}}
+\index{pkts\+\_\+available@{pkts\+\_\+available}!C\+Buffer\+\_\+\+Handle@{C\+Buffer\+\_\+\+Handle}}
+\subsubsection{\texorpdfstring{pkts\+\_\+available}{pkts\_available}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} C\+Buffer\+\_\+\+Handle\+::pkts\+\_\+available}
+
+number of packets in buffer
+\begin{DoxyItemize}
+\item read/write packets will increment/decrement this number mixing other functions can corrupt 
+\end{DoxyItemize}\mbox{\Hypertarget{structCBuffer__Handle_a3e996c49d0c489498b43d16ff1df810b}\label{structCBuffer__Handle_a3e996c49d0c489498b43d16ff1df810b}} 
+\index{C\+Buffer\+\_\+\+Handle@{C\+Buffer\+\_\+\+Handle}!read\+\_\+ptr@{read\+\_\+ptr}}
+\index{read\+\_\+ptr@{read\+\_\+ptr}!C\+Buffer\+\_\+\+Handle@{C\+Buffer\+\_\+\+Handle}}
+\subsubsection{\texorpdfstring{read\+\_\+ptr}{read\_ptr}}
+{\footnotesize\ttfamily void$\ast$ C\+Buffer\+\_\+\+Handle\+::read\+\_\+ptr}
+
+start of data in buffer \mbox{\Hypertarget{structCBuffer__Handle_a3774a4f2a54b9cd40367b87ee52c5e69}\label{structCBuffer__Handle_a3774a4f2a54b9cd40367b87ee52c5e69}} 
+\index{C\+Buffer\+\_\+\+Handle@{C\+Buffer\+\_\+\+Handle}!sem@{sem}}
+\index{sem@{sem}!C\+Buffer\+\_\+\+Handle@{C\+Buffer\+\_\+\+Handle}}
+\subsubsection{\texorpdfstring{sem}{sem}}
+{\footnotesize\ttfamily Semaphore\+Handle\+\_\+t C\+Buffer\+\_\+\+Handle\+::sem}
+
+semaphore handle \mbox{\Hypertarget{structCBuffer__Handle_acf4f92865eae15d0c64e94550bb0ac9a}\label{structCBuffer__Handle_acf4f92865eae15d0c64e94550bb0ac9a}} 
+\index{C\+Buffer\+\_\+\+Handle@{C\+Buffer\+\_\+\+Handle}!tx\+\_\+task@{tx\+\_\+task}}
+\index{tx\+\_\+task@{tx\+\_\+task}!C\+Buffer\+\_\+\+Handle@{C\+Buffer\+\_\+\+Handle}}
+\subsubsection{\texorpdfstring{tx\+\_\+task}{tx\_task}}
+{\footnotesize\ttfamily \hyperlink{structCBuffer__tasks}{cbuffer\+\_\+task\+\_\+settings\+\_\+t} C\+Buffer\+\_\+\+Handle\+::tx\+\_\+task}
+
+settings for dispatch/receive tasks \mbox{\Hypertarget{structCBuffer__Handle_ad6156a0a6134052e1620d8cd9fb5154b}\label{structCBuffer__Handle_ad6156a0a6134052e1620d8cd9fb5154b}} 
+\index{C\+Buffer\+\_\+\+Handle@{C\+Buffer\+\_\+\+Handle}!use\+\_\+packets@{use\+\_\+packets}}
+\index{use\+\_\+packets@{use\+\_\+packets}!C\+Buffer\+\_\+\+Handle@{C\+Buffer\+\_\+\+Handle}}
+\subsubsection{\texorpdfstring{use\+\_\+packets}{use\_packets}}
+{\footnotesize\ttfamily bool C\+Buffer\+\_\+\+Handle\+::use\+\_\+packets}
+
+In order to save structured data implement packet system use a packet\+\_\+style packing \mbox{\Hypertarget{structCBuffer__Handle_a301255119721b1cc76531ffc045594fb}\label{structCBuffer__Handle_a301255119721b1cc76531ffc045594fb}} 
+\index{C\+Buffer\+\_\+\+Handle@{C\+Buffer\+\_\+\+Handle}!write\+\_\+ptr@{write\+\_\+ptr}}
+\index{write\+\_\+ptr@{write\+\_\+ptr}!C\+Buffer\+\_\+\+Handle@{C\+Buffer\+\_\+\+Handle}}
+\subsubsection{\texorpdfstring{write\+\_\+ptr}{write\_ptr}}
+{\footnotesize\ttfamily void$\ast$ C\+Buffer\+\_\+\+Handle\+::write\+\_\+ptr}
+
+end of data in buffer 
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+C\+Buffer/Circular\+Buffer.\+h\end{DoxyCompactItemize}

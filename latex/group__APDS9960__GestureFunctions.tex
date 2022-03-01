@@ -1,0 +1,522 @@
+\hypertarget{group__APDS9960__GestureFunctions}{}\section{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}
+\label{group__APDS9960__GestureFunctions}\index{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}}
+
+
+Functions to control the device\textquotesingle{}s gesture sense engine.  
+
+
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+esp\+\_\+err\+\_\+t \hyperlink{group__APDS9960__GestureFunctions_gaea600a8b11dacef10ed4b413f7fe1f15}{apds\+\_\+get\+\_\+gst\+\_\+proximity\+\_\+ent\+\_\+thr} (\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV} dev, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$d)
+\begin{DoxyCompactList}\small\item\em 
+\begin{DoxyItemize}
+\item get gesture proximity entry threshold value 
+\end{DoxyItemize}\end{DoxyCompactList}\item 
+esp\+\_\+err\+\_\+t \hyperlink{group__APDS9960__GestureFunctions_gaa0edf3a2043b3718b079b1a6adf301e9}{apds\+\_\+set\+\_\+gst\+\_\+proximity\+\_\+ent\+\_\+thr} (\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV} dev, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$d)
+\begin{DoxyCompactList}\small\item\em 
+\begin{DoxyItemize}
+\item set gesture proximity entry threshold value 
+\end{DoxyItemize}\end{DoxyCompactList}\item 
+esp\+\_\+err\+\_\+t \hyperlink{group__APDS9960__GestureFunctions_ga738bd08725c40599d71954e720fab391}{apds\+\_\+get\+\_\+gst\+\_\+proximity\+\_\+ext\+\_\+thr} (\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV} dev, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$d)
+\begin{DoxyCompactList}\small\item\em 
+\begin{DoxyItemize}
+\item get gesture proximity exit threshold value 
+\end{DoxyItemize}\end{DoxyCompactList}\item 
+esp\+\_\+err\+\_\+t \hyperlink{group__APDS9960__GestureFunctions_ga4cecc0f8dc5e34be6b8838d2a36d9690}{apds\+\_\+set\+\_\+gst\+\_\+proximity\+\_\+ext\+\_\+thr} (\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV} dev, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$d)
+\begin{DoxyCompactList}\small\item\em 
+\begin{DoxyItemize}
+\item set gesture proximity exit threshold value 
+\end{DoxyItemize}\end{DoxyCompactList}\item 
+esp\+\_\+err\+\_\+t \hyperlink{group__APDS9960__GestureFunctions_gabe89844ce55dddd3f1c94a62f625fcb7}{apds\+\_\+set\+\_\+gst\+\_\+direction\+\_\+mode} (\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV} dev, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$mode)
+\begin{DoxyCompactList}\small\item\em 
+\begin{DoxyItemize}
+\item get gesture direction mode A\+P\+D\+S\+\_\+\+D\+I\+R\+\_\+\+B\+O\+T\+H\+\_\+\+P\+A\+R\+S\+\_\+\+A\+C\+T\+I\+VE 0 A\+P\+D\+S\+\_\+\+D\+I\+R\+\_\+\+U\+P\+D\+O\+W\+N\+\_\+\+O\+N\+LY 1 A\+P\+D\+S\+\_\+\+D\+I\+R\+\_\+\+L\+E\+F\+T\+R\+I\+G\+H\+T\+\_\+\+O\+N\+LY 2 
+\end{DoxyItemize}\end{DoxyCompactList}\item 
+esp\+\_\+err\+\_\+t \hyperlink{group__APDS9960__GestureFunctions_ga4f70f2fb9265196987c8dfabec6bc187}{apds\+\_\+get\+\_\+gst\+\_\+direction\+\_\+mode} (\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV} dev, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$mode)
+\begin{DoxyCompactList}\small\item\em 
+\begin{DoxyItemize}
+\item set gesture direction mode A\+P\+D\+S\+\_\+\+D\+I\+R\+\_\+\+B\+O\+T\+H\+\_\+\+P\+A\+R\+S\+\_\+\+A\+C\+T\+I\+VE 0 A\+P\+D\+S\+\_\+\+D\+I\+R\+\_\+\+U\+P\+D\+O\+W\+N\+\_\+\+O\+N\+LY 1 A\+P\+D\+S\+\_\+\+D\+I\+R\+\_\+\+L\+E\+F\+T\+R\+I\+G\+H\+T\+\_\+\+O\+N\+LY 2 
+\end{DoxyItemize}\end{DoxyCompactList}\item 
+esp\+\_\+err\+\_\+t \hyperlink{group__APDS9960__GestureFunctions_gab18d83431aa818c8afdac98abbbd4bcd}{apds\+\_\+get\+\_\+gst\+\_\+ext\+\_\+persist} (\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV} dev, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$val)
+\begin{DoxyCompactList}\small\item\em 
+\begin{DoxyItemize}
+\item get gesture exit persistence 
+\end{DoxyItemize}\end{DoxyCompactList}\item 
+esp\+\_\+err\+\_\+t \hyperlink{group__APDS9960__GestureFunctions_ga1e2b489514bf8ac82fcf1e9d44d68396}{apds\+\_\+set\+\_\+gst\+\_\+ext\+\_\+persist} (\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV} dev, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$val)
+\begin{DoxyCompactList}\small\item\em 
+\begin{DoxyItemize}
+\item set gesture exit persistence 
+\end{DoxyItemize}\end{DoxyCompactList}\item 
+esp\+\_\+err\+\_\+t \hyperlink{group__APDS9960__GestureFunctions_gaeeb9b0cc4c0d99da8959c6a1f1c942d8}{apds\+\_\+get\+\_\+gst\+\_\+pulse\+\_\+len} (\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV} dev, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$cnt)
+\begin{DoxyCompactList}\small\item\em 
+\begin{DoxyItemize}
+\item get gesture pulse length 
+\end{DoxyItemize}\end{DoxyCompactList}\item 
+esp\+\_\+err\+\_\+t \hyperlink{group__APDS9960__GestureFunctions_ga4f67cf1ce89086c43c6f40cb2509fc65}{apds\+\_\+set\+\_\+gst\+\_\+pulse\+\_\+len} (\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV} dev, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$cnt)
+\begin{DoxyCompactList}\small\item\em 
+\begin{DoxyItemize}
+\item set gesture pulse length 
+\end{DoxyItemize}\end{DoxyCompactList}\item 
+esp\+\_\+err\+\_\+t \hyperlink{group__APDS9960__GestureFunctions_gab60c4efecc5980d5aee3671407e79f98}{apds\+\_\+set\+\_\+gst\+\_\+gmode} (\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV} dev, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$val)
+\begin{DoxyCompactList}\small\item\em 
+\begin{DoxyItemize}
+\item get gesture gmode setting 
+\end{DoxyItemize}\end{DoxyCompactList}\item 
+esp\+\_\+err\+\_\+t \hyperlink{group__APDS9960__GestureFunctions_ga63ac7b590416a14f49b7bcfd463b8017}{apds\+\_\+get\+\_\+gst\+\_\+gmode} (\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV} dev, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$val)
+\begin{DoxyCompactList}\small\item\em 
+\begin{DoxyItemize}
+\item set gesture gmode setting (remain in gesture mode indefinitely) 
+\end{DoxyItemize}\end{DoxyCompactList}\item 
+esp\+\_\+err\+\_\+t \hyperlink{group__APDS9960__GestureFunctions_gac1a57bc5aafbf162eecc2cd0939407a5}{apds\+\_\+set\+\_\+gst\+\_\+gain} (\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV} dev, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$gain)
+\begin{DoxyCompactList}\small\item\em 
+\begin{DoxyItemize}
+\item get gesture engine gain 
+\end{DoxyItemize}\end{DoxyCompactList}\item 
+esp\+\_\+err\+\_\+t \hyperlink{group__APDS9960__GestureFunctions_ga6d460e4b59df3406d2630463df4c3fc2}{apds\+\_\+get\+\_\+gst\+\_\+gain} (\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV} dev, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$gain)
+\begin{DoxyCompactList}\small\item\em 
+\begin{DoxyItemize}
+\item set gesture engine gain 
+\end{DoxyItemize}\end{DoxyCompactList}\item 
+esp\+\_\+err\+\_\+t \hyperlink{group__APDS9960__GestureFunctions_gab65e85fbffa4a5a6155a18d2eac7ce44}{apds\+\_\+set\+\_\+gst\+\_\+led\+\_\+drive} (\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV} dev, apds\+\_\+led\+\_\+drive\+\_\+t $\ast$drive)
+\begin{DoxyCompactList}\small\item\em 
+\begin{DoxyItemize}
+\item get gesture led drive strength 
+\end{DoxyItemize}\end{DoxyCompactList}\item 
+esp\+\_\+err\+\_\+t \hyperlink{group__APDS9960__GestureFunctions_ga90bd6b0107185604545dc0cf875287c8}{apds\+\_\+get\+\_\+gst\+\_\+led\+\_\+drive} (\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV} dev, apds\+\_\+led\+\_\+drive\+\_\+t $\ast$drive)
+\begin{DoxyCompactList}\small\item\em 
+\begin{DoxyItemize}
+\item set gesture led drive strength (one of ) 
+\end{DoxyItemize}\end{DoxyCompactList}\item 
+esp\+\_\+err\+\_\+t \hyperlink{group__APDS9960__GestureFunctions_gaae61fea94311fc6d49c6d542b0a5b519}{apds\+\_\+set\+\_\+gst\+\_\+wait} (\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV} dev, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$wait)
+\begin{DoxyCompactList}\small\item\em 
+\begin{DoxyItemize}
+\item get gesture wait time (time between gst measurements) 
+\end{DoxyItemize}\end{DoxyCompactList}\item 
+esp\+\_\+err\+\_\+t \hyperlink{group__APDS9960__GestureFunctions_ga7276489ee5a7a166406301104a53251a}{apds\+\_\+get\+\_\+gst\+\_\+wait} (\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV} dev, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$wait)
+\begin{DoxyCompactList}\small\item\em 
+\begin{DoxyItemize}
+\item set gesture wait time (time between gst measurements) 
+\end{DoxyItemize}\end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Functions to control the device\textquotesingle{}s gesture sense engine. 
+
+A\+P\+D\+S9960\+\_\+\+Proximity\+Functions Gesture settings 
+
+\subsection{Function Documentation}
+\mbox{\Hypertarget{group__APDS9960__GestureFunctions_ga4f70f2fb9265196987c8dfabec6bc187}\label{group__APDS9960__GestureFunctions_ga4f70f2fb9265196987c8dfabec6bc187}} 
+\index{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}!apds\+\_\+get\+\_\+gst\+\_\+direction\+\_\+mode@{apds\+\_\+get\+\_\+gst\+\_\+direction\+\_\+mode}}
+\index{apds\+\_\+get\+\_\+gst\+\_\+direction\+\_\+mode@{apds\+\_\+get\+\_\+gst\+\_\+direction\+\_\+mode}!A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}}
+\subsubsection{\texorpdfstring{apds\+\_\+get\+\_\+gst\+\_\+direction\+\_\+mode()}{apds\_get\_gst\_direction\_mode()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t apds\+\_\+get\+\_\+gst\+\_\+direction\+\_\+mode (\begin{DoxyParamCaption}\item[{\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV}}]{dev,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$}]{mode }\end{DoxyParamCaption})}
+
+
+
+
+\begin{DoxyItemize}
+\item set gesture direction mode A\+P\+D\+S\+\_\+\+D\+I\+R\+\_\+\+B\+O\+T\+H\+\_\+\+P\+A\+R\+S\+\_\+\+A\+C\+T\+I\+VE 0 A\+P\+D\+S\+\_\+\+D\+I\+R\+\_\+\+U\+P\+D\+O\+W\+N\+\_\+\+O\+N\+LY 1 A\+P\+D\+S\+\_\+\+D\+I\+R\+\_\+\+L\+E\+F\+T\+R\+I\+G\+H\+T\+\_\+\+O\+N\+LY 2 
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dev} & -\/ apds handle \\
+\hline
+{\em mode} & -\/ pointer to value storage \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+E\+S\+P\+\_\+\+OK or error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__APDS9960__GestureFunctions_gab18d83431aa818c8afdac98abbbd4bcd}\label{group__APDS9960__GestureFunctions_gab18d83431aa818c8afdac98abbbd4bcd}} 
+\index{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}!apds\+\_\+get\+\_\+gst\+\_\+ext\+\_\+persist@{apds\+\_\+get\+\_\+gst\+\_\+ext\+\_\+persist}}
+\index{apds\+\_\+get\+\_\+gst\+\_\+ext\+\_\+persist@{apds\+\_\+get\+\_\+gst\+\_\+ext\+\_\+persist}!A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}}
+\subsubsection{\texorpdfstring{apds\+\_\+get\+\_\+gst\+\_\+ext\+\_\+persist()}{apds\_get\_gst\_ext\_persist()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t apds\+\_\+get\+\_\+gst\+\_\+ext\+\_\+persist (\begin{DoxyParamCaption}\item[{\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV}}]{dev,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$}]{val }\end{DoxyParamCaption})}
+
+
+
+
+\begin{DoxyItemize}
+\item get gesture exit persistence 
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dev} & -\/ apds handle \\
+\hline
+{\em val} & -\/ pointer to value storage \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+E\+S\+P\+\_\+\+OK or error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__APDS9960__GestureFunctions_ga6d460e4b59df3406d2630463df4c3fc2}\label{group__APDS9960__GestureFunctions_ga6d460e4b59df3406d2630463df4c3fc2}} 
+\index{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}!apds\+\_\+get\+\_\+gst\+\_\+gain@{apds\+\_\+get\+\_\+gst\+\_\+gain}}
+\index{apds\+\_\+get\+\_\+gst\+\_\+gain@{apds\+\_\+get\+\_\+gst\+\_\+gain}!A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}}
+\subsubsection{\texorpdfstring{apds\+\_\+get\+\_\+gst\+\_\+gain()}{apds\_get\_gst\_gain()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t apds\+\_\+get\+\_\+gst\+\_\+gain (\begin{DoxyParamCaption}\item[{\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV}}]{dev,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$}]{gain }\end{DoxyParamCaption})}
+
+
+
+
+\begin{DoxyItemize}
+\item set gesture engine gain 
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dev} & -\/ apds handle \\
+\hline
+{\em gain} & -\/ pointer to value storage \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+E\+S\+P\+\_\+\+OK or error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__APDS9960__GestureFunctions_ga63ac7b590416a14f49b7bcfd463b8017}\label{group__APDS9960__GestureFunctions_ga63ac7b590416a14f49b7bcfd463b8017}} 
+\index{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}!apds\+\_\+get\+\_\+gst\+\_\+gmode@{apds\+\_\+get\+\_\+gst\+\_\+gmode}}
+\index{apds\+\_\+get\+\_\+gst\+\_\+gmode@{apds\+\_\+get\+\_\+gst\+\_\+gmode}!A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}}
+\subsubsection{\texorpdfstring{apds\+\_\+get\+\_\+gst\+\_\+gmode()}{apds\_get\_gst\_gmode()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t apds\+\_\+get\+\_\+gst\+\_\+gmode (\begin{DoxyParamCaption}\item[{\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV}}]{dev,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$}]{val }\end{DoxyParamCaption})}
+
+
+
+
+\begin{DoxyItemize}
+\item set gesture gmode setting (remain in gesture mode indefinitely) 
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dev} & -\/ apds handle \\
+\hline
+{\em val} & -\/ pointer to value storage \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+E\+S\+P\+\_\+\+OK or error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__APDS9960__GestureFunctions_ga90bd6b0107185604545dc0cf875287c8}\label{group__APDS9960__GestureFunctions_ga90bd6b0107185604545dc0cf875287c8}} 
+\index{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}!apds\+\_\+get\+\_\+gst\+\_\+led\+\_\+drive@{apds\+\_\+get\+\_\+gst\+\_\+led\+\_\+drive}}
+\index{apds\+\_\+get\+\_\+gst\+\_\+led\+\_\+drive@{apds\+\_\+get\+\_\+gst\+\_\+led\+\_\+drive}!A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}}
+\subsubsection{\texorpdfstring{apds\+\_\+get\+\_\+gst\+\_\+led\+\_\+drive()}{apds\_get\_gst\_led\_drive()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t apds\+\_\+get\+\_\+gst\+\_\+led\+\_\+drive (\begin{DoxyParamCaption}\item[{\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV}}]{dev,  }\item[{apds\+\_\+led\+\_\+drive\+\_\+t $\ast$}]{drive }\end{DoxyParamCaption})}
+
+
+
+
+\begin{DoxyItemize}
+\item set gesture led drive strength (one of ) 
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dev} & -\/ apds handle \\
+\hline
+{\em drive} & -\/ pointer to value storage \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+E\+S\+P\+\_\+\+OK or error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__APDS9960__GestureFunctions_gaea600a8b11dacef10ed4b413f7fe1f15}\label{group__APDS9960__GestureFunctions_gaea600a8b11dacef10ed4b413f7fe1f15}} 
+\index{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}!apds\+\_\+get\+\_\+gst\+\_\+proximity\+\_\+ent\+\_\+thr@{apds\+\_\+get\+\_\+gst\+\_\+proximity\+\_\+ent\+\_\+thr}}
+\index{apds\+\_\+get\+\_\+gst\+\_\+proximity\+\_\+ent\+\_\+thr@{apds\+\_\+get\+\_\+gst\+\_\+proximity\+\_\+ent\+\_\+thr}!A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}}
+\subsubsection{\texorpdfstring{apds\+\_\+get\+\_\+gst\+\_\+proximity\+\_\+ent\+\_\+thr()}{apds\_get\_gst\_proximity\_ent\_thr()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t apds\+\_\+get\+\_\+gst\+\_\+proximity\+\_\+ent\+\_\+thr (\begin{DoxyParamCaption}\item[{\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV}}]{dev,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$}]{d }\end{DoxyParamCaption})}
+
+
+
+
+\begin{DoxyItemize}
+\item get gesture proximity entry threshold value 
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dev} & -\/ apds handle \\
+\hline
+{\em d} & -\/ pointer to value storage \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+E\+S\+P\+\_\+\+OK or error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__APDS9960__GestureFunctions_ga738bd08725c40599d71954e720fab391}\label{group__APDS9960__GestureFunctions_ga738bd08725c40599d71954e720fab391}} 
+\index{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}!apds\+\_\+get\+\_\+gst\+\_\+proximity\+\_\+ext\+\_\+thr@{apds\+\_\+get\+\_\+gst\+\_\+proximity\+\_\+ext\+\_\+thr}}
+\index{apds\+\_\+get\+\_\+gst\+\_\+proximity\+\_\+ext\+\_\+thr@{apds\+\_\+get\+\_\+gst\+\_\+proximity\+\_\+ext\+\_\+thr}!A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}}
+\subsubsection{\texorpdfstring{apds\+\_\+get\+\_\+gst\+\_\+proximity\+\_\+ext\+\_\+thr()}{apds\_get\_gst\_proximity\_ext\_thr()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t apds\+\_\+get\+\_\+gst\+\_\+proximity\+\_\+ext\+\_\+thr (\begin{DoxyParamCaption}\item[{\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV}}]{dev,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$}]{d }\end{DoxyParamCaption})}
+
+
+
+
+\begin{DoxyItemize}
+\item get gesture proximity exit threshold value 
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dev} & -\/ apds handle \\
+\hline
+{\em d} & -\/ pointer to value storage \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+E\+S\+P\+\_\+\+OK or error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__APDS9960__GestureFunctions_gaeeb9b0cc4c0d99da8959c6a1f1c942d8}\label{group__APDS9960__GestureFunctions_gaeeb9b0cc4c0d99da8959c6a1f1c942d8}} 
+\index{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}!apds\+\_\+get\+\_\+gst\+\_\+pulse\+\_\+len@{apds\+\_\+get\+\_\+gst\+\_\+pulse\+\_\+len}}
+\index{apds\+\_\+get\+\_\+gst\+\_\+pulse\+\_\+len@{apds\+\_\+get\+\_\+gst\+\_\+pulse\+\_\+len}!A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}}
+\subsubsection{\texorpdfstring{apds\+\_\+get\+\_\+gst\+\_\+pulse\+\_\+len()}{apds\_get\_gst\_pulse\_len()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t apds\+\_\+get\+\_\+gst\+\_\+pulse\+\_\+len (\begin{DoxyParamCaption}\item[{\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV}}]{dev,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$}]{cnt }\end{DoxyParamCaption})}
+
+
+
+
+\begin{DoxyItemize}
+\item get gesture pulse length 
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dev} & -\/ apds handle \\
+\hline
+{\em val} & -\/ pointer to value storage \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+E\+S\+P\+\_\+\+OK or error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__APDS9960__GestureFunctions_ga7276489ee5a7a166406301104a53251a}\label{group__APDS9960__GestureFunctions_ga7276489ee5a7a166406301104a53251a}} 
+\index{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}!apds\+\_\+get\+\_\+gst\+\_\+wait@{apds\+\_\+get\+\_\+gst\+\_\+wait}}
+\index{apds\+\_\+get\+\_\+gst\+\_\+wait@{apds\+\_\+get\+\_\+gst\+\_\+wait}!A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}}
+\subsubsection{\texorpdfstring{apds\+\_\+get\+\_\+gst\+\_\+wait()}{apds\_get\_gst\_wait()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t apds\+\_\+get\+\_\+gst\+\_\+wait (\begin{DoxyParamCaption}\item[{\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV}}]{dev,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$}]{wait }\end{DoxyParamCaption})}
+
+
+
+
+\begin{DoxyItemize}
+\item set gesture wait time (time between gst measurements) 
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dev} & -\/ apds handle \\
+\hline
+{\em wait} & -\/ pointer to value storage \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+E\+S\+P\+\_\+\+OK or error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__APDS9960__GestureFunctions_gabe89844ce55dddd3f1c94a62f625fcb7}\label{group__APDS9960__GestureFunctions_gabe89844ce55dddd3f1c94a62f625fcb7}} 
+\index{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}!apds\+\_\+set\+\_\+gst\+\_\+direction\+\_\+mode@{apds\+\_\+set\+\_\+gst\+\_\+direction\+\_\+mode}}
+\index{apds\+\_\+set\+\_\+gst\+\_\+direction\+\_\+mode@{apds\+\_\+set\+\_\+gst\+\_\+direction\+\_\+mode}!A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}}
+\subsubsection{\texorpdfstring{apds\+\_\+set\+\_\+gst\+\_\+direction\+\_\+mode()}{apds\_set\_gst\_direction\_mode()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t apds\+\_\+set\+\_\+gst\+\_\+direction\+\_\+mode (\begin{DoxyParamCaption}\item[{\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV}}]{dev,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$}]{mode }\end{DoxyParamCaption})}
+
+
+
+
+\begin{DoxyItemize}
+\item get gesture direction mode A\+P\+D\+S\+\_\+\+D\+I\+R\+\_\+\+B\+O\+T\+H\+\_\+\+P\+A\+R\+S\+\_\+\+A\+C\+T\+I\+VE 0 A\+P\+D\+S\+\_\+\+D\+I\+R\+\_\+\+U\+P\+D\+O\+W\+N\+\_\+\+O\+N\+LY 1 A\+P\+D\+S\+\_\+\+D\+I\+R\+\_\+\+L\+E\+F\+T\+R\+I\+G\+H\+T\+\_\+\+O\+N\+LY 2 
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dev} & -\/ apds handle \\
+\hline
+{\em mode} & -\/ pointer to value storage \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+E\+S\+P\+\_\+\+OK or error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__APDS9960__GestureFunctions_ga1e2b489514bf8ac82fcf1e9d44d68396}\label{group__APDS9960__GestureFunctions_ga1e2b489514bf8ac82fcf1e9d44d68396}} 
+\index{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}!apds\+\_\+set\+\_\+gst\+\_\+ext\+\_\+persist@{apds\+\_\+set\+\_\+gst\+\_\+ext\+\_\+persist}}
+\index{apds\+\_\+set\+\_\+gst\+\_\+ext\+\_\+persist@{apds\+\_\+set\+\_\+gst\+\_\+ext\+\_\+persist}!A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}}
+\subsubsection{\texorpdfstring{apds\+\_\+set\+\_\+gst\+\_\+ext\+\_\+persist()}{apds\_set\_gst\_ext\_persist()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t apds\+\_\+set\+\_\+gst\+\_\+ext\+\_\+persist (\begin{DoxyParamCaption}\item[{\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV}}]{dev,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$}]{val }\end{DoxyParamCaption})}
+
+
+
+
+\begin{DoxyItemize}
+\item set gesture exit persistence 
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dev} & -\/ apds handle \\
+\hline
+{\em val} & -\/ pointer to value storage \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+E\+S\+P\+\_\+\+OK or error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__APDS9960__GestureFunctions_gac1a57bc5aafbf162eecc2cd0939407a5}\label{group__APDS9960__GestureFunctions_gac1a57bc5aafbf162eecc2cd0939407a5}} 
+\index{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}!apds\+\_\+set\+\_\+gst\+\_\+gain@{apds\+\_\+set\+\_\+gst\+\_\+gain}}
+\index{apds\+\_\+set\+\_\+gst\+\_\+gain@{apds\+\_\+set\+\_\+gst\+\_\+gain}!A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}}
+\subsubsection{\texorpdfstring{apds\+\_\+set\+\_\+gst\+\_\+gain()}{apds\_set\_gst\_gain()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t apds\+\_\+set\+\_\+gst\+\_\+gain (\begin{DoxyParamCaption}\item[{\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV}}]{dev,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$}]{gain }\end{DoxyParamCaption})}
+
+
+
+
+\begin{DoxyItemize}
+\item get gesture engine gain 
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dev} & -\/ apds handle \\
+\hline
+{\em gain} & -\/ pointer to value storage \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+E\+S\+P\+\_\+\+OK or error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__APDS9960__GestureFunctions_gab60c4efecc5980d5aee3671407e79f98}\label{group__APDS9960__GestureFunctions_gab60c4efecc5980d5aee3671407e79f98}} 
+\index{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}!apds\+\_\+set\+\_\+gst\+\_\+gmode@{apds\+\_\+set\+\_\+gst\+\_\+gmode}}
+\index{apds\+\_\+set\+\_\+gst\+\_\+gmode@{apds\+\_\+set\+\_\+gst\+\_\+gmode}!A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}}
+\subsubsection{\texorpdfstring{apds\+\_\+set\+\_\+gst\+\_\+gmode()}{apds\_set\_gst\_gmode()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t apds\+\_\+set\+\_\+gst\+\_\+gmode (\begin{DoxyParamCaption}\item[{\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV}}]{dev,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$}]{val }\end{DoxyParamCaption})}
+
+
+
+
+\begin{DoxyItemize}
+\item get gesture gmode setting 
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dev} & -\/ apds handle \\
+\hline
+{\em val} & -\/ pointer to value storage \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+E\+S\+P\+\_\+\+OK or error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__APDS9960__GestureFunctions_gab65e85fbffa4a5a6155a18d2eac7ce44}\label{group__APDS9960__GestureFunctions_gab65e85fbffa4a5a6155a18d2eac7ce44}} 
+\index{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}!apds\+\_\+set\+\_\+gst\+\_\+led\+\_\+drive@{apds\+\_\+set\+\_\+gst\+\_\+led\+\_\+drive}}
+\index{apds\+\_\+set\+\_\+gst\+\_\+led\+\_\+drive@{apds\+\_\+set\+\_\+gst\+\_\+led\+\_\+drive}!A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}}
+\subsubsection{\texorpdfstring{apds\+\_\+set\+\_\+gst\+\_\+led\+\_\+drive()}{apds\_set\_gst\_led\_drive()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t apds\+\_\+set\+\_\+gst\+\_\+led\+\_\+drive (\begin{DoxyParamCaption}\item[{\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV}}]{dev,  }\item[{apds\+\_\+led\+\_\+drive\+\_\+t $\ast$}]{drive }\end{DoxyParamCaption})}
+
+
+
+
+\begin{DoxyItemize}
+\item get gesture led drive strength 
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dev} & -\/ apds handle \\
+\hline
+{\em drive} & -\/ pointer to value storage \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+E\+S\+P\+\_\+\+OK or error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__APDS9960__GestureFunctions_gaa0edf3a2043b3718b079b1a6adf301e9}\label{group__APDS9960__GestureFunctions_gaa0edf3a2043b3718b079b1a6adf301e9}} 
+\index{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}!apds\+\_\+set\+\_\+gst\+\_\+proximity\+\_\+ent\+\_\+thr@{apds\+\_\+set\+\_\+gst\+\_\+proximity\+\_\+ent\+\_\+thr}}
+\index{apds\+\_\+set\+\_\+gst\+\_\+proximity\+\_\+ent\+\_\+thr@{apds\+\_\+set\+\_\+gst\+\_\+proximity\+\_\+ent\+\_\+thr}!A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}}
+\subsubsection{\texorpdfstring{apds\+\_\+set\+\_\+gst\+\_\+proximity\+\_\+ent\+\_\+thr()}{apds\_set\_gst\_proximity\_ent\_thr()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t apds\+\_\+set\+\_\+gst\+\_\+proximity\+\_\+ent\+\_\+thr (\begin{DoxyParamCaption}\item[{\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV}}]{dev,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$}]{d }\end{DoxyParamCaption})}
+
+
+
+
+\begin{DoxyItemize}
+\item set gesture proximity entry threshold value 
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dev} & -\/ apds handle \\
+\hline
+{\em d} & -\/ pointer to value storage \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+E\+S\+P\+\_\+\+OK or error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__APDS9960__GestureFunctions_ga4cecc0f8dc5e34be6b8838d2a36d9690}\label{group__APDS9960__GestureFunctions_ga4cecc0f8dc5e34be6b8838d2a36d9690}} 
+\index{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}!apds\+\_\+set\+\_\+gst\+\_\+proximity\+\_\+ext\+\_\+thr@{apds\+\_\+set\+\_\+gst\+\_\+proximity\+\_\+ext\+\_\+thr}}
+\index{apds\+\_\+set\+\_\+gst\+\_\+proximity\+\_\+ext\+\_\+thr@{apds\+\_\+set\+\_\+gst\+\_\+proximity\+\_\+ext\+\_\+thr}!A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}}
+\subsubsection{\texorpdfstring{apds\+\_\+set\+\_\+gst\+\_\+proximity\+\_\+ext\+\_\+thr()}{apds\_set\_gst\_proximity\_ext\_thr()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t apds\+\_\+set\+\_\+gst\+\_\+proximity\+\_\+ext\+\_\+thr (\begin{DoxyParamCaption}\item[{\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV}}]{dev,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$}]{d }\end{DoxyParamCaption})}
+
+
+
+
+\begin{DoxyItemize}
+\item set gesture proximity exit threshold value 
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dev} & -\/ apds handle \\
+\hline
+{\em d} & -\/ pointer to value storage \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+E\+S\+P\+\_\+\+OK or error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__APDS9960__GestureFunctions_ga4f67cf1ce89086c43c6f40cb2509fc65}\label{group__APDS9960__GestureFunctions_ga4f67cf1ce89086c43c6f40cb2509fc65}} 
+\index{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}!apds\+\_\+set\+\_\+gst\+\_\+pulse\+\_\+len@{apds\+\_\+set\+\_\+gst\+\_\+pulse\+\_\+len}}
+\index{apds\+\_\+set\+\_\+gst\+\_\+pulse\+\_\+len@{apds\+\_\+set\+\_\+gst\+\_\+pulse\+\_\+len}!A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}}
+\subsubsection{\texorpdfstring{apds\+\_\+set\+\_\+gst\+\_\+pulse\+\_\+len()}{apds\_set\_gst\_pulse\_len()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t apds\+\_\+set\+\_\+gst\+\_\+pulse\+\_\+len (\begin{DoxyParamCaption}\item[{\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV}}]{dev,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$}]{cnt }\end{DoxyParamCaption})}
+
+
+
+
+\begin{DoxyItemize}
+\item set gesture pulse length 
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dev} & -\/ apds handle \\
+\hline
+{\em val} & -\/ pointer to value storage \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+E\+S\+P\+\_\+\+OK or error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__APDS9960__GestureFunctions_gaae61fea94311fc6d49c6d542b0a5b519}\label{group__APDS9960__GestureFunctions_gaae61fea94311fc6d49c6d542b0a5b519}} 
+\index{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}!apds\+\_\+set\+\_\+gst\+\_\+wait@{apds\+\_\+set\+\_\+gst\+\_\+wait}}
+\index{apds\+\_\+set\+\_\+gst\+\_\+wait@{apds\+\_\+set\+\_\+gst\+\_\+wait}!A\+P\+D\+S9960\+\_\+\+Gesture\+Functions@{A\+P\+D\+S9960\+\_\+\+Gesture\+Functions}}
+\subsubsection{\texorpdfstring{apds\+\_\+set\+\_\+gst\+\_\+wait()}{apds\_set\_gst\_wait()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t apds\+\_\+set\+\_\+gst\+\_\+wait (\begin{DoxyParamCaption}\item[{\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV}}]{dev,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$}]{wait }\end{DoxyParamCaption})}
+
+
+
+
+\begin{DoxyItemize}
+\item get gesture wait time (time between gst measurements) 
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dev} & -\/ apds handle \\
+\hline
+{\em wait} & -\/ pointer to value storage \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+E\+S\+P\+\_\+\+OK or error 
+\end{DoxyReturn}

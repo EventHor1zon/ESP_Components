@@ -1,0 +1,242 @@
+\hypertarget{group__APDS9960__GeneralFunctions}{}\section{A\+P\+D\+S9960\+\_\+\+General\+Functions}
+\label{group__APDS9960__GeneralFunctions}\index{A\+P\+D\+S9960\+\_\+\+General\+Functions@{A\+P\+D\+S9960\+\_\+\+General\+Functions}}
+
+
+Functions to change the general settings of the device.  
+
+
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+esp\+\_\+err\+\_\+t \hyperlink{group__APDS9960__GeneralFunctions_ga2472490688d4bd0d2f999e2c8eee99b3}{apds\+\_\+set\+\_\+wait\+\_\+enable} (\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV} dev, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$val)
+\begin{DoxyCompactList}\small\item\em 
+\begin{DoxyItemize}
+\item Set wait state enabled (wait once between each loop) 
+\end{DoxyItemize}\end{DoxyCompactList}\item 
+esp\+\_\+err\+\_\+t \hyperlink{group__APDS9960__GeneralFunctions_ga64832cb79d542441fc1389fa66334f12}{apds\+\_\+get\+\_\+wait\+\_\+enable} (\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV} dev, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$val)
+\begin{DoxyCompactList}\small\item\em 
+\begin{DoxyItemize}
+\item Get wait enabled 
+\end{DoxyItemize}\end{DoxyCompactList}\item 
+esp\+\_\+err\+\_\+t \hyperlink{group__APDS9960__GeneralFunctions_ga77d198f3395c1f220aa93263592b6b0a}{apds\+\_\+get\+\_\+wait\+\_\+time} (\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV} dev, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$wait)
+\begin{DoxyCompactList}\small\item\em 
+\begin{DoxyItemize}
+\item Get wait time (time to wait in idle state each loop) 
+\end{DoxyItemize}\end{DoxyCompactList}\item 
+esp\+\_\+err\+\_\+t \hyperlink{group__APDS9960__GeneralFunctions_gabf6c5a724f584dd63d25871845c899ea}{apds\+\_\+set\+\_\+wait\+\_\+time} (\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV} dev, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$wait)
+\begin{DoxyCompactList}\small\item\em 
+\begin{DoxyItemize}
+\item Get wait time (time to wait in idle state each loop) 
+\end{DoxyItemize}\end{DoxyCompactList}\item 
+esp\+\_\+err\+\_\+t \hyperlink{group__APDS9960__GeneralFunctions_ga98dd5b276349b3c1acd1b8c18eed1c10}{apds\+\_\+get\+\_\+longwait\+\_\+en} (\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV} dev, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$thr)
+\begin{DoxyCompactList}\small\item\em 
+\begin{DoxyItemize}
+\item Get long wait enabled 
+\end{DoxyItemize}\end{DoxyCompactList}\item 
+esp\+\_\+err\+\_\+t \hyperlink{group__APDS9960__GeneralFunctions_ga70a986a664b7d7fa0d22a5df25b92950}{apds\+\_\+set\+\_\+longwait\+\_\+en} (\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV} dev, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$thr)
+\begin{DoxyCompactList}\small\item\em 
+\begin{DoxyItemize}
+\item Set long wait enabled -\/ increases the wait time if enabled 
+\end{DoxyItemize}\end{DoxyCompactList}\item 
+esp\+\_\+err\+\_\+t \hyperlink{group__APDS9960__GeneralFunctions_gac4250216ba09d463b8dba7d2231660e5}{apds\+\_\+set\+\_\+led\+\_\+drive} (\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV} dev, apds\+\_\+led\+\_\+drive\+\_\+t $\ast$drive)
+\begin{DoxyCompactList}\small\item\em 
+\begin{DoxyItemize}
+\item set led drive strength -\/ one of gst\+\_\+led\+\_\+drive\+\_\+t 
+\end{DoxyItemize}\end{DoxyCompactList}\item 
+esp\+\_\+err\+\_\+t \hyperlink{group__APDS9960__GeneralFunctions_gac4a9db2bdfc2532aa8b2a2d2dcc56a17}{apds\+\_\+get\+\_\+led\+\_\+drive} (\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV} dev, apds\+\_\+led\+\_\+drive\+\_\+t $\ast$drive)
+\begin{DoxyCompactList}\small\item\em 
+\begin{DoxyItemize}
+\item get current proximity led drive strength 
+\end{DoxyItemize}\end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Functions to change the general settings of the device. 
+
+General settings 
+
+\subsection{Function Documentation}
+\mbox{\Hypertarget{group__APDS9960__GeneralFunctions_gac4a9db2bdfc2532aa8b2a2d2dcc56a17}\label{group__APDS9960__GeneralFunctions_gac4a9db2bdfc2532aa8b2a2d2dcc56a17}} 
+\index{A\+P\+D\+S9960\+\_\+\+General\+Functions@{A\+P\+D\+S9960\+\_\+\+General\+Functions}!apds\+\_\+get\+\_\+led\+\_\+drive@{apds\+\_\+get\+\_\+led\+\_\+drive}}
+\index{apds\+\_\+get\+\_\+led\+\_\+drive@{apds\+\_\+get\+\_\+led\+\_\+drive}!A\+P\+D\+S9960\+\_\+\+General\+Functions@{A\+P\+D\+S9960\+\_\+\+General\+Functions}}
+\subsubsection{\texorpdfstring{apds\+\_\+get\+\_\+led\+\_\+drive()}{apds\_get\_led\_drive()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t apds\+\_\+get\+\_\+led\+\_\+drive (\begin{DoxyParamCaption}\item[{\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV}}]{dev,  }\item[{apds\+\_\+led\+\_\+drive\+\_\+t $\ast$}]{drive }\end{DoxyParamCaption})}
+
+
+
+
+\begin{DoxyItemize}
+\item get current proximity led drive strength 
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dev} & -\/ apds handle \\
+\hline
+{\em drive} & -\/ pointer to value storage \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+E\+S\+P\+\_\+\+OK or error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__APDS9960__GeneralFunctions_ga98dd5b276349b3c1acd1b8c18eed1c10}\label{group__APDS9960__GeneralFunctions_ga98dd5b276349b3c1acd1b8c18eed1c10}} 
+\index{A\+P\+D\+S9960\+\_\+\+General\+Functions@{A\+P\+D\+S9960\+\_\+\+General\+Functions}!apds\+\_\+get\+\_\+longwait\+\_\+en@{apds\+\_\+get\+\_\+longwait\+\_\+en}}
+\index{apds\+\_\+get\+\_\+longwait\+\_\+en@{apds\+\_\+get\+\_\+longwait\+\_\+en}!A\+P\+D\+S9960\+\_\+\+General\+Functions@{A\+P\+D\+S9960\+\_\+\+General\+Functions}}
+\subsubsection{\texorpdfstring{apds\+\_\+get\+\_\+longwait\+\_\+en()}{apds\_get\_longwait\_en()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t apds\+\_\+get\+\_\+longwait\+\_\+en (\begin{DoxyParamCaption}\item[{\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV}}]{dev,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$}]{thr }\end{DoxyParamCaption})}
+
+
+
+
+\begin{DoxyItemize}
+\item Get long wait enabled 
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dev} & -\/ apds handle \\
+\hline
+{\em thr} & -\/ pointer to value storage \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+E\+S\+P\+\_\+\+OK or error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__APDS9960__GeneralFunctions_ga64832cb79d542441fc1389fa66334f12}\label{group__APDS9960__GeneralFunctions_ga64832cb79d542441fc1389fa66334f12}} 
+\index{A\+P\+D\+S9960\+\_\+\+General\+Functions@{A\+P\+D\+S9960\+\_\+\+General\+Functions}!apds\+\_\+get\+\_\+wait\+\_\+enable@{apds\+\_\+get\+\_\+wait\+\_\+enable}}
+\index{apds\+\_\+get\+\_\+wait\+\_\+enable@{apds\+\_\+get\+\_\+wait\+\_\+enable}!A\+P\+D\+S9960\+\_\+\+General\+Functions@{A\+P\+D\+S9960\+\_\+\+General\+Functions}}
+\subsubsection{\texorpdfstring{apds\+\_\+get\+\_\+wait\+\_\+enable()}{apds\_get\_wait\_enable()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t apds\+\_\+get\+\_\+wait\+\_\+enable (\begin{DoxyParamCaption}\item[{\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV}}]{dev,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$}]{val }\end{DoxyParamCaption})}
+
+
+
+
+\begin{DoxyItemize}
+\item Get wait enabled 
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dev} & -\/ apds handle \\
+\hline
+{\em val} & -\/ pointer to value storage \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+E\+S\+P\+\_\+\+OK or error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__APDS9960__GeneralFunctions_ga77d198f3395c1f220aa93263592b6b0a}\label{group__APDS9960__GeneralFunctions_ga77d198f3395c1f220aa93263592b6b0a}} 
+\index{A\+P\+D\+S9960\+\_\+\+General\+Functions@{A\+P\+D\+S9960\+\_\+\+General\+Functions}!apds\+\_\+get\+\_\+wait\+\_\+time@{apds\+\_\+get\+\_\+wait\+\_\+time}}
+\index{apds\+\_\+get\+\_\+wait\+\_\+time@{apds\+\_\+get\+\_\+wait\+\_\+time}!A\+P\+D\+S9960\+\_\+\+General\+Functions@{A\+P\+D\+S9960\+\_\+\+General\+Functions}}
+\subsubsection{\texorpdfstring{apds\+\_\+get\+\_\+wait\+\_\+time()}{apds\_get\_wait\_time()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t apds\+\_\+get\+\_\+wait\+\_\+time (\begin{DoxyParamCaption}\item[{\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV}}]{dev,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$}]{wait }\end{DoxyParamCaption})}
+
+
+
+
+\begin{DoxyItemize}
+\item Get wait time (time to wait in idle state each loop) 
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dev} & -\/ apds handle \\
+\hline
+{\em wait} & -\/ pointer to value storage (see gst\+\_\+wait\+\_\+t) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+E\+S\+P\+\_\+\+OK or error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__APDS9960__GeneralFunctions_gac4250216ba09d463b8dba7d2231660e5}\label{group__APDS9960__GeneralFunctions_gac4250216ba09d463b8dba7d2231660e5}} 
+\index{A\+P\+D\+S9960\+\_\+\+General\+Functions@{A\+P\+D\+S9960\+\_\+\+General\+Functions}!apds\+\_\+set\+\_\+led\+\_\+drive@{apds\+\_\+set\+\_\+led\+\_\+drive}}
+\index{apds\+\_\+set\+\_\+led\+\_\+drive@{apds\+\_\+set\+\_\+led\+\_\+drive}!A\+P\+D\+S9960\+\_\+\+General\+Functions@{A\+P\+D\+S9960\+\_\+\+General\+Functions}}
+\subsubsection{\texorpdfstring{apds\+\_\+set\+\_\+led\+\_\+drive()}{apds\_set\_led\_drive()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t apds\+\_\+set\+\_\+led\+\_\+drive (\begin{DoxyParamCaption}\item[{\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV}}]{dev,  }\item[{apds\+\_\+led\+\_\+drive\+\_\+t $\ast$}]{drive }\end{DoxyParamCaption})}
+
+
+
+
+\begin{DoxyItemize}
+\item set led drive strength -\/ one of gst\+\_\+led\+\_\+drive\+\_\+t 
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dev} & -\/ apds handle \\
+\hline
+{\em drive} & -\/ pointer to value \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+E\+S\+P\+\_\+\+OK or error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__APDS9960__GeneralFunctions_ga70a986a664b7d7fa0d22a5df25b92950}\label{group__APDS9960__GeneralFunctions_ga70a986a664b7d7fa0d22a5df25b92950}} 
+\index{A\+P\+D\+S9960\+\_\+\+General\+Functions@{A\+P\+D\+S9960\+\_\+\+General\+Functions}!apds\+\_\+set\+\_\+longwait\+\_\+en@{apds\+\_\+set\+\_\+longwait\+\_\+en}}
+\index{apds\+\_\+set\+\_\+longwait\+\_\+en@{apds\+\_\+set\+\_\+longwait\+\_\+en}!A\+P\+D\+S9960\+\_\+\+General\+Functions@{A\+P\+D\+S9960\+\_\+\+General\+Functions}}
+\subsubsection{\texorpdfstring{apds\+\_\+set\+\_\+longwait\+\_\+en()}{apds\_set\_longwait\_en()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t apds\+\_\+set\+\_\+longwait\+\_\+en (\begin{DoxyParamCaption}\item[{\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV}}]{dev,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$}]{thr }\end{DoxyParamCaption})}
+
+
+
+
+\begin{DoxyItemize}
+\item Set long wait enabled -\/ increases the wait time if enabled 
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dev} & -\/ apds handle \\
+\hline
+{\em thr} & -\/ pointer to value storage \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+E\+S\+P\+\_\+\+OK or error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__APDS9960__GeneralFunctions_ga2472490688d4bd0d2f999e2c8eee99b3}\label{group__APDS9960__GeneralFunctions_ga2472490688d4bd0d2f999e2c8eee99b3}} 
+\index{A\+P\+D\+S9960\+\_\+\+General\+Functions@{A\+P\+D\+S9960\+\_\+\+General\+Functions}!apds\+\_\+set\+\_\+wait\+\_\+enable@{apds\+\_\+set\+\_\+wait\+\_\+enable}}
+\index{apds\+\_\+set\+\_\+wait\+\_\+enable@{apds\+\_\+set\+\_\+wait\+\_\+enable}!A\+P\+D\+S9960\+\_\+\+General\+Functions@{A\+P\+D\+S9960\+\_\+\+General\+Functions}}
+\subsubsection{\texorpdfstring{apds\+\_\+set\+\_\+wait\+\_\+enable()}{apds\_set\_wait\_enable()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t apds\+\_\+set\+\_\+wait\+\_\+enable (\begin{DoxyParamCaption}\item[{\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV}}]{dev,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$}]{val }\end{DoxyParamCaption})}
+
+
+
+
+\begin{DoxyItemize}
+\item Set wait state enabled (wait once between each loop) 
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dev} & -\/ apds handle \\
+\hline
+{\em val} & -\/ pointer to value \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+E\+S\+P\+\_\+\+OK or error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__APDS9960__GeneralFunctions_gabf6c5a724f584dd63d25871845c899ea}\label{group__APDS9960__GeneralFunctions_gabf6c5a724f584dd63d25871845c899ea}} 
+\index{A\+P\+D\+S9960\+\_\+\+General\+Functions@{A\+P\+D\+S9960\+\_\+\+General\+Functions}!apds\+\_\+set\+\_\+wait\+\_\+time@{apds\+\_\+set\+\_\+wait\+\_\+time}}
+\index{apds\+\_\+set\+\_\+wait\+\_\+time@{apds\+\_\+set\+\_\+wait\+\_\+time}!A\+P\+D\+S9960\+\_\+\+General\+Functions@{A\+P\+D\+S9960\+\_\+\+General\+Functions}}
+\subsubsection{\texorpdfstring{apds\+\_\+set\+\_\+wait\+\_\+time()}{apds\_set\_wait\_time()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t apds\+\_\+set\+\_\+wait\+\_\+time (\begin{DoxyParamCaption}\item[{\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV}}]{dev,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$}]{wait }\end{DoxyParamCaption})}
+
+
+
+
+\begin{DoxyItemize}
+\item Get wait time (time to wait in idle state each loop) 
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dev} & -\/ apds handle \\
+\hline
+{\em wait} & -\/ pointer to value storage (see gst\+\_\+wait\+\_\+t) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+E\+S\+P\+\_\+\+OK or error 
+\end{DoxyReturn}

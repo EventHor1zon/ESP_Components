@@ -1,0 +1,173 @@
+\hypertarget{structA4988__Driver}{}\section{A4988\+\_\+\+Driver Struct Reference}
+\label{structA4988__Driver}\index{A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+gpio\+\_\+num\+\_\+t \hyperlink{structA4988__Driver_ad70b2030eb7693eaa687f27af7889969}{sleep}
+\item 
+gpio\+\_\+num\+\_\+t \hyperlink{structA4988__Driver_a3f1250fca864ff2fa4b11a644cdcab17}{enable}
+\item 
+gpio\+\_\+num\+\_\+t \hyperlink{structA4988__Driver_a4209422243dd83633849726f74b40e7c}{step}
+\item 
+gpio\+\_\+num\+\_\+t \hyperlink{structA4988__Driver_a496834da227b845b4eaf969e726a177b}{rst}
+\item 
+gpio\+\_\+num\+\_\+t \hyperlink{structA4988__Driver_a52bcf5bee0f17eb8c8cfada6b74ce52f}{dir}
+\item 
+gpio\+\_\+num\+\_\+t \hyperlink{structA4988__Driver_a25111ec2990df3c0746cbd8850159d6b}{ms1}
+\item 
+gpio\+\_\+num\+\_\+t \hyperlink{structA4988__Driver_abb7be73306c0a811d8de796b75636fd9}{ms2}
+\item 
+gpio\+\_\+num\+\_\+t \hyperlink{structA4988__Driver_a2c218a9775018210e5683878894a3b7f}{ms3}
+\item 
+\hyperlink{vl53l0x__types_8h_a435d1572bf3f880d55459d9805097f62}{uint32\+\_\+t} \hyperlink{structA4988__Driver_ac99aedce09cf5509d686e81cb896fd6e}{step\+\_\+pulse\+\_\+len}
+\item 
+\hyperlink{vl53l0x__types_8h_a435d1572bf3f880d55459d9805097f62}{uint32\+\_\+t} \hyperlink{structA4988__Driver_a14b08b6fabc9476b36d6a9330a0c83b2}{steps\+\_\+queued}
+\item 
+\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} \hyperlink{structA4988__Driver_a8d74f296177a2d3cf892d09ee816976a}{step\+\_\+wait}
+\item 
+bool \hyperlink{structA4988__Driver_a9da128c86e373e260a347c0b786be0f0}{is\+\_\+sleeping}
+\item 
+bool \hyperlink{structA4988__Driver_a7c891a319728c2cc12eb228885c64dee}{is\+\_\+enabled}
+\item 
+bool \hyperlink{structA4988__Driver_ae791dc2c2dd7f1d4aa89e1331d0314d0}{direction}
+\item 
+bool \hyperlink{structA4988__Driver_a709ae8d646b266f10898b7956d029eda}{\+\_\+en}
+\item 
+bool \hyperlink{structA4988__Driver_aa2e797a748776c84f6ccbabec8dc5c62}{\+\_\+sleep}
+\item 
+bool \hyperlink{structA4988__Driver_a12a7ffdf8339777f62983bee557d047c}{\+\_\+ms}
+\item 
+\hyperlink{group__A4988__definitions_gad84fc402211d9487e63ee884e4d79531}{step\+\_\+size\+\_\+t} \hyperlink{structA4988__Driver_a467d41c46428c89d97e592584fd869cc}{step\+\_\+size}
+\item 
+Timer\+Handle\+\_\+t \hyperlink{structA4988__Driver_a8775438d7522345042f8756d1c158567}{timer}
+\item 
+Task\+Handle\+\_\+t \hyperlink{structA4988__Driver_a74e0833714f5b0b7d08c1dd00d8027e0}{t\+\_\+handle}
+\end{DoxyCompactItemize}
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{structA4988__Driver_a709ae8d646b266f10898b7956d029eda}\label{structA4988__Driver_a709ae8d646b266f10898b7956d029eda}} 
+\index{A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}!\+\_\+en@{\+\_\+en}}
+\index{\+\_\+en@{\+\_\+en}!A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}}
+\subsubsection{\texorpdfstring{\+\_\+en}{\_en}}
+{\footnotesize\ttfamily bool A4988\+\_\+\+Driver\+::\+\_\+en}
+
+driver manages enabled pin \mbox{\Hypertarget{structA4988__Driver_a12a7ffdf8339777f62983bee557d047c}\label{structA4988__Driver_a12a7ffdf8339777f62983bee557d047c}} 
+\index{A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}!\+\_\+ms@{\+\_\+ms}}
+\index{\+\_\+ms@{\+\_\+ms}!A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}}
+\subsubsection{\texorpdfstring{\+\_\+ms}{\_ms}}
+{\footnotesize\ttfamily bool A4988\+\_\+\+Driver\+::\+\_\+ms}
+
+driver manages 3 microstep select pins \mbox{\Hypertarget{structA4988__Driver_aa2e797a748776c84f6ccbabec8dc5c62}\label{structA4988__Driver_aa2e797a748776c84f6ccbabec8dc5c62}} 
+\index{A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}!\+\_\+sleep@{\+\_\+sleep}}
+\index{\+\_\+sleep@{\+\_\+sleep}!A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}}
+\subsubsection{\texorpdfstring{\+\_\+sleep}{\_sleep}}
+{\footnotesize\ttfamily bool A4988\+\_\+\+Driver\+::\+\_\+sleep}
+
+driver manages sleep pin \mbox{\Hypertarget{structA4988__Driver_a52bcf5bee0f17eb8c8cfada6b74ce52f}\label{structA4988__Driver_a52bcf5bee0f17eb8c8cfada6b74ce52f}} 
+\index{A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}!dir@{dir}}
+\index{dir@{dir}!A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}}
+\subsubsection{\texorpdfstring{dir}{dir}}
+{\footnotesize\ttfamily gpio\+\_\+num\+\_\+t A4988\+\_\+\+Driver\+::dir}
+
+dir pin must be set \mbox{\Hypertarget{structA4988__Driver_ae791dc2c2dd7f1d4aa89e1331d0314d0}\label{structA4988__Driver_ae791dc2c2dd7f1d4aa89e1331d0314d0}} 
+\index{A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}!direction@{direction}}
+\index{direction@{direction}!A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}}
+\subsubsection{\texorpdfstring{direction}{direction}}
+{\footnotesize\ttfamily bool A4988\+\_\+\+Driver\+::direction}
+
+current direction (depends on wiring, dir is \char`\"{}true/false\char`\"{} for software purposes ) \mbox{\Hypertarget{structA4988__Driver_a3f1250fca864ff2fa4b11a644cdcab17}\label{structA4988__Driver_a3f1250fca864ff2fa4b11a644cdcab17}} 
+\index{A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}!enable@{enable}}
+\index{enable@{enable}!A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}}
+\subsubsection{\texorpdfstring{enable}{enable}}
+{\footnotesize\ttfamily gpio\+\_\+num\+\_\+t A4988\+\_\+\+Driver\+::enable}
+
+enable pin -\/ optional \mbox{\Hypertarget{structA4988__Driver_a7c891a319728c2cc12eb228885c64dee}\label{structA4988__Driver_a7c891a319728c2cc12eb228885c64dee}} 
+\index{A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}!is\+\_\+enabled@{is\+\_\+enabled}}
+\index{is\+\_\+enabled@{is\+\_\+enabled}!A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}}
+\subsubsection{\texorpdfstring{is\+\_\+enabled}{is\_enabled}}
+{\footnotesize\ttfamily bool A4988\+\_\+\+Driver\+::is\+\_\+enabled}
+
+is device enabled \mbox{\Hypertarget{structA4988__Driver_a9da128c86e373e260a347c0b786be0f0}\label{structA4988__Driver_a9da128c86e373e260a347c0b786be0f0}} 
+\index{A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}!is\+\_\+sleeping@{is\+\_\+sleeping}}
+\index{is\+\_\+sleeping@{is\+\_\+sleeping}!A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}}
+\subsubsection{\texorpdfstring{is\+\_\+sleeping}{is\_sleeping}}
+{\footnotesize\ttfamily bool A4988\+\_\+\+Driver\+::is\+\_\+sleeping}
+
+is device sleeping \mbox{\Hypertarget{structA4988__Driver_a25111ec2990df3c0746cbd8850159d6b}\label{structA4988__Driver_a25111ec2990df3c0746cbd8850159d6b}} 
+\index{A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}!ms1@{ms1}}
+\index{ms1@{ms1}!A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}}
+\subsubsection{\texorpdfstring{ms1}{ms1}}
+{\footnotesize\ttfamily gpio\+\_\+num\+\_\+t A4988\+\_\+\+Driver\+::ms1}
+
+ms1 pin -\/ optional \mbox{\Hypertarget{structA4988__Driver_abb7be73306c0a811d8de796b75636fd9}\label{structA4988__Driver_abb7be73306c0a811d8de796b75636fd9}} 
+\index{A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}!ms2@{ms2}}
+\index{ms2@{ms2}!A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}}
+\subsubsection{\texorpdfstring{ms2}{ms2}}
+{\footnotesize\ttfamily gpio\+\_\+num\+\_\+t A4988\+\_\+\+Driver\+::ms2}
+
+ms2 pin -\/ optional \mbox{\Hypertarget{structA4988__Driver_a2c218a9775018210e5683878894a3b7f}\label{structA4988__Driver_a2c218a9775018210e5683878894a3b7f}} 
+\index{A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}!ms3@{ms3}}
+\index{ms3@{ms3}!A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}}
+\subsubsection{\texorpdfstring{ms3}{ms3}}
+{\footnotesize\ttfamily gpio\+\_\+num\+\_\+t A4988\+\_\+\+Driver\+::ms3}
+
+ms3 pin -\/ optional \mbox{\Hypertarget{structA4988__Driver_a496834da227b845b4eaf969e726a177b}\label{structA4988__Driver_a496834da227b845b4eaf969e726a177b}} 
+\index{A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}!rst@{rst}}
+\index{rst@{rst}!A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}}
+\subsubsection{\texorpdfstring{rst}{rst}}
+{\footnotesize\ttfamily gpio\+\_\+num\+\_\+t A4988\+\_\+\+Driver\+::rst}
+
+rst pin -\/ must be set \mbox{\Hypertarget{structA4988__Driver_ad70b2030eb7693eaa687f27af7889969}\label{structA4988__Driver_ad70b2030eb7693eaa687f27af7889969}} 
+\index{A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}!sleep@{sleep}}
+\index{sleep@{sleep}!A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}}
+\subsubsection{\texorpdfstring{sleep}{sleep}}
+{\footnotesize\ttfamily gpio\+\_\+num\+\_\+t A4988\+\_\+\+Driver\+::sleep}
+
+sleep pin -\/ optional \mbox{\Hypertarget{structA4988__Driver_a4209422243dd83633849726f74b40e7c}\label{structA4988__Driver_a4209422243dd83633849726f74b40e7c}} 
+\index{A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}!step@{step}}
+\index{step@{step}!A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}}
+\subsubsection{\texorpdfstring{step}{step}}
+{\footnotesize\ttfamily gpio\+\_\+num\+\_\+t A4988\+\_\+\+Driver\+::step}
+
+step pin -\/ must be set \mbox{\Hypertarget{structA4988__Driver_ac99aedce09cf5509d686e81cb896fd6e}\label{structA4988__Driver_ac99aedce09cf5509d686e81cb896fd6e}} 
+\index{A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}!step\+\_\+pulse\+\_\+len@{step\+\_\+pulse\+\_\+len}}
+\index{step\+\_\+pulse\+\_\+len@{step\+\_\+pulse\+\_\+len}!A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}}
+\subsubsection{\texorpdfstring{step\+\_\+pulse\+\_\+len}{step\_pulse\_len}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_a435d1572bf3f880d55459d9805097f62}{uint32\+\_\+t} A4988\+\_\+\+Driver\+::step\+\_\+pulse\+\_\+len}
+
+step pulse hold time \mbox{\Hypertarget{structA4988__Driver_a467d41c46428c89d97e592584fd869cc}\label{structA4988__Driver_a467d41c46428c89d97e592584fd869cc}} 
+\index{A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}!step\+\_\+size@{step\+\_\+size}}
+\index{step\+\_\+size@{step\+\_\+size}!A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}}
+\subsubsection{\texorpdfstring{step\+\_\+size}{step\_size}}
+{\footnotesize\ttfamily \hyperlink{group__A4988__definitions_gad84fc402211d9487e63ee884e4d79531}{step\+\_\+size\+\_\+t} A4988\+\_\+\+Driver\+::step\+\_\+size}
+
+step size setting \mbox{\Hypertarget{structA4988__Driver_a8d74f296177a2d3cf892d09ee816976a}\label{structA4988__Driver_a8d74f296177a2d3cf892d09ee816976a}} 
+\index{A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}!step\+\_\+wait@{step\+\_\+wait}}
+\index{step\+\_\+wait@{step\+\_\+wait}!A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}}
+\subsubsection{\texorpdfstring{step\+\_\+wait}{step\_wait}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} A4988\+\_\+\+Driver\+::step\+\_\+wait}
+
+delay between executing queued steps \mbox{\Hypertarget{structA4988__Driver_a14b08b6fabc9476b36d6a9330a0c83b2}\label{structA4988__Driver_a14b08b6fabc9476b36d6a9330a0c83b2}} 
+\index{A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}!steps\+\_\+queued@{steps\+\_\+queued}}
+\index{steps\+\_\+queued@{steps\+\_\+queued}!A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}}
+\subsubsection{\texorpdfstring{steps\+\_\+queued}{steps\_queued}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_a435d1572bf3f880d55459d9805097f62}{uint32\+\_\+t} A4988\+\_\+\+Driver\+::steps\+\_\+queued}
+
+number of steps queued \mbox{\Hypertarget{structA4988__Driver_a74e0833714f5b0b7d08c1dd00d8027e0}\label{structA4988__Driver_a74e0833714f5b0b7d08c1dd00d8027e0}} 
+\index{A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}!t\+\_\+handle@{t\+\_\+handle}}
+\index{t\+\_\+handle@{t\+\_\+handle}!A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}}
+\subsubsection{\texorpdfstring{t\+\_\+handle}{t\_handle}}
+{\footnotesize\ttfamily Task\+Handle\+\_\+t A4988\+\_\+\+Driver\+::t\+\_\+handle}
+
+driver task handle \mbox{\Hypertarget{structA4988__Driver_a8775438d7522345042f8756d1c158567}\label{structA4988__Driver_a8775438d7522345042f8756d1c158567}} 
+\index{A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}!timer@{timer}}
+\index{timer@{timer}!A4988\+\_\+\+Driver@{A4988\+\_\+\+Driver}}
+\subsubsection{\texorpdfstring{timer}{timer}}
+{\footnotesize\ttfamily Timer\+Handle\+\_\+t A4988\+\_\+\+Driver\+::timer}
+
+timer handle 
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+A4988\+\_\+\+Driver/A4988\+\_\+\+Driver.\+h\end{DoxyCompactItemize}

@@ -1,0 +1,80 @@
+\hypertarget{structVL53L0X__Dev__t}{}\section{V\+L53\+L0\+X\+\_\+\+Dev\+\_\+t Struct Reference}
+\label{structVL53L0X__Dev__t}\index{V\+L53\+L0\+X\+\_\+\+Dev\+\_\+t@{V\+L53\+L0\+X\+\_\+\+Dev\+\_\+t}}
+
+
+Generic P\+AL device type that does link between A\+PI and platform abstraction layer.  
+
+
+
+
+{\ttfamily \#include $<$vl53l0x\+\_\+platform.\+h$>$}
+
+
+
+Collaboration diagram for V\+L53\+L0\+X\+\_\+\+Dev\+\_\+t\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{structVL53L0X__Dev__t__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{structVL53L0X__DevData__t}{V\+L53\+L0\+X\+\_\+\+Dev\+Data\+\_\+t} \hyperlink{structVL53L0X__Dev__t_ab69036a33cb4bfdf295d53e1ab15ff54}{Data}
+\item 
+\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} \hyperlink{structVL53L0X__Dev__t_add69f3fe32d5d1fc063133763a282e2c}{I2c\+Dev\+Addr}
+\item 
+\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} \hyperlink{structVL53L0X__Dev__t_ad31ab98c8e3f4461d322f1089430e714}{comms\+\_\+type}
+\item 
+\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} \hyperlink{structVL53L0X__Dev__t_a7aff2b204283beb1e5a73f887c8cceb9}{comms\+\_\+speed\+\_\+khz}
+\item 
+V\+L53\+L0\+X\+\_\+\+Device\+Modes \hyperlink{structVL53L0X__Dev__t_a1a823e2387e3fa81bae5a1412ed52384}{dev\+\_\+mode}
+\item 
+\mbox{\Hypertarget{structVL53L0X__Dev__t_aa1773c06fb519cdcc3391fd213e015e5}\label{structVL53L0X__Dev__t_aa1773c06fb519cdcc3391fd213e015e5}} 
+\hyperlink{structVL53L0X__RangingMeasurementData__t}{V\+L53\+L0\+X\+\_\+\+Ranging\+Measurement\+Data\+\_\+t} {\bfseries range\+Data}
+\item 
+\mbox{\Hypertarget{structVL53L0X__Dev__t_a3dea4228d57eaf99d536f800984b98d6}\label{structVL53L0X__Dev__t_a3dea4228d57eaf99d536f800984b98d6}} 
+V\+L53\+L0\+X\+\_\+config\+\_\+t {\bfseries sample\+\_\+mode}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Generic P\+AL device type that does link between A\+PI and platform abstraction layer. 
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{structVL53L0X__Dev__t_a7aff2b204283beb1e5a73f887c8cceb9}\label{structVL53L0X__Dev__t_a7aff2b204283beb1e5a73f887c8cceb9}} 
+\index{V\+L53\+L0\+X\+\_\+\+Dev\+\_\+t@{V\+L53\+L0\+X\+\_\+\+Dev\+\_\+t}!comms\+\_\+speed\+\_\+khz@{comms\+\_\+speed\+\_\+khz}}
+\index{comms\+\_\+speed\+\_\+khz@{comms\+\_\+speed\+\_\+khz}!V\+L53\+L0\+X\+\_\+\+Dev\+\_\+t@{V\+L53\+L0\+X\+\_\+\+Dev\+\_\+t}}
+\subsubsection{\texorpdfstring{comms\+\_\+speed\+\_\+khz}{comms\_speed\_khz}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} V\+L53\+L0\+X\+\_\+\+Dev\+\_\+t\+::comms\+\_\+speed\+\_\+khz}
+
+Comms speed \mbox{[}k\+Hz\mbox{]} \+: typically 400k\+Hz for I2C \mbox{\Hypertarget{structVL53L0X__Dev__t_ad31ab98c8e3f4461d322f1089430e714}\label{structVL53L0X__Dev__t_ad31ab98c8e3f4461d322f1089430e714}} 
+\index{V\+L53\+L0\+X\+\_\+\+Dev\+\_\+t@{V\+L53\+L0\+X\+\_\+\+Dev\+\_\+t}!comms\+\_\+type@{comms\+\_\+type}}
+\index{comms\+\_\+type@{comms\+\_\+type}!V\+L53\+L0\+X\+\_\+\+Dev\+\_\+t@{V\+L53\+L0\+X\+\_\+\+Dev\+\_\+t}}
+\subsubsection{\texorpdfstring{comms\+\_\+type}{comms\_type}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} V\+L53\+L0\+X\+\_\+\+Dev\+\_\+t\+::comms\+\_\+type}
+
+Type of comms \+: V\+L53\+L0\+X\+\_\+\+C\+O\+M\+M\+S\+\_\+\+I2C or V\+L53\+L0\+X\+\_\+\+C\+O\+M\+M\+S\+\_\+\+S\+PI \mbox{\Hypertarget{structVL53L0X__Dev__t_ab69036a33cb4bfdf295d53e1ab15ff54}\label{structVL53L0X__Dev__t_ab69036a33cb4bfdf295d53e1ab15ff54}} 
+\index{V\+L53\+L0\+X\+\_\+\+Dev\+\_\+t@{V\+L53\+L0\+X\+\_\+\+Dev\+\_\+t}!Data@{Data}}
+\index{Data@{Data}!V\+L53\+L0\+X\+\_\+\+Dev\+\_\+t@{V\+L53\+L0\+X\+\_\+\+Dev\+\_\+t}}
+\subsubsection{\texorpdfstring{Data}{Data}}
+{\footnotesize\ttfamily \hyperlink{structVL53L0X__DevData__t}{V\+L53\+L0\+X\+\_\+\+Dev\+Data\+\_\+t} V\+L53\+L0\+X\+\_\+\+Dev\+\_\+t\+::\+Data}
+
+embed ST Ewok Dev data as \char`\"{}\+Data\char`\"{} user specific field \mbox{\Hypertarget{structVL53L0X__Dev__t_a1a823e2387e3fa81bae5a1412ed52384}\label{structVL53L0X__Dev__t_a1a823e2387e3fa81bae5a1412ed52384}} 
+\index{V\+L53\+L0\+X\+\_\+\+Dev\+\_\+t@{V\+L53\+L0\+X\+\_\+\+Dev\+\_\+t}!dev\+\_\+mode@{dev\+\_\+mode}}
+\index{dev\+\_\+mode@{dev\+\_\+mode}!V\+L53\+L0\+X\+\_\+\+Dev\+\_\+t@{V\+L53\+L0\+X\+\_\+\+Dev\+\_\+t}}
+\subsubsection{\texorpdfstring{dev\+\_\+mode}{dev\_mode}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+Device\+Modes V\+L53\+L0\+X\+\_\+\+Dev\+\_\+t\+::dev\+\_\+mode}
+
+current device mode \mbox{\Hypertarget{structVL53L0X__Dev__t_add69f3fe32d5d1fc063133763a282e2c}\label{structVL53L0X__Dev__t_add69f3fe32d5d1fc063133763a282e2c}} 
+\index{V\+L53\+L0\+X\+\_\+\+Dev\+\_\+t@{V\+L53\+L0\+X\+\_\+\+Dev\+\_\+t}!I2c\+Dev\+Addr@{I2c\+Dev\+Addr}}
+\index{I2c\+Dev\+Addr@{I2c\+Dev\+Addr}!V\+L53\+L0\+X\+\_\+\+Dev\+\_\+t@{V\+L53\+L0\+X\+\_\+\+Dev\+\_\+t}}
+\subsubsection{\texorpdfstring{I2c\+Dev\+Addr}{I2cDevAddr}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} V\+L53\+L0\+X\+\_\+\+Dev\+\_\+t\+::\+I2c\+Dev\+Addr}
+
+i2c device address user specific field 
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+V\+L53\+L0\+X\+\_\+\+Driver/\+V\+L53\+L0\+X/include/\hyperlink{vl53l0x__platform_8h}{vl53l0x\+\_\+platform.\+h}\end{DoxyCompactItemize}

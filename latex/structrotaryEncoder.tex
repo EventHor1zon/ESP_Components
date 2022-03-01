@@ -1,0 +1,145 @@
+\hypertarget{structrotaryEncoder}{}\section{rotary\+Encoder Struct Reference}
+\label{structrotaryEncoder}\index{rotary\+Encoder@{rotary\+Encoder}}
+
+
+Collaboration diagram for rotary\+Encoder\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=157pt]{structrotaryEncoder__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structrotaryEncoder_a2512cc7964ea59e6e6d2640cb8e4c652}\label{structrotaryEncoder_a2512cc7964ea59e6e6d2640cb8e4c652}} 
+\hyperlink{unionrotaryCount}{rotary\+Count} {\bfseries count}
+\item 
+bool \hyperlink{structrotaryEncoder_acdcf654ac998975abe284087194a57d7}{signed\+Counter}
+\item 
+bool \hyperlink{structrotaryEncoder_ae43c122ca1f7443eb96c728ee6021c59}{debounce\+Enable}
+\item 
+bool \hyperlink{structrotaryEncoder_acfd9ee89d53cb92cabb2f9e39a7d8025}{debounce\+State}
+\item 
+bool \hyperlink{structrotaryEncoder_a27690330142cf2a5f9e20d10b95f5dd1}{dir\+Last}
+\item 
+bool \hyperlink{structrotaryEncoder_a4262a64e13a2c9f3fb8c803651defde3}{alert\+Step}
+\item 
+bool \hyperlink{structrotaryEncoder_a99b65d81c239da055c1095045e075cf7}{use\+\_\+events}
+\item 
+esp\+\_\+event\+\_\+loop\+\_\+handle\+\_\+t \hyperlink{structrotaryEncoder_a1304512c915331287c57500e1f93a334}{loop}
+\item 
+gpio\+\_\+num\+\_\+t \hyperlink{structrotaryEncoder_ad1538a6197a4cb5f3d73c2e7ffbbdf9b}{data\+Pin\+Num}
+\item 
+gpio\+\_\+num\+\_\+t \hyperlink{structrotaryEncoder_ae945fca8835282470bb42d3e54f09ce7}{clock\+Pin\+Num}
+\item 
+\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} \hyperlink{structrotaryEncoder_a790920314cd8441c59003222041bcd84}{counter\+Max}
+\item 
+\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} \hyperlink{structrotaryEncoder_a7bf3d54d80fb253ac7fc62dee0417600}{counter\+Min}
+\item 
+\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} \hyperlink{structrotaryEncoder_acc07389798d5ac386aef417d5999a10e}{step\+Size}
+\item 
+\hyperlink{vl53l0x__types_8h_a435d1572bf3f880d55459d9805097f62}{uint32\+\_\+t} \hyperlink{structrotaryEncoder_ab0862deb9b39139e677189738940dc2c}{t\+Last\+Step}
+\item 
+Timer\+Handle\+\_\+t \hyperlink{structrotaryEncoder_a1365b198e34d623c25c601664e07d388}{debounce\+Timer}
+\item 
+Task\+Handle\+\_\+t \hyperlink{structrotaryEncoder_ab489c2097bddeb8a77a52e58bf7526b7}{parent\+Task}
+\end{DoxyCompactItemize}
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{structrotaryEncoder_a4262a64e13a2c9f3fb8c803651defde3}\label{structrotaryEncoder_a4262a64e13a2c9f3fb8c803651defde3}} 
+\index{rotary\+Encoder@{rotary\+Encoder}!alert\+Step@{alert\+Step}}
+\index{alert\+Step@{alert\+Step}!rotary\+Encoder@{rotary\+Encoder}}
+\subsubsection{\texorpdfstring{alert\+Step}{alertStep}}
+{\footnotesize\ttfamily bool rotary\+Encoder\+::alert\+Step}
+
+$<$ last turn direction 0 -\/ c-\/clkwise, 1 -\/ clkwise \mbox{\Hypertarget{structrotaryEncoder_ae945fca8835282470bb42d3e54f09ce7}\label{structrotaryEncoder_ae945fca8835282470bb42d3e54f09ce7}} 
+\index{rotary\+Encoder@{rotary\+Encoder}!clock\+Pin\+Num@{clock\+Pin\+Num}}
+\index{clock\+Pin\+Num@{clock\+Pin\+Num}!rotary\+Encoder@{rotary\+Encoder}}
+\subsubsection{\texorpdfstring{clock\+Pin\+Num}{clockPinNum}}
+{\footnotesize\ttfamily gpio\+\_\+num\+\_\+t rotary\+Encoder\+::clock\+Pin\+Num}
+
+$<$ data pin gpio \mbox{\Hypertarget{structrotaryEncoder_a790920314cd8441c59003222041bcd84}\label{structrotaryEncoder_a790920314cd8441c59003222041bcd84}} 
+\index{rotary\+Encoder@{rotary\+Encoder}!counter\+Max@{counter\+Max}}
+\index{counter\+Max@{counter\+Max}!rotary\+Encoder@{rotary\+Encoder}}
+\subsubsection{\texorpdfstring{counter\+Max}{counterMax}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} rotary\+Encoder\+::counter\+Max}
+
+$<$ clock pin gpio \mbox{\Hypertarget{structrotaryEncoder_a7bf3d54d80fb253ac7fc62dee0417600}\label{structrotaryEncoder_a7bf3d54d80fb253ac7fc62dee0417600}} 
+\index{rotary\+Encoder@{rotary\+Encoder}!counter\+Min@{counter\+Min}}
+\index{counter\+Min@{counter\+Min}!rotary\+Encoder@{rotary\+Encoder}}
+\subsubsection{\texorpdfstring{counter\+Min}{counterMin}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} rotary\+Encoder\+::counter\+Min}
+
+$<$ max counter value \mbox{\Hypertarget{structrotaryEncoder_ad1538a6197a4cb5f3d73c2e7ffbbdf9b}\label{structrotaryEncoder_ad1538a6197a4cb5f3d73c2e7ffbbdf9b}} 
+\index{rotary\+Encoder@{rotary\+Encoder}!data\+Pin\+Num@{data\+Pin\+Num}}
+\index{data\+Pin\+Num@{data\+Pin\+Num}!rotary\+Encoder@{rotary\+Encoder}}
+\subsubsection{\texorpdfstring{data\+Pin\+Num}{dataPinNum}}
+{\footnotesize\ttfamily gpio\+\_\+num\+\_\+t rotary\+Encoder\+::data\+Pin\+Num}
+
+$<$ event loop to send events to \mbox{\Hypertarget{structrotaryEncoder_ae43c122ca1f7443eb96c728ee6021c59}\label{structrotaryEncoder_ae43c122ca1f7443eb96c728ee6021c59}} 
+\index{rotary\+Encoder@{rotary\+Encoder}!debounce\+Enable@{debounce\+Enable}}
+\index{debounce\+Enable@{debounce\+Enable}!rotary\+Encoder@{rotary\+Encoder}}
+\subsubsection{\texorpdfstring{debounce\+Enable}{debounceEnable}}
+{\footnotesize\ttfamily bool rotary\+Encoder\+::debounce\+Enable}
+
+$<$ using signed or unsigned value \mbox{\Hypertarget{structrotaryEncoder_acfd9ee89d53cb92cabb2f9e39a7d8025}\label{structrotaryEncoder_acfd9ee89d53cb92cabb2f9e39a7d8025}} 
+\index{rotary\+Encoder@{rotary\+Encoder}!debounce\+State@{debounce\+State}}
+\index{debounce\+State@{debounce\+State}!rotary\+Encoder@{rotary\+Encoder}}
+\subsubsection{\texorpdfstring{debounce\+State}{debounceState}}
+{\footnotesize\ttfamily bool rotary\+Encoder\+::debounce\+State}
+
+$<$ enable to button debounce \mbox{\Hypertarget{structrotaryEncoder_a1365b198e34d623c25c601664e07d388}\label{structrotaryEncoder_a1365b198e34d623c25c601664e07d388}} 
+\index{rotary\+Encoder@{rotary\+Encoder}!debounce\+Timer@{debounce\+Timer}}
+\index{debounce\+Timer@{debounce\+Timer}!rotary\+Encoder@{rotary\+Encoder}}
+\subsubsection{\texorpdfstring{debounce\+Timer}{debounceTimer}}
+{\footnotesize\ttfamily Timer\+Handle\+\_\+t rotary\+Encoder\+::debounce\+Timer}
+
+$<$ time since the last rotary step \mbox{\Hypertarget{structrotaryEncoder_a27690330142cf2a5f9e20d10b95f5dd1}\label{structrotaryEncoder_a27690330142cf2a5f9e20d10b95f5dd1}} 
+\index{rotary\+Encoder@{rotary\+Encoder}!dir\+Last@{dir\+Last}}
+\index{dir\+Last@{dir\+Last}!rotary\+Encoder@{rotary\+Encoder}}
+\subsubsection{\texorpdfstring{dir\+Last}{dirLast}}
+{\footnotesize\ttfamily bool rotary\+Encoder\+::dir\+Last}
+
+$<$ button debounce state \mbox{\Hypertarget{structrotaryEncoder_a1304512c915331287c57500e1f93a334}\label{structrotaryEncoder_a1304512c915331287c57500e1f93a334}} 
+\index{rotary\+Encoder@{rotary\+Encoder}!loop@{loop}}
+\index{loop@{loop}!rotary\+Encoder@{rotary\+Encoder}}
+\subsubsection{\texorpdfstring{loop}{loop}}
+{\footnotesize\ttfamily esp\+\_\+event\+\_\+loop\+\_\+handle\+\_\+t rotary\+Encoder\+::loop}
+
+$<$ Send events on Button \& RE events \mbox{\Hypertarget{structrotaryEncoder_ab489c2097bddeb8a77a52e58bf7526b7}\label{structrotaryEncoder_ab489c2097bddeb8a77a52e58bf7526b7}} 
+\index{rotary\+Encoder@{rotary\+Encoder}!parent\+Task@{parent\+Task}}
+\index{parent\+Task@{parent\+Task}!rotary\+Encoder@{rotary\+Encoder}}
+\subsubsection{\texorpdfstring{parent\+Task}{parentTask}}
+{\footnotesize\ttfamily Task\+Handle\+\_\+t rotary\+Encoder\+::parent\+Task}
+
+$<$ Timer for debounce \mbox{\Hypertarget{structrotaryEncoder_acdcf654ac998975abe284087194a57d7}\label{structrotaryEncoder_acdcf654ac998975abe284087194a57d7}} 
+\index{rotary\+Encoder@{rotary\+Encoder}!signed\+Counter@{signed\+Counter}}
+\index{signed\+Counter@{signed\+Counter}!rotary\+Encoder@{rotary\+Encoder}}
+\subsubsection{\texorpdfstring{signed\+Counter}{signedCounter}}
+{\footnotesize\ttfamily bool rotary\+Encoder\+::signed\+Counter}
+
+$<$ rotary encoder counter \mbox{\Hypertarget{structrotaryEncoder_acc07389798d5ac386aef417d5999a10e}\label{structrotaryEncoder_acc07389798d5ac386aef417d5999a10e}} 
+\index{rotary\+Encoder@{rotary\+Encoder}!step\+Size@{step\+Size}}
+\index{step\+Size@{step\+Size}!rotary\+Encoder@{rotary\+Encoder}}
+\subsubsection{\texorpdfstring{step\+Size}{stepSize}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} rotary\+Encoder\+::step\+Size}
+
+$<$ min counter value \mbox{\Hypertarget{structrotaryEncoder_ab0862deb9b39139e677189738940dc2c}\label{structrotaryEncoder_ab0862deb9b39139e677189738940dc2c}} 
+\index{rotary\+Encoder@{rotary\+Encoder}!t\+Last\+Step@{t\+Last\+Step}}
+\index{t\+Last\+Step@{t\+Last\+Step}!rotary\+Encoder@{rotary\+Encoder}}
+\subsubsection{\texorpdfstring{t\+Last\+Step}{tLastStep}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_a435d1572bf3f880d55459d9805097f62}{uint32\+\_\+t} rotary\+Encoder\+::t\+Last\+Step}
+
+$<$ increment/decrement size \mbox{\Hypertarget{structrotaryEncoder_a99b65d81c239da055c1095045e075cf7}\label{structrotaryEncoder_a99b65d81c239da055c1095045e075cf7}} 
+\index{rotary\+Encoder@{rotary\+Encoder}!use\+\_\+events@{use\+\_\+events}}
+\index{use\+\_\+events@{use\+\_\+events}!rotary\+Encoder@{rotary\+Encoder}}
+\subsubsection{\texorpdfstring{use\+\_\+events}{use\_events}}
+{\footnotesize\ttfamily bool rotary\+Encoder\+::use\+\_\+events}
+
+$<$ send task notification if step changes 
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+Rotary\+Encoder\+\_\+\+Driver/Rotary\+Encoder\+\_\+\+Driver.\+h\end{DoxyCompactItemize}

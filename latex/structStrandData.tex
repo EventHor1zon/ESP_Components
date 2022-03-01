@@ -1,0 +1,138 @@
+\hypertarget{structStrandData}{}\section{Strand\+Data Struct Reference}
+\label{structStrandData}\index{Strand\+Data@{Strand\+Data}}
+
+
+Collaboration diagram for Strand\+Data\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=157pt]{structStrandData__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structStrandData_a763350bc4cbb1f47fc30dae41862cc6e}\label{structStrandData_a763350bc4cbb1f47fc30dae41862cc6e}} 
+led\+Type\+\_\+t {\bfseries led\+Type}
+\item 
+\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} \hyperlink{structStrandData_a37a37b2a2d7eddbfc9c2ac8f448beddf}{strand\+Index}
+\item 
+\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} \hyperlink{structStrandData_aff0894a9f07ac931f5242bc849b02a33}{update\+Leds}
+\item 
+\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} \hyperlink{structStrandData_a627df352791351af4c92b6249608c58f}{bytes\+\_\+per\+\_\+pixel}
+\item 
+\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} \hyperlink{structStrandData_af1b7eef4daa1ac9bbf830feed9bb8b46}{num\+Leds}
+\item 
+\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} \hyperlink{structStrandData_aab77bb0d9f8a632662647c3aab7cf851}{strand\+Mem\+Length}
+\item 
+\hyperlink{vl53l0x__types_8h_a435d1572bf3f880d55459d9805097f62}{uint32\+\_\+t} $\ast$ \hyperlink{structStrandData_a187202b5a99913d82d24b81027bb007e}{strand\+Mem}
+\item 
+\hyperlink{vl53l0x__types_8h_a435d1572bf3f880d55459d9805097f62}{uint32\+\_\+t} \hyperlink{structStrandData_a8c39b96e1d498cfede3c5880f5b353b1}{strand\+Frame\+Length}
+\item 
+\mbox{\Hypertarget{structStrandData_a3e8674c134670e68889028982779627b}\label{structStrandData_a3e8674c134670e68889028982779627b}} 
+\hyperlink{vl53l0x__types_8h_a435d1572bf3f880d55459d9805097f62}{uint32\+\_\+t} $\ast$ {\bfseries strand\+Frame\+Start}
+\item 
+\mbox{\Hypertarget{structStrandData_a039bb82617a17210019548381d18ff9c}\label{structStrandData_a039bb82617a17210019548381d18ff9c}} 
+bool {\bfseries use\+\_\+dma}
+\item 
+\mbox{\Hypertarget{structStrandData_a1078b8e3e395bf7b79ce7d89659a3020}\label{structStrandData_a1078b8e3e395bf7b79ce7d89659a3020}} 
+\hyperlink{structledEffectData}{led\+Effect\+Data\+\_\+t} $\ast$ {\bfseries fx\+Data}
+\item 
+Semaphore\+Handle\+\_\+t \hyperlink{structStrandData_aedec356f21caa5f3c3ec6c3615f90aff}{mem\+Semphr}
+\item 
+\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} \hyperlink{structStrandData_ab6b3cfdc586b5a40497eb3d2931af76e}{spi\+\_\+channel\+\_\+no}
+\item 
+Timer\+Handle\+\_\+t \hyperlink{structStrandData_a68042468cd5f01417cb5f971feab4293}{refresh\+Timer}
+\item 
+rmt\+\_\+channel\+\_\+t \hyperlink{structStrandData_a50460c636123d0913362d3eab09f4b3f}{data\+Channel}
+\item 
+spi\+\_\+device\+\_\+handle\+\_\+t \hyperlink{structStrandData_aea9c3c5f3d3678e92723c7d2264b4f9e}{led\+S\+P\+I\+Handle}
+\item 
+Task\+Handle\+\_\+t \hyperlink{structStrandData_a0fbcfc7622e746b01484b7b943ffa913}{task\+\_\+handle}
+\end{DoxyCompactItemize}
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{structStrandData_a627df352791351af4c92b6249608c58f}\label{structStrandData_a627df352791351af4c92b6249608c58f}} 
+\index{Strand\+Data@{Strand\+Data}!bytes\+\_\+per\+\_\+pixel@{bytes\+\_\+per\+\_\+pixel}}
+\index{bytes\+\_\+per\+\_\+pixel@{bytes\+\_\+per\+\_\+pixel}!Strand\+Data@{Strand\+Data}}
+\subsubsection{\texorpdfstring{bytes\+\_\+per\+\_\+pixel}{bytes\_per\_pixel}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} Strand\+Data\+::bytes\+\_\+per\+\_\+pixel}
+
+$<$ update flag -\/ led mem has changed \mbox{\Hypertarget{structStrandData_a50460c636123d0913362d3eab09f4b3f}\label{structStrandData_a50460c636123d0913362d3eab09f4b3f}} 
+\index{Strand\+Data@{Strand\+Data}!data\+Channel@{data\+Channel}}
+\index{data\+Channel@{data\+Channel}!Strand\+Data@{Strand\+Data}}
+\subsubsection{\texorpdfstring{data\+Channel}{dataChannel}}
+{\footnotesize\ttfamily rmt\+\_\+channel\+\_\+t Strand\+Data\+::data\+Channel}
+
+$<$ handle for the effect refresh timer \mbox{\Hypertarget{structStrandData_aea9c3c5f3d3678e92723c7d2264b4f9e}\label{structStrandData_aea9c3c5f3d3678e92723c7d2264b4f9e}} 
+\index{Strand\+Data@{Strand\+Data}!led\+S\+P\+I\+Handle@{led\+S\+P\+I\+Handle}}
+\index{led\+S\+P\+I\+Handle@{led\+S\+P\+I\+Handle}!Strand\+Data@{Strand\+Data}}
+\subsubsection{\texorpdfstring{led\+S\+P\+I\+Handle}{ledSPIHandle}}
+{\footnotesize\ttfamily spi\+\_\+device\+\_\+handle\+\_\+t Strand\+Data\+::led\+S\+P\+I\+Handle}
+
+$<$ T\+O\+DO\+: replace this \& next with union/bitfield \mbox{\Hypertarget{structStrandData_aedec356f21caa5f3c3ec6c3615f90aff}\label{structStrandData_aedec356f21caa5f3c3ec6c3615f90aff}} 
+\index{Strand\+Data@{Strand\+Data}!mem\+Semphr@{mem\+Semphr}}
+\index{mem\+Semphr@{mem\+Semphr}!Strand\+Data@{Strand\+Data}}
+\subsubsection{\texorpdfstring{mem\+Semphr}{memSemphr}}
+{\footnotesize\ttfamily Semaphore\+Handle\+\_\+t Strand\+Data\+::mem\+Semphr}
+
+$<$ pointer to led effect data \mbox{\Hypertarget{structStrandData_af1b7eef4daa1ac9bbf830feed9bb8b46}\label{structStrandData_af1b7eef4daa1ac9bbf830feed9bb8b46}} 
+\index{Strand\+Data@{Strand\+Data}!num\+Leds@{num\+Leds}}
+\index{num\+Leds@{num\+Leds}!Strand\+Data@{Strand\+Data}}
+\subsubsection{\texorpdfstring{num\+Leds}{numLeds}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} Strand\+Data\+::num\+Leds}
+
+$<$ bytes per pixel \mbox{\Hypertarget{structStrandData_a68042468cd5f01417cb5f971feab4293}\label{structStrandData_a68042468cd5f01417cb5f971feab4293}} 
+\index{Strand\+Data@{Strand\+Data}!refresh\+Timer@{refresh\+Timer}}
+\index{refresh\+Timer@{refresh\+Timer}!Strand\+Data@{Strand\+Data}}
+\subsubsection{\texorpdfstring{refresh\+Timer}{refreshTimer}}
+{\footnotesize\ttfamily Timer\+Handle\+\_\+t Strand\+Data\+::refresh\+Timer}
+
+$<$ the channel of the S\+PI peripheral used \mbox{\Hypertarget{structStrandData_ab6b3cfdc586b5a40497eb3d2931af76e}\label{structStrandData_ab6b3cfdc586b5a40497eb3d2931af76e}} 
+\index{Strand\+Data@{Strand\+Data}!spi\+\_\+channel\+\_\+no@{spi\+\_\+channel\+\_\+no}}
+\index{spi\+\_\+channel\+\_\+no@{spi\+\_\+channel\+\_\+no}!Strand\+Data@{Strand\+Data}}
+\subsubsection{\texorpdfstring{spi\+\_\+channel\+\_\+no}{spi\_channel\_no}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} Strand\+Data\+::spi\+\_\+channel\+\_\+no}
+
+$<$ sempahore for led data access \mbox{\Hypertarget{structStrandData_a8c39b96e1d498cfede3c5880f5b353b1}\label{structStrandData_a8c39b96e1d498cfede3c5880f5b353b1}} 
+\index{Strand\+Data@{Strand\+Data}!strand\+Frame\+Length@{strand\+Frame\+Length}}
+\index{strand\+Frame\+Length@{strand\+Frame\+Length}!Strand\+Data@{Strand\+Data}}
+\subsubsection{\texorpdfstring{strand\+Frame\+Length}{strandFrameLength}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_a435d1572bf3f880d55459d9805097f62}{uint32\+\_\+t} Strand\+Data\+::strand\+Frame\+Length}
+
+$<$ pointer to L\+ED data \mbox{\Hypertarget{structStrandData_a37a37b2a2d7eddbfc9c2ac8f448beddf}\label{structStrandData_a37a37b2a2d7eddbfc9c2ac8f448beddf}} 
+\index{Strand\+Data@{Strand\+Data}!strand\+Index@{strand\+Index}}
+\index{strand\+Index@{strand\+Index}!Strand\+Data@{Strand\+Data}}
+\subsubsection{\texorpdfstring{strand\+Index}{strandIndex}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} Strand\+Data\+::strand\+Index}
+
+$<$ type of L\+ED \mbox{\Hypertarget{structStrandData_a187202b5a99913d82d24b81027bb007e}\label{structStrandData_a187202b5a99913d82d24b81027bb007e}} 
+\index{Strand\+Data@{Strand\+Data}!strand\+Mem@{strand\+Mem}}
+\index{strand\+Mem@{strand\+Mem}!Strand\+Data@{Strand\+Data}}
+\subsubsection{\texorpdfstring{strand\+Mem}{strandMem}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_a435d1572bf3f880d55459d9805097f62}{uint32\+\_\+t}$\ast$ Strand\+Data\+::strand\+Mem}
+
+$<$ length of memory \mbox{\Hypertarget{structStrandData_aab77bb0d9f8a632662647c3aab7cf851}\label{structStrandData_aab77bb0d9f8a632662647c3aab7cf851}} 
+\index{Strand\+Data@{Strand\+Data}!strand\+Mem\+Length@{strand\+Mem\+Length}}
+\index{strand\+Mem\+Length@{strand\+Mem\+Length}!Strand\+Data@{Strand\+Data}}
+\subsubsection{\texorpdfstring{strand\+Mem\+Length}{strandMemLength}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} Strand\+Data\+::strand\+Mem\+Length}
+
+$<$ num leds in strand \mbox{\Hypertarget{structStrandData_a0fbcfc7622e746b01484b7b943ffa913}\label{structStrandData_a0fbcfc7622e746b01484b7b943ffa913}} 
+\index{Strand\+Data@{Strand\+Data}!task\+\_\+handle@{task\+\_\+handle}}
+\index{task\+\_\+handle@{task\+\_\+handle}!Strand\+Data@{Strand\+Data}}
+\subsubsection{\texorpdfstring{task\+\_\+handle}{task\_handle}}
+{\footnotesize\ttfamily Task\+Handle\+\_\+t Strand\+Data\+::task\+\_\+handle}
+
+$<$ spi device handle \mbox{\Hypertarget{structStrandData_aff0894a9f07ac931f5242bc849b02a33}\label{structStrandData_aff0894a9f07ac931f5242bc849b02a33}} 
+\index{Strand\+Data@{Strand\+Data}!update\+Leds@{update\+Leds}}
+\index{update\+Leds@{update\+Leds}!Strand\+Data@{Strand\+Data}}
+\subsubsection{\texorpdfstring{update\+Leds}{updateLeds}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} Strand\+Data\+::update\+Leds}
+
+$<$ index of the current strand 
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+Utils/Led\+Effects.\+h\end{DoxyCompactItemize}

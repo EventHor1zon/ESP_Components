@@ -1,0 +1,83 @@
+\hypertarget{structledEffectData}{}\section{led\+Effect\+Data Struct Reference}
+\label{structledEffectData}\index{led\+Effect\+Data@{led\+Effect\+Data}}
+
+
+{\ttfamily \#include $<$Led\+Effects.\+h$>$}
+
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structledEffectData_a87074850f351bccf49dab4ff51f7d404}\label{structledEffectData_a87074850f351bccf49dab4ff51f7d404}} 
+led\+Effect\+\_\+t {\bfseries effect}
+\item 
+Effect\+Function \hyperlink{structledEffectData_afda152477a636903c30cdb311e4d739b}{func}
+\item 
+\hyperlink{vl53l0x__types_8h_a435d1572bf3f880d55459d9805097f62}{uint32\+\_\+t} \hyperlink{structledEffectData_ab37d8733a0fc0c336752e382a53c2e6d}{colour}
+\item 
+\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} \hyperlink{structledEffectData_af3091722f500797cff2896050b7ac3b4}{refresh\+\_\+t}
+\item 
+bool \hyperlink{structledEffectData_a5f73d846268058bf03c0cdea345ffa1b}{update\+Effect}
+\item 
+\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} \hyperlink{structledEffectData_a8d68875aadb518d5292e93d79918d0ae}{brightness}
+\item 
+\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} \hyperlink{structledEffectData_a980ab6cc1f7a667f35f5f56240dfd0e3}{var1}
+\item 
+\mbox{\Hypertarget{structledEffectData_a9a4ad08dc2c3ff67ae52e2f7544402ca}\label{structledEffectData_a9a4ad08dc2c3ff67ae52e2f7544402ca}} 
+\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} {\bfseries var2}
+\item 
+\mbox{\Hypertarget{structledEffectData_a0a9a8e27e0e818f4c57d5764a255ef0a}\label{structledEffectData_a0a9a8e27e0e818f4c57d5764a255ef0a}} 
+\hyperlink{vl53l0x__types_8h_a435d1572bf3f880d55459d9805097f62}{uint32\+\_\+t} {\bfseries var3}
+\item 
+\mbox{\Hypertarget{structledEffectData_a64e20cccc9348363a0ba12bb5384ea78}\label{structledEffectData_a64e20cccc9348363a0ba12bb5384ea78}} 
+\hyperlink{vl53l0x__types_8h_a435d1572bf3f880d55459d9805097f62}{uint32\+\_\+t} {\bfseries var4}
+\item 
+\mbox{\Hypertarget{structledEffectData_a94fe27a47d0b6946a95a21e3b4bac27b}\label{structledEffectData_a94fe27a47d0b6946a95a21e3b4bac27b}} 
+bool {\bfseries var5}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Led effect struct Used for tracking persistent L\+ED effect variables? Try to build all effects to use the same type of data struct T\+O\+DO\+: better variable names, use union or bitfield? 
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{structledEffectData_a8d68875aadb518d5292e93d79918d0ae}\label{structledEffectData_a8d68875aadb518d5292e93d79918d0ae}} 
+\index{led\+Effect\+Data@{led\+Effect\+Data}!brightness@{brightness}}
+\index{brightness@{brightness}!led\+Effect\+Data@{led\+Effect\+Data}}
+\subsubsection{\texorpdfstring{brightness}{brightness}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} led\+Effect\+Data\+::brightness}
+
+$<$ led effect has been changed -\/ adjust parameters \mbox{\Hypertarget{structledEffectData_ab37d8733a0fc0c336752e382a53c2e6d}\label{structledEffectData_ab37d8733a0fc0c336752e382a53c2e6d}} 
+\index{led\+Effect\+Data@{led\+Effect\+Data}!colour@{colour}}
+\index{colour@{colour}!led\+Effect\+Data@{led\+Effect\+Data}}
+\subsubsection{\texorpdfstring{colour}{colour}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_a435d1572bf3f880d55459d9805097f62}{uint32\+\_\+t} led\+Effect\+Data\+::colour}
+
+$<$ a pointer to the Led\+Effects function \mbox{\Hypertarget{structledEffectData_afda152477a636903c30cdb311e4d739b}\label{structledEffectData_afda152477a636903c30cdb311e4d739b}} 
+\index{led\+Effect\+Data@{led\+Effect\+Data}!func@{func}}
+\index{func@{func}!led\+Effect\+Data@{led\+Effect\+Data}}
+\subsubsection{\texorpdfstring{func}{func}}
+{\footnotesize\ttfamily Effect\+Function led\+Effect\+Data\+::func}
+
+$<$ the current effect in enumeration \mbox{\Hypertarget{structledEffectData_af3091722f500797cff2896050b7ac3b4}\label{structledEffectData_af3091722f500797cff2896050b7ac3b4}} 
+\index{led\+Effect\+Data@{led\+Effect\+Data}!refresh\+\_\+t@{refresh\+\_\+t}}
+\index{refresh\+\_\+t@{refresh\+\_\+t}!led\+Effect\+Data@{led\+Effect\+Data}}
+\subsubsection{\texorpdfstring{refresh\+\_\+t}{refresh\_t}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} led\+Effect\+Data\+::refresh\+\_\+t}
+
+$<$ colour -\/ colour \mbox{\Hypertarget{structledEffectData_a5f73d846268058bf03c0cdea345ffa1b}\label{structledEffectData_a5f73d846268058bf03c0cdea345ffa1b}} 
+\index{led\+Effect\+Data@{led\+Effect\+Data}!update\+Effect@{update\+Effect}}
+\index{update\+Effect@{update\+Effect}!led\+Effect\+Data@{led\+Effect\+Data}}
+\subsubsection{\texorpdfstring{update\+Effect}{updateEffect}}
+{\footnotesize\ttfamily bool led\+Effect\+Data\+::update\+Effect}
+
+$<$ refresh time in ms -\/ 0 for no refresh \mbox{\Hypertarget{structledEffectData_a980ab6cc1f7a667f35f5f56240dfd0e3}\label{structledEffectData_a980ab6cc1f7a667f35f5f56240dfd0e3}} 
+\index{led\+Effect\+Data@{led\+Effect\+Data}!var1@{var1}}
+\index{var1@{var1}!led\+Effect\+Data@{led\+Effect\+Data}}
+\subsubsection{\texorpdfstring{var1}{var1}}
+{\footnotesize\ttfamily \hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} led\+Effect\+Data\+::var1}
+
+$<$ led brigthness some variables for function use 
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+Utils/Led\+Effects.\+h\end{DoxyCompactItemize}

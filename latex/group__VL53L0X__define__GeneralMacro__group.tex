@@ -1,0 +1,91 @@
+\hypertarget{group__VL53L0X__define__GeneralMacro__group}{}\section{General Macro Defines}
+\label{group__VL53L0X__define__GeneralMacro__group}\index{General Macro Defines@{General Macro Defines}}
+Collaboration diagram for General Macro Defines\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=326pt]{group__VL53L0X__define__GeneralMacro__group}
+\end{center}
+\end{figure}
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{group__VL53L0X__define__GeneralMacro__group_gaf05e77eb0d359a32ee6c83172b3da513}\label{group__VL53L0X__define__GeneralMacro__group_gaf05e77eb0d359a32ee6c83172b3da513}} 
+\#define {\bfseries V\+L53\+L0\+X\+\_\+\+S\+E\+T\+P\+A\+R\+A\+M\+E\+T\+E\+R\+F\+I\+E\+LD}(Dev,  field,  value)~\hyperlink{group__VL53L0X__platform__group_ga7d67a50d6fbce3ffdb71b4b3f7cbdf39}{P\+A\+L\+Dev\+Data\+Set}(Dev, Current\+Parameters.\+field, value)
+\item 
+\mbox{\Hypertarget{group__VL53L0X__define__GeneralMacro__group_ga9b7d953c2ac75a493a51d9e19ab7a33f}\label{group__VL53L0X__define__GeneralMacro__group_ga9b7d953c2ac75a493a51d9e19ab7a33f}} 
+\#define {\bfseries V\+L53\+L0\+X\+\_\+\+G\+E\+T\+P\+A\+R\+A\+M\+E\+T\+E\+R\+F\+I\+E\+LD}(Dev,  field,  variable)~variable = \hyperlink{group__VL53L0X__platform__group_ga21f3ef1fbe84f5cf77d989c95f21ad0a}{P\+A\+L\+Dev\+Data\+Get}(Dev, Current\+Parameters).field
+\item 
+\mbox{\Hypertarget{group__VL53L0X__define__GeneralMacro__group_ga47598a8e8857a13e300f585ea0106892}\label{group__VL53L0X__define__GeneralMacro__group_ga47598a8e8857a13e300f585ea0106892}} 
+\#define {\bfseries V\+L53\+L0\+X\+\_\+\+S\+E\+T\+A\+R\+R\+A\+Y\+P\+A\+R\+A\+M\+E\+T\+E\+R\+F\+I\+E\+LD}(Dev,  field,  index,  value)~\hyperlink{group__VL53L0X__platform__group_ga7d67a50d6fbce3ffdb71b4b3f7cbdf39}{P\+A\+L\+Dev\+Data\+Set}(Dev, Current\+Parameters.\+field\mbox{[}index\mbox{]}, value)
+\item 
+\mbox{\Hypertarget{group__VL53L0X__define__GeneralMacro__group_gaabf50682bc638f1b109333cedbab6bbf}\label{group__VL53L0X__define__GeneralMacro__group_gaabf50682bc638f1b109333cedbab6bbf}} 
+\#define {\bfseries V\+L53\+L0\+X\+\_\+\+G\+E\+T\+A\+R\+R\+A\+Y\+P\+A\+R\+A\+M\+E\+T\+E\+R\+F\+I\+E\+LD}(Dev,  field,  index,  variable)~variable = \hyperlink{group__VL53L0X__platform__group_ga21f3ef1fbe84f5cf77d989c95f21ad0a}{P\+A\+L\+Dev\+Data\+Get}(Dev, Current\+Parameters).field\mbox{[}index\mbox{]}
+\item 
+\mbox{\Hypertarget{group__VL53L0X__define__GeneralMacro__group_gaf99327f12679ada115435e413110eb10}\label{group__VL53L0X__define__GeneralMacro__group_gaf99327f12679ada115435e413110eb10}} 
+\#define {\bfseries V\+L53\+L0\+X\+\_\+\+S\+E\+T\+D\+E\+V\+I\+C\+E\+S\+P\+E\+C\+I\+F\+I\+C\+P\+A\+R\+A\+M\+E\+T\+ER}(Dev,  field,  value)~\hyperlink{group__VL53L0X__platform__group_ga7d67a50d6fbce3ffdb71b4b3f7cbdf39}{P\+A\+L\+Dev\+Data\+Set}(Dev, Device\+Specific\+Parameters.\+field, value)
+\item 
+\mbox{\Hypertarget{group__VL53L0X__define__GeneralMacro__group_ga8179769a43cf26099a37748eb90209ea}\label{group__VL53L0X__define__GeneralMacro__group_ga8179769a43cf26099a37748eb90209ea}} 
+\#define {\bfseries V\+L53\+L0\+X\+\_\+\+G\+E\+T\+D\+E\+V\+I\+C\+E\+S\+P\+E\+C\+I\+F\+I\+C\+P\+A\+R\+A\+M\+E\+T\+ER}(Dev,  field)~\hyperlink{group__VL53L0X__platform__group_ga21f3ef1fbe84f5cf77d989c95f21ad0a}{P\+A\+L\+Dev\+Data\+Get}(Dev, Device\+Specific\+Parameters).field
+\item 
+\mbox{\Hypertarget{group__VL53L0X__define__GeneralMacro__group_ga0409c7cdb1c9cf039c1385761a8267f7}\label{group__VL53L0X__define__GeneralMacro__group_ga0409c7cdb1c9cf039c1385761a8267f7}} 
+\#define {\bfseries V\+L53\+L0\+X\+\_\+\+F\+I\+X\+P\+O\+I\+N\+T1616\+T\+O\+F\+I\+X\+P\+O\+I\+N\+T97}(Value)~(\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t})((Value$>$$>$9)\&0x\+F\+F\+F\+F)
+\item 
+\mbox{\Hypertarget{group__VL53L0X__define__GeneralMacro__group_ga06b0d6dd3fa847671dcb77c197ead691}\label{group__VL53L0X__define__GeneralMacro__group_ga06b0d6dd3fa847671dcb77c197ead691}} 
+\#define {\bfseries V\+L53\+L0\+X\+\_\+\+F\+I\+X\+P\+O\+I\+N\+T97\+T\+O\+F\+I\+X\+P\+O\+I\+N\+T1616}(Value)~(\hyperlink{vl53l0x__types_8h_afb910790161809fc76e1a274a6349384}{Fix\+Point1616\+\_\+t})(Value$<$$<$9)
+\item 
+\mbox{\Hypertarget{group__VL53L0X__define__GeneralMacro__group_ga5d75b6346e45f0ff8b5cbc8c9bf81a77}\label{group__VL53L0X__define__GeneralMacro__group_ga5d75b6346e45f0ff8b5cbc8c9bf81a77}} 
+\#define {\bfseries V\+L53\+L0\+X\+\_\+\+F\+I\+X\+P\+O\+I\+N\+T1616\+T\+O\+F\+I\+X\+P\+O\+I\+N\+T88}(Value)~(\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t})((Value$>$$>$8)\&0x\+F\+F\+F\+F)
+\item 
+\mbox{\Hypertarget{group__VL53L0X__define__GeneralMacro__group_ga0d4d860c33534371473b70a8db88dfcf}\label{group__VL53L0X__define__GeneralMacro__group_ga0d4d860c33534371473b70a8db88dfcf}} 
+\#define {\bfseries V\+L53\+L0\+X\+\_\+\+F\+I\+X\+P\+O\+I\+N\+T88\+T\+O\+F\+I\+X\+P\+O\+I\+N\+T1616}(Value)~(\hyperlink{vl53l0x__types_8h_afb910790161809fc76e1a274a6349384}{Fix\+Point1616\+\_\+t})(Value$<$$<$8)
+\item 
+\mbox{\Hypertarget{group__VL53L0X__define__GeneralMacro__group_ga8365bb81241d8e21603f169fcfb7b541}\label{group__VL53L0X__define__GeneralMacro__group_ga8365bb81241d8e21603f169fcfb7b541}} 
+\#define {\bfseries V\+L53\+L0\+X\+\_\+\+F\+I\+X\+P\+O\+I\+N\+T1616\+T\+O\+F\+I\+X\+P\+O\+I\+N\+T412}(Value)~(\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t})((Value$>$$>$4)\&0x\+F\+F\+F\+F)
+\item 
+\mbox{\Hypertarget{group__VL53L0X__define__GeneralMacro__group_ga5d000734cd704368526f2b1fcfe6130b}\label{group__VL53L0X__define__GeneralMacro__group_ga5d000734cd704368526f2b1fcfe6130b}} 
+\#define {\bfseries V\+L53\+L0\+X\+\_\+\+F\+I\+X\+P\+O\+I\+N\+T412\+T\+O\+F\+I\+X\+P\+O\+I\+N\+T1616}(Value)~(\hyperlink{vl53l0x__types_8h_afb910790161809fc76e1a274a6349384}{Fix\+Point1616\+\_\+t})(Value$<$$<$4)
+\item 
+\mbox{\Hypertarget{group__VL53L0X__define__GeneralMacro__group_ga2bc3eb228078083f39c3a839043fa327}\label{group__VL53L0X__define__GeneralMacro__group_ga2bc3eb228078083f39c3a839043fa327}} 
+\#define {\bfseries V\+L53\+L0\+X\+\_\+\+F\+I\+X\+P\+O\+I\+N\+T1616\+T\+O\+F\+I\+X\+P\+O\+I\+N\+T313}(Value)~(\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t})((Value$>$$>$3)\&0x\+F\+F\+F\+F)
+\item 
+\mbox{\Hypertarget{group__VL53L0X__define__GeneralMacro__group_ga21742f10715a356bf1ba09fbeb7afd86}\label{group__VL53L0X__define__GeneralMacro__group_ga21742f10715a356bf1ba09fbeb7afd86}} 
+\#define {\bfseries V\+L53\+L0\+X\+\_\+\+F\+I\+X\+P\+O\+I\+N\+T313\+T\+O\+F\+I\+X\+P\+O\+I\+N\+T1616}(Value)~(\hyperlink{vl53l0x__types_8h_afb910790161809fc76e1a274a6349384}{Fix\+Point1616\+\_\+t})(Value$<$$<$3)
+\item 
+\mbox{\Hypertarget{group__VL53L0X__define__GeneralMacro__group_ga2244c6212b240612436b2e1c5a997b9c}\label{group__VL53L0X__define__GeneralMacro__group_ga2244c6212b240612436b2e1c5a997b9c}} 
+\#define {\bfseries V\+L53\+L0\+X\+\_\+\+F\+I\+X\+P\+O\+I\+N\+T1616\+T\+O\+F\+I\+X\+P\+O\+I\+N\+T08}(Value)~(\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t})((Value$>$$>$8)\&0x00\+F\+F)
+\item 
+\mbox{\Hypertarget{group__VL53L0X__define__GeneralMacro__group_gac8da31daaf5ee32eb8ce5f524adad30e}\label{group__VL53L0X__define__GeneralMacro__group_gac8da31daaf5ee32eb8ce5f524adad30e}} 
+\#define {\bfseries V\+L53\+L0\+X\+\_\+\+F\+I\+X\+P\+O\+I\+N\+T08\+T\+O\+F\+I\+X\+P\+O\+I\+N\+T1616}(Value)~(\hyperlink{vl53l0x__types_8h_afb910790161809fc76e1a274a6349384}{Fix\+Point1616\+\_\+t})(Value$<$$<$8)
+\item 
+\mbox{\Hypertarget{group__VL53L0X__define__GeneralMacro__group_gaf0fbb69135eec12effce1f330b1adfa1}\label{group__VL53L0X__define__GeneralMacro__group_gaf0fbb69135eec12effce1f330b1adfa1}} 
+\#define {\bfseries V\+L53\+L0\+X\+\_\+\+F\+I\+X\+P\+O\+I\+N\+T1616\+T\+O\+F\+I\+X\+P\+O\+I\+N\+T53}(Value)~(\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t})((Value$>$$>$13)\&0x00\+F\+F)
+\item 
+\mbox{\Hypertarget{group__VL53L0X__define__GeneralMacro__group_ga8bf6e9ba87cc29ec573ecb51fbd15ff7}\label{group__VL53L0X__define__GeneralMacro__group_ga8bf6e9ba87cc29ec573ecb51fbd15ff7}} 
+\#define {\bfseries V\+L53\+L0\+X\+\_\+\+F\+I\+X\+P\+O\+I\+N\+T53\+T\+O\+F\+I\+X\+P\+O\+I\+N\+T1616}(Value)~(\hyperlink{vl53l0x__types_8h_afb910790161809fc76e1a274a6349384}{Fix\+Point1616\+\_\+t})(Value$<$$<$13)
+\item 
+\mbox{\Hypertarget{group__VL53L0X__define__GeneralMacro__group_ga7949eb4ea2fa9391005a3ccacff83a19}\label{group__VL53L0X__define__GeneralMacro__group_ga7949eb4ea2fa9391005a3ccacff83a19}} 
+\#define {\bfseries V\+L53\+L0\+X\+\_\+\+F\+I\+X\+P\+O\+I\+N\+T1616\+T\+O\+F\+I\+X\+P\+O\+I\+N\+T102}(Value)~(\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t})((Value$>$$>$14)\&0x0\+F\+F\+F)
+\item 
+\mbox{\Hypertarget{group__VL53L0X__define__GeneralMacro__group_ga78e08e4ecc017f352d86770d84588ddd}\label{group__VL53L0X__define__GeneralMacro__group_ga78e08e4ecc017f352d86770d84588ddd}} 
+\#define {\bfseries V\+L53\+L0\+X\+\_\+\+F\+I\+X\+P\+O\+I\+N\+T102\+T\+O\+F\+I\+X\+P\+O\+I\+N\+T1616}(Value)~(\hyperlink{vl53l0x__types_8h_afb910790161809fc76e1a274a6349384}{Fix\+Point1616\+\_\+t})(Value$<$$<$12)
+\item 
+\#define {\bfseries V\+L53\+L0\+X\+\_\+\+M\+A\+K\+E\+U\+I\+N\+T16}(lsb,  msb)
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+General Macro Defines 
+
+\subsection{Macro Definition Documentation}
+\mbox{\Hypertarget{group__VL53L0X__define__GeneralMacro__group_ga6d41b2d37d6121e3b2d2599f1f28311b}\label{group__VL53L0X__define__GeneralMacro__group_ga6d41b2d37d6121e3b2d2599f1f28311b}} 
+\index{General Macro Defines@{General Macro Defines}!V\+L53\+L0\+X\+\_\+\+M\+A\+K\+E\+U\+I\+N\+T16@{V\+L53\+L0\+X\+\_\+\+M\+A\+K\+E\+U\+I\+N\+T16}}
+\index{V\+L53\+L0\+X\+\_\+\+M\+A\+K\+E\+U\+I\+N\+T16@{V\+L53\+L0\+X\+\_\+\+M\+A\+K\+E\+U\+I\+N\+T16}!General Macro Defines@{General Macro Defines}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+M\+A\+K\+E\+U\+I\+N\+T16}{VL53L0X\_MAKEUINT16}}
+{\footnotesize\ttfamily \#define V\+L53\+L0\+X\+\_\+\+M\+A\+K\+E\+U\+I\+N\+T16(\begin{DoxyParamCaption}\item[{}]{lsb,  }\item[{}]{msb }\end{DoxyParamCaption})}
+
+{\bfseries Value\+:}
+\begin{DoxyCode}
+(\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\_t})((((\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\_t})msb)<<8) + \(\backslash\)
+        (\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\_t})lsb)
+\end{DoxyCode}

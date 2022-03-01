@@ -1,0 +1,158 @@
+\hypertarget{group__APDS9960__DataFunctions}{}\section{A\+P\+D\+S9960\+\_\+\+Data\+Functions}
+\label{group__APDS9960__DataFunctions}\index{A\+P\+D\+S9960\+\_\+\+Data\+Functions@{A\+P\+D\+S9960\+\_\+\+Data\+Functions}}
+
+
+Functions to read the latest data from the device.  
+
+
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+esp\+\_\+err\+\_\+t \hyperlink{group__APDS9960__DataFunctions_gac0d065ad91f2a8b597b428dd42476eb5}{apds\+\_\+get\+\_\+red\+\_\+data} (\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV} dev, \hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} $\ast$d)
+\begin{DoxyCompactList}\small\item\em 
+\begin{DoxyItemize}
+\item Get the latest red data from the A\+LS engine 
+\end{DoxyItemize}\end{DoxyCompactList}\item 
+esp\+\_\+err\+\_\+t \hyperlink{group__APDS9960__DataFunctions_ga3d1a4e5592ac0a2e3cf82e66f58eb7db}{apds\+\_\+get\+\_\+blue\+\_\+data} (\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV} dev, \hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} $\ast$d)
+\begin{DoxyCompactList}\small\item\em 
+\begin{DoxyItemize}
+\item Get the latest blue data from the A\+LS engine 
+\end{DoxyItemize}\end{DoxyCompactList}\item 
+esp\+\_\+err\+\_\+t \hyperlink{group__APDS9960__DataFunctions_ga9ec9895eceb5c721df9908fb9b129c70}{apds\+\_\+get\+\_\+green\+\_\+data} (\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV} dev, \hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} $\ast$d)
+\begin{DoxyCompactList}\small\item\em 
+\begin{DoxyItemize}
+\item Get the latest green data from the A\+LS engine 
+\end{DoxyItemize}\end{DoxyCompactList}\item 
+esp\+\_\+err\+\_\+t \hyperlink{group__APDS9960__DataFunctions_ga847d2ca19238c7a2a84080549962c7df}{apds\+\_\+get\+\_\+clear\+\_\+data} (\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV} dev, \hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} $\ast$d)
+\begin{DoxyCompactList}\small\item\em 
+\begin{DoxyItemize}
+\item Get the latest clear (brightness) data from the A\+LS engine 
+\end{DoxyItemize}\end{DoxyCompactList}\item 
+esp\+\_\+err\+\_\+t \hyperlink{group__APDS9960__DataFunctions_ga9d2e3d18bf1d952068582fe97b0c8afa}{apds\+\_\+get\+\_\+proximity\+\_\+data} (\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV} dev, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$d)
+\begin{DoxyCompactList}\small\item\em 
+\begin{DoxyItemize}
+\item Get the latest proximity data from the P\+RX engine 
+\end{DoxyItemize}\end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Functions to read the latest data from the device. 
+
+A\+P\+D\+S9960\+\_\+\+Gesture\+Functions Get results 
+
+\subsection{Function Documentation}
+\mbox{\Hypertarget{group__APDS9960__DataFunctions_ga3d1a4e5592ac0a2e3cf82e66f58eb7db}\label{group__APDS9960__DataFunctions_ga3d1a4e5592ac0a2e3cf82e66f58eb7db}} 
+\index{A\+P\+D\+S9960\+\_\+\+Data\+Functions@{A\+P\+D\+S9960\+\_\+\+Data\+Functions}!apds\+\_\+get\+\_\+blue\+\_\+data@{apds\+\_\+get\+\_\+blue\+\_\+data}}
+\index{apds\+\_\+get\+\_\+blue\+\_\+data@{apds\+\_\+get\+\_\+blue\+\_\+data}!A\+P\+D\+S9960\+\_\+\+Data\+Functions@{A\+P\+D\+S9960\+\_\+\+Data\+Functions}}
+\subsubsection{\texorpdfstring{apds\+\_\+get\+\_\+blue\+\_\+data()}{apds\_get\_blue\_data()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t apds\+\_\+get\+\_\+blue\+\_\+data (\begin{DoxyParamCaption}\item[{\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV}}]{dev,  }\item[{\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} $\ast$}]{d }\end{DoxyParamCaption})}
+
+
+
+
+\begin{DoxyItemize}
+\item Get the latest blue data from the A\+LS engine 
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dev} & -\/ apds handle \\
+\hline
+{\em d} & -\/ pointer to value storage \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+E\+S\+P\+\_\+\+OK or error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__APDS9960__DataFunctions_ga847d2ca19238c7a2a84080549962c7df}\label{group__APDS9960__DataFunctions_ga847d2ca19238c7a2a84080549962c7df}} 
+\index{A\+P\+D\+S9960\+\_\+\+Data\+Functions@{A\+P\+D\+S9960\+\_\+\+Data\+Functions}!apds\+\_\+get\+\_\+clear\+\_\+data@{apds\+\_\+get\+\_\+clear\+\_\+data}}
+\index{apds\+\_\+get\+\_\+clear\+\_\+data@{apds\+\_\+get\+\_\+clear\+\_\+data}!A\+P\+D\+S9960\+\_\+\+Data\+Functions@{A\+P\+D\+S9960\+\_\+\+Data\+Functions}}
+\subsubsection{\texorpdfstring{apds\+\_\+get\+\_\+clear\+\_\+data()}{apds\_get\_clear\_data()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t apds\+\_\+get\+\_\+clear\+\_\+data (\begin{DoxyParamCaption}\item[{\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV}}]{dev,  }\item[{\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} $\ast$}]{d }\end{DoxyParamCaption})}
+
+
+
+
+\begin{DoxyItemize}
+\item Get the latest clear (brightness) data from the A\+LS engine 
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dev} & -\/ apds handle \\
+\hline
+{\em d} & -\/ pointer to value storage \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+E\+S\+P\+\_\+\+OK or error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__APDS9960__DataFunctions_ga9ec9895eceb5c721df9908fb9b129c70}\label{group__APDS9960__DataFunctions_ga9ec9895eceb5c721df9908fb9b129c70}} 
+\index{A\+P\+D\+S9960\+\_\+\+Data\+Functions@{A\+P\+D\+S9960\+\_\+\+Data\+Functions}!apds\+\_\+get\+\_\+green\+\_\+data@{apds\+\_\+get\+\_\+green\+\_\+data}}
+\index{apds\+\_\+get\+\_\+green\+\_\+data@{apds\+\_\+get\+\_\+green\+\_\+data}!A\+P\+D\+S9960\+\_\+\+Data\+Functions@{A\+P\+D\+S9960\+\_\+\+Data\+Functions}}
+\subsubsection{\texorpdfstring{apds\+\_\+get\+\_\+green\+\_\+data()}{apds\_get\_green\_data()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t apds\+\_\+get\+\_\+green\+\_\+data (\begin{DoxyParamCaption}\item[{\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV}}]{dev,  }\item[{\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} $\ast$}]{d }\end{DoxyParamCaption})}
+
+
+
+
+\begin{DoxyItemize}
+\item Get the latest green data from the A\+LS engine 
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dev} & -\/ apds handle \\
+\hline
+{\em d} & -\/ pointer to value storage \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+E\+S\+P\+\_\+\+OK or error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__APDS9960__DataFunctions_ga9d2e3d18bf1d952068582fe97b0c8afa}\label{group__APDS9960__DataFunctions_ga9d2e3d18bf1d952068582fe97b0c8afa}} 
+\index{A\+P\+D\+S9960\+\_\+\+Data\+Functions@{A\+P\+D\+S9960\+\_\+\+Data\+Functions}!apds\+\_\+get\+\_\+proximity\+\_\+data@{apds\+\_\+get\+\_\+proximity\+\_\+data}}
+\index{apds\+\_\+get\+\_\+proximity\+\_\+data@{apds\+\_\+get\+\_\+proximity\+\_\+data}!A\+P\+D\+S9960\+\_\+\+Data\+Functions@{A\+P\+D\+S9960\+\_\+\+Data\+Functions}}
+\subsubsection{\texorpdfstring{apds\+\_\+get\+\_\+proximity\+\_\+data()}{apds\_get\_proximity\_data()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t apds\+\_\+get\+\_\+proximity\+\_\+data (\begin{DoxyParamCaption}\item[{\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV}}]{dev,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$}]{d }\end{DoxyParamCaption})}
+
+
+
+
+\begin{DoxyItemize}
+\item Get the latest proximity data from the P\+RX engine 
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dev} & -\/ apds handle \\
+\hline
+{\em d} & -\/ pointer to value storage \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+E\+S\+P\+\_\+\+OK or error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__APDS9960__DataFunctions_gac0d065ad91f2a8b597b428dd42476eb5}\label{group__APDS9960__DataFunctions_gac0d065ad91f2a8b597b428dd42476eb5}} 
+\index{A\+P\+D\+S9960\+\_\+\+Data\+Functions@{A\+P\+D\+S9960\+\_\+\+Data\+Functions}!apds\+\_\+get\+\_\+red\+\_\+data@{apds\+\_\+get\+\_\+red\+\_\+data}}
+\index{apds\+\_\+get\+\_\+red\+\_\+data@{apds\+\_\+get\+\_\+red\+\_\+data}!A\+P\+D\+S9960\+\_\+\+Data\+Functions@{A\+P\+D\+S9960\+\_\+\+Data\+Functions}}
+\subsubsection{\texorpdfstring{apds\+\_\+get\+\_\+red\+\_\+data()}{apds\_get\_red\_data()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t apds\+\_\+get\+\_\+red\+\_\+data (\begin{DoxyParamCaption}\item[{\hyperlink{structAPDS9960__Driver}{A\+P\+D\+S\+\_\+\+D\+EV}}]{dev,  }\item[{\hyperlink{vl53l0x__types_8h_a273cf69d639a59973b6019625df33e30}{uint16\+\_\+t} $\ast$}]{d }\end{DoxyParamCaption})}
+
+
+
+
+\begin{DoxyItemize}
+\item Get the latest red data from the A\+LS engine 
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dev} & -\/ apds handle \\
+\hline
+{\em d} & -\/ pointer to value storage \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+E\+S\+P\+\_\+\+OK or error 
+\end{DoxyReturn}

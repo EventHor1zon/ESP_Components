@@ -1,0 +1,288 @@
+\hypertarget{group__VL53L0X__interrupt__group}{}\section{V\+L53\+L0X Interrupt Functions}
+\label{group__VL53L0X__interrupt__group}\index{V\+L53\+L0\+X Interrupt Functions@{V\+L53\+L0\+X Interrupt Functions}}
+
+
+Functions used for interrupt managements.  
+
+
+Collaboration diagram for V\+L53\+L0X Interrupt Functions\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{group__VL53L0X__interrupt__group}
+\end{center}
+\end{figure}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__interrupt__group_ga8793fb3c70a2c297247a103e1b446f49}{V\+L53\+L0\+X\+\_\+\+Set\+Gpio\+Config} (\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV} Dev, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} Pin, V\+L53\+L0\+X\+\_\+\+Device\+Modes Device\+Mode, V\+L53\+L0\+X\+\_\+\+Gpio\+Functionality Functionality, V\+L53\+L0\+X\+\_\+\+Interrupt\+Polarity Polarity)
+\begin{DoxyCompactList}\small\item\em Set the configuration of G\+P\+IO pin for a given device. \end{DoxyCompactList}\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__interrupt__group_gadb505a2440a9e00170bca1da6ca6a50f}{V\+L53\+L0\+X\+\_\+\+Get\+Gpio\+Config} (\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV} Dev, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} Pin, V\+L53\+L0\+X\+\_\+\+Device\+Modes $\ast$p\+Device\+Mode, V\+L53\+L0\+X\+\_\+\+Gpio\+Functionality $\ast$p\+Functionality, V\+L53\+L0\+X\+\_\+\+Interrupt\+Polarity $\ast$p\+Polarity)
+\begin{DoxyCompactList}\small\item\em Get current configuration for G\+P\+IO pin for a given device. \end{DoxyCompactList}\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__interrupt__group_ga3c49d83194d278e3a2706ee1732e28de}{V\+L53\+L0\+X\+\_\+\+Set\+Interrupt\+Thresholds} (\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV} Dev, V\+L53\+L0\+X\+\_\+\+Device\+Modes Device\+Mode, \hyperlink{vl53l0x__types_8h_afb910790161809fc76e1a274a6349384}{Fix\+Point1616\+\_\+t} Threshold\+Low, \hyperlink{vl53l0x__types_8h_afb910790161809fc76e1a274a6349384}{Fix\+Point1616\+\_\+t} Threshold\+High)
+\begin{DoxyCompactList}\small\item\em Set low and high Interrupt thresholds for a given mode (ranging, A\+LS, ...) for a given device. \end{DoxyCompactList}\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__interrupt__group_ga9d1025202afa35f30ec8efc1ab42b65d}{V\+L53\+L0\+X\+\_\+\+Get\+Interrupt\+Thresholds} (\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV} Dev, V\+L53\+L0\+X\+\_\+\+Device\+Modes Device\+Mode, \hyperlink{vl53l0x__types_8h_afb910790161809fc76e1a274a6349384}{Fix\+Point1616\+\_\+t} $\ast$p\+Threshold\+Low, \hyperlink{vl53l0x__types_8h_afb910790161809fc76e1a274a6349384}{Fix\+Point1616\+\_\+t} $\ast$p\+Threshold\+High)
+\begin{DoxyCompactList}\small\item\em Get high and low Interrupt thresholds for a given mode (ranging, A\+LS, ...) for a given device. \end{DoxyCompactList}\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__interrupt__group_ga63d96c483cd41f1e679d8144603942cf}{V\+L53\+L0\+X\+\_\+\+Get\+Stop\+Completed\+Status} (\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV} Dev, \hyperlink{vl53l0x__types_8h_a435d1572bf3f880d55459d9805097f62}{uint32\+\_\+t} $\ast$p\+Stop\+Status)
+\begin{DoxyCompactList}\small\item\em Return device stop completion status. \end{DoxyCompactList}\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__interrupt__group_gaa84b2cf5cd87b118b9a43e7ae764447e}{V\+L53\+L0\+X\+\_\+\+Clear\+Interrupt\+Mask} (\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV} Dev, \hyperlink{vl53l0x__types_8h_a435d1572bf3f880d55459d9805097f62}{uint32\+\_\+t} Interrupt\+Mask)
+\begin{DoxyCompactList}\small\item\em Clear given system interrupt condition. \end{DoxyCompactList}\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__interrupt__group_ga8c91d3c30fae1e4c76f6aa3794cab364}{V\+L53\+L0\+X\+\_\+\+Get\+Interrupt\+Mask\+Status} (\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV} Dev, \hyperlink{vl53l0x__types_8h_a435d1572bf3f880d55459d9805097f62}{uint32\+\_\+t} $\ast$p\+Interrupt\+Mask\+Status)
+\begin{DoxyCompactList}\small\item\em Return device interrupt status. \end{DoxyCompactList}\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__interrupt__group_ga882a69f683b24cb8102a5071ed0becf7}{V\+L53\+L0\+X\+\_\+\+Enable\+Interrupt\+Mask} (\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV} Dev, \hyperlink{vl53l0x__types_8h_a435d1572bf3f880d55459d9805097f62}{uint32\+\_\+t} Interrupt\+Mask)
+\begin{DoxyCompactList}\small\item\em Configure ranging interrupt reported to system. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Functions used for interrupt managements. 
+
+
+
+\subsection{Function Documentation}
+\mbox{\Hypertarget{group__VL53L0X__interrupt__group_gaa84b2cf5cd87b118b9a43e7ae764447e}\label{group__VL53L0X__interrupt__group_gaa84b2cf5cd87b118b9a43e7ae764447e}} 
+\index{V\+L53\+L0\+X Interrupt Functions@{V\+L53\+L0\+X Interrupt Functions}!V\+L53\+L0\+X\+\_\+\+Clear\+Interrupt\+Mask@{V\+L53\+L0\+X\+\_\+\+Clear\+Interrupt\+Mask}}
+\index{V\+L53\+L0\+X\+\_\+\+Clear\+Interrupt\+Mask@{V\+L53\+L0\+X\+\_\+\+Clear\+Interrupt\+Mask}!V\+L53\+L0\+X Interrupt Functions@{V\+L53\+L0\+X Interrupt Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Clear\+Interrupt\+Mask()}{VL53L0X\_ClearInterruptMask()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Clear\+Interrupt\+Mask (\begin{DoxyParamCaption}\item[{\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV}}]{Dev,  }\item[{\hyperlink{vl53l0x__types_8h_a435d1572bf3f880d55459d9805097f62}{uint32\+\_\+t}}]{Interrupt\+Mask }\end{DoxyParamCaption})}
+
+
+
+Clear given system interrupt condition. 
+
+\begin{DoxyParagraph}{Function Description}
+Clear given interrupt(s).
+\end{DoxyParagraph}
+\begin{DoxyNote}{Note}
+This function Access to the device
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Dev} & Device Handle \\
+\hline
+{\em Interrupt\+Mask} & Mask of interrupts to clear \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+NE Success 
+
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+I\+N\+T\+E\+R\+R\+U\+P\+T\+\_\+\+N\+O\+T\+\_\+\+C\+L\+E\+A\+R\+ED Cannot clear interrupts
+
+\char`\"{}\+Other error code\char`\"{} See \+::\+V\+L53\+L0\+X\+\_\+\+Error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__VL53L0X__interrupt__group_ga882a69f683b24cb8102a5071ed0becf7}\label{group__VL53L0X__interrupt__group_ga882a69f683b24cb8102a5071ed0becf7}} 
+\index{V\+L53\+L0\+X Interrupt Functions@{V\+L53\+L0\+X Interrupt Functions}!V\+L53\+L0\+X\+\_\+\+Enable\+Interrupt\+Mask@{V\+L53\+L0\+X\+\_\+\+Enable\+Interrupt\+Mask}}
+\index{V\+L53\+L0\+X\+\_\+\+Enable\+Interrupt\+Mask@{V\+L53\+L0\+X\+\_\+\+Enable\+Interrupt\+Mask}!V\+L53\+L0\+X Interrupt Functions@{V\+L53\+L0\+X Interrupt Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Enable\+Interrupt\+Mask()}{VL53L0X\_EnableInterruptMask()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Enable\+Interrupt\+Mask (\begin{DoxyParamCaption}\item[{\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV}}]{Dev,  }\item[{\hyperlink{vl53l0x__types_8h_a435d1572bf3f880d55459d9805097f62}{uint32\+\_\+t}}]{Interrupt\+Mask }\end{DoxyParamCaption})}
+
+
+
+Configure ranging interrupt reported to system. 
+
+\begin{DoxyNote}{Note}
+This function is not Implemented
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Dev} & Device Handle \\
+\hline
+{\em Interrupt\+Mask} & Mask of interrupt to Enable/disable (0\+:interrupt disabled or 1\+: interrupt enabled) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+T\+\_\+\+I\+M\+P\+L\+E\+M\+E\+N\+T\+ED Not implemented 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__VL53L0X__interrupt__group_gadb505a2440a9e00170bca1da6ca6a50f}\label{group__VL53L0X__interrupt__group_gadb505a2440a9e00170bca1da6ca6a50f}} 
+\index{V\+L53\+L0\+X Interrupt Functions@{V\+L53\+L0\+X Interrupt Functions}!V\+L53\+L0\+X\+\_\+\+Get\+Gpio\+Config@{V\+L53\+L0\+X\+\_\+\+Get\+Gpio\+Config}}
+\index{V\+L53\+L0\+X\+\_\+\+Get\+Gpio\+Config@{V\+L53\+L0\+X\+\_\+\+Get\+Gpio\+Config}!V\+L53\+L0\+X Interrupt Functions@{V\+L53\+L0\+X Interrupt Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Get\+Gpio\+Config()}{VL53L0X\_GetGpioConfig()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Get\+Gpio\+Config (\begin{DoxyParamCaption}\item[{\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV}}]{Dev,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t}}]{Pin,  }\item[{V\+L53\+L0\+X\+\_\+\+Device\+Modes $\ast$}]{p\+Device\+Mode,  }\item[{V\+L53\+L0\+X\+\_\+\+Gpio\+Functionality $\ast$}]{p\+Functionality,  }\item[{V\+L53\+L0\+X\+\_\+\+Interrupt\+Polarity $\ast$}]{p\+Polarity }\end{DoxyParamCaption})}
+
+
+
+Get current configuration for G\+P\+IO pin for a given device. 
+
+\begin{DoxyNote}{Note}
+This function Access to the device
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Dev} & Device Handle \\
+\hline
+{\em Pin} & ID of the G\+P\+IO Pin \\
+\hline
+{\em p\+Device\+Mode} & Pointer to Device Mode associated to the Gpio. \\
+\hline
+{\em p\+Functionality} & Pointer to Pin functionality. Refer to \+::\+V\+L53\+L0\+X\+\_\+\+Gpio\+Functionality \\
+\hline
+{\em p\+Polarity} & Pointer to interrupt polarity. Active high or active low see \+::\+V\+L53\+L0\+X\+\_\+\+Interrupt\+Polarity \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+NE Success 
+
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+G\+P\+I\+O\+\_\+\+N\+O\+T\+\_\+\+E\+X\+I\+S\+T\+I\+NG Only Pin=0 is accepted. 
+
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+G\+P\+I\+O\+\_\+\+F\+U\+N\+C\+T\+I\+O\+N\+A\+L\+I\+T\+Y\+\_\+\+N\+O\+T\+\_\+\+S\+U\+P\+P\+O\+R\+T\+ED This error occurs when Functionality programmed is not in the supported list\+: Supported value are\+: V\+L53\+L0\+X\+\_\+\+G\+P\+I\+O\+F\+U\+N\+C\+T\+I\+O\+N\+A\+L\+I\+T\+Y\+\_\+\+O\+FF, V\+L53\+L0\+X\+\_\+\+G\+P\+I\+O\+F\+U\+N\+C\+T\+I\+O\+N\+A\+L\+I\+T\+Y\+\_\+\+T\+H\+R\+E\+S\+H\+O\+L\+D\+\_\+\+C\+R\+O\+S\+S\+E\+D\+\_\+\+L\+OW, V\+L53\+L0\+X\+\_\+\+G\+P\+I\+O\+F\+U\+N\+C\+T\+I\+O\+N\+A\+L\+I\+T\+Y\+\_\+\+T\+H\+R\+E\+S\+H\+O\+L\+D\+\_\+\+C\+R\+O\+S\+S\+E\+D\+\_\+\+H\+I\+GH, V\+L53\+L0\+X\+\_\+\+G\+P\+I\+O\+F\+U\+N\+C\+T\+I\+O\+N\+A\+L\+I\+T\+Y\+\_\+\+T\+H\+R\+E\+S\+H\+O\+L\+D\+\_\+\+C\+R\+O\+S\+S\+E\+D\+\_\+\+O\+UT, V\+L53\+L0\+X\+\_\+\+G\+P\+I\+O\+F\+U\+N\+C\+T\+I\+O\+N\+A\+L\+I\+T\+Y\+\_\+\+N\+E\+W\+\_\+\+M\+E\+A\+S\+U\+R\+E\+\_\+\+R\+E\+A\+DY 
+
+\char`\"{}\+Other error code\char`\"{} See \+::\+V\+L53\+L0\+X\+\_\+\+Error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__VL53L0X__interrupt__group_ga8c91d3c30fae1e4c76f6aa3794cab364}\label{group__VL53L0X__interrupt__group_ga8c91d3c30fae1e4c76f6aa3794cab364}} 
+\index{V\+L53\+L0\+X Interrupt Functions@{V\+L53\+L0\+X Interrupt Functions}!V\+L53\+L0\+X\+\_\+\+Get\+Interrupt\+Mask\+Status@{V\+L53\+L0\+X\+\_\+\+Get\+Interrupt\+Mask\+Status}}
+\index{V\+L53\+L0\+X\+\_\+\+Get\+Interrupt\+Mask\+Status@{V\+L53\+L0\+X\+\_\+\+Get\+Interrupt\+Mask\+Status}!V\+L53\+L0\+X Interrupt Functions@{V\+L53\+L0\+X Interrupt Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Get\+Interrupt\+Mask\+Status()}{VL53L0X\_GetInterruptMaskStatus()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Get\+Interrupt\+Mask\+Status (\begin{DoxyParamCaption}\item[{\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV}}]{Dev,  }\item[{\hyperlink{vl53l0x__types_8h_a435d1572bf3f880d55459d9805097f62}{uint32\+\_\+t} $\ast$}]{p\+Interrupt\+Mask\+Status }\end{DoxyParamCaption})}
+
+
+
+Return device interrupt status. 
+
+\begin{DoxyParagraph}{Function Description}
+Returns currently raised interrupts by the device. User shall be able to activate/deactivate interrupts through {\itshape \hyperlink{group__VL53L0X__interrupt__group_ga8793fb3c70a2c297247a103e1b446f49}{V\+L53\+L0\+X\+\_\+\+Set\+Gpio\+Config()}} 
+\end{DoxyParagraph}
+\begin{DoxyNote}{Note}
+This function Access to the device
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Dev} & Device Handle \\
+\hline
+{\em p\+Interrupt\+Mask\+Status} & Pointer to status variable to update \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+NE Success 
+
+\char`\"{}\+Other error code\char`\"{} See \+::\+V\+L53\+L0\+X\+\_\+\+Error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__VL53L0X__interrupt__group_ga9d1025202afa35f30ec8efc1ab42b65d}\label{group__VL53L0X__interrupt__group_ga9d1025202afa35f30ec8efc1ab42b65d}} 
+\index{V\+L53\+L0\+X Interrupt Functions@{V\+L53\+L0\+X Interrupt Functions}!V\+L53\+L0\+X\+\_\+\+Get\+Interrupt\+Thresholds@{V\+L53\+L0\+X\+\_\+\+Get\+Interrupt\+Thresholds}}
+\index{V\+L53\+L0\+X\+\_\+\+Get\+Interrupt\+Thresholds@{V\+L53\+L0\+X\+\_\+\+Get\+Interrupt\+Thresholds}!V\+L53\+L0\+X Interrupt Functions@{V\+L53\+L0\+X Interrupt Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Get\+Interrupt\+Thresholds()}{VL53L0X\_GetInterruptThresholds()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Get\+Interrupt\+Thresholds (\begin{DoxyParamCaption}\item[{\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV}}]{Dev,  }\item[{V\+L53\+L0\+X\+\_\+\+Device\+Modes}]{Device\+Mode,  }\item[{\hyperlink{vl53l0x__types_8h_afb910790161809fc76e1a274a6349384}{Fix\+Point1616\+\_\+t} $\ast$}]{p\+Threshold\+Low,  }\item[{\hyperlink{vl53l0x__types_8h_afb910790161809fc76e1a274a6349384}{Fix\+Point1616\+\_\+t} $\ast$}]{p\+Threshold\+High }\end{DoxyParamCaption})}
+
+
+
+Get high and low Interrupt thresholds for a given mode (ranging, A\+LS, ...) for a given device. 
+
+\begin{DoxyParagraph}{Function Description}
+Get high and low Interrupt thresholds for a given mode (ranging, A\+LS, ...) for a given device
+\end{DoxyParagraph}
+\begin{DoxyNote}{Note}
+This function Access to the device
+
+Device\+Mode is ignored for the current device
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Dev} & Device Handle \\
+\hline
+{\em Device\+Mode} & Device Mode from which read thresholds \\
+\hline
+{\em p\+Threshold\+Low} & Low threshold (mm, lux ..., depending on the mode) \\
+\hline
+{\em p\+Threshold\+High} & High threshold (mm, lux ..., depending on the mode) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+NE Success 
+
+\char`\"{}\+Other error code\char`\"{} See \+::\+V\+L53\+L0\+X\+\_\+\+Error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__VL53L0X__interrupt__group_ga63d96c483cd41f1e679d8144603942cf}\label{group__VL53L0X__interrupt__group_ga63d96c483cd41f1e679d8144603942cf}} 
+\index{V\+L53\+L0\+X Interrupt Functions@{V\+L53\+L0\+X Interrupt Functions}!V\+L53\+L0\+X\+\_\+\+Get\+Stop\+Completed\+Status@{V\+L53\+L0\+X\+\_\+\+Get\+Stop\+Completed\+Status}}
+\index{V\+L53\+L0\+X\+\_\+\+Get\+Stop\+Completed\+Status@{V\+L53\+L0\+X\+\_\+\+Get\+Stop\+Completed\+Status}!V\+L53\+L0\+X Interrupt Functions@{V\+L53\+L0\+X Interrupt Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Get\+Stop\+Completed\+Status()}{VL53L0X\_GetStopCompletedStatus()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Get\+Stop\+Completed\+Status (\begin{DoxyParamCaption}\item[{\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV}}]{Dev,  }\item[{\hyperlink{vl53l0x__types_8h_a435d1572bf3f880d55459d9805097f62}{uint32\+\_\+t} $\ast$}]{p\+Stop\+Status }\end{DoxyParamCaption})}
+
+
+
+Return device stop completion status. 
+
+\begin{DoxyParagraph}{Function Description}
+Returns stop completiob status. User shall call this function after a stop command
+\end{DoxyParagraph}
+\begin{DoxyNote}{Note}
+This function Access to the device
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Dev} & Device Handle \\
+\hline
+{\em p\+Stop\+Status} & Pointer to status variable to update \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+NE Success 
+
+\char`\"{}\+Other error code\char`\"{} See \+::\+V\+L53\+L0\+X\+\_\+\+Error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__VL53L0X__interrupt__group_ga8793fb3c70a2c297247a103e1b446f49}\label{group__VL53L0X__interrupt__group_ga8793fb3c70a2c297247a103e1b446f49}} 
+\index{V\+L53\+L0\+X Interrupt Functions@{V\+L53\+L0\+X Interrupt Functions}!V\+L53\+L0\+X\+\_\+\+Set\+Gpio\+Config@{V\+L53\+L0\+X\+\_\+\+Set\+Gpio\+Config}}
+\index{V\+L53\+L0\+X\+\_\+\+Set\+Gpio\+Config@{V\+L53\+L0\+X\+\_\+\+Set\+Gpio\+Config}!V\+L53\+L0\+X Interrupt Functions@{V\+L53\+L0\+X Interrupt Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Set\+Gpio\+Config()}{VL53L0X\_SetGpioConfig()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Set\+Gpio\+Config (\begin{DoxyParamCaption}\item[{\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV}}]{Dev,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t}}]{Pin,  }\item[{V\+L53\+L0\+X\+\_\+\+Device\+Modes}]{Device\+Mode,  }\item[{V\+L53\+L0\+X\+\_\+\+Gpio\+Functionality}]{Functionality,  }\item[{V\+L53\+L0\+X\+\_\+\+Interrupt\+Polarity}]{Polarity }\end{DoxyParamCaption})}
+
+
+
+Set the configuration of G\+P\+IO pin for a given device. 
+
+\begin{DoxyNote}{Note}
+This function Access to the device
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Dev} & Device Handle \\
+\hline
+{\em Pin} & ID of the G\+P\+IO Pin \\
+\hline
+{\em Functionality} & Select Pin functionality. Refer to \+::\+V\+L53\+L0\+X\+\_\+\+Gpio\+Functionality \\
+\hline
+{\em Device\+Mode} & Device Mode associated to the Gpio. \\
+\hline
+{\em Polarity} & Set interrupt polarity. Active high or active low see \+::\+V\+L53\+L0\+X\+\_\+\+Interrupt\+Polarity \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+NE Success 
+
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+G\+P\+I\+O\+\_\+\+N\+O\+T\+\_\+\+E\+X\+I\+S\+T\+I\+NG Only Pin=0 is accepted. 
+
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+G\+P\+I\+O\+\_\+\+F\+U\+N\+C\+T\+I\+O\+N\+A\+L\+I\+T\+Y\+\_\+\+N\+O\+T\+\_\+\+S\+U\+P\+P\+O\+R\+T\+ED This error occurs when Functionality programmed is not in the supported list\+: Supported value are\+: V\+L53\+L0\+X\+\_\+\+G\+P\+I\+O\+F\+U\+N\+C\+T\+I\+O\+N\+A\+L\+I\+T\+Y\+\_\+\+O\+FF, V\+L53\+L0\+X\+\_\+\+G\+P\+I\+O\+F\+U\+N\+C\+T\+I\+O\+N\+A\+L\+I\+T\+Y\+\_\+\+T\+H\+R\+E\+S\+H\+O\+L\+D\+\_\+\+C\+R\+O\+S\+S\+E\+D\+\_\+\+L\+OW, V\+L53\+L0\+X\+\_\+\+G\+P\+I\+O\+F\+U\+N\+C\+T\+I\+O\+N\+A\+L\+I\+T\+Y\+\_\+\+T\+H\+R\+E\+S\+H\+O\+L\+D\+\_\+\+C\+R\+O\+S\+S\+E\+D\+\_\+\+H\+I\+GH, V\+L53\+L0\+X\+\_\+\+G\+P\+I\+O\+F\+U\+N\+C\+T\+I\+O\+N\+A\+L\+I\+T\+Y\+\_\+\+T\+H\+R\+E\+S\+H\+O\+L\+D\+\_\+\+C\+R\+O\+S\+S\+E\+D\+\_\+\+O\+UT, V\+L53\+L0\+X\+\_\+\+G\+P\+I\+O\+F\+U\+N\+C\+T\+I\+O\+N\+A\+L\+I\+T\+Y\+\_\+\+N\+E\+W\+\_\+\+M\+E\+A\+S\+U\+R\+E\+\_\+\+R\+E\+A\+DY 
+
+\char`\"{}\+Other error code\char`\"{} See \+::\+V\+L53\+L0\+X\+\_\+\+Error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__VL53L0X__interrupt__group_ga3c49d83194d278e3a2706ee1732e28de}\label{group__VL53L0X__interrupt__group_ga3c49d83194d278e3a2706ee1732e28de}} 
+\index{V\+L53\+L0\+X Interrupt Functions@{V\+L53\+L0\+X Interrupt Functions}!V\+L53\+L0\+X\+\_\+\+Set\+Interrupt\+Thresholds@{V\+L53\+L0\+X\+\_\+\+Set\+Interrupt\+Thresholds}}
+\index{V\+L53\+L0\+X\+\_\+\+Set\+Interrupt\+Thresholds@{V\+L53\+L0\+X\+\_\+\+Set\+Interrupt\+Thresholds}!V\+L53\+L0\+X Interrupt Functions@{V\+L53\+L0\+X Interrupt Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Set\+Interrupt\+Thresholds()}{VL53L0X\_SetInterruptThresholds()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Set\+Interrupt\+Thresholds (\begin{DoxyParamCaption}\item[{\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV}}]{Dev,  }\item[{V\+L53\+L0\+X\+\_\+\+Device\+Modes}]{Device\+Mode,  }\item[{\hyperlink{vl53l0x__types_8h_afb910790161809fc76e1a274a6349384}{Fix\+Point1616\+\_\+t}}]{Threshold\+Low,  }\item[{\hyperlink{vl53l0x__types_8h_afb910790161809fc76e1a274a6349384}{Fix\+Point1616\+\_\+t}}]{Threshold\+High }\end{DoxyParamCaption})}
+
+
+
+Set low and high Interrupt thresholds for a given mode (ranging, A\+LS, ...) for a given device. 
+
+\begin{DoxyParagraph}{Function Description}
+Set low and high Interrupt thresholds for a given mode (ranging, A\+LS, ...) for a given device
+\end{DoxyParagraph}
+\begin{DoxyNote}{Note}
+This function Access to the device
+
+Device\+Mode is ignored for the current device
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Dev} & Device Handle \\
+\hline
+{\em Device\+Mode} & Device Mode for which change thresholds \\
+\hline
+{\em Threshold\+Low} & Low threshold (mm, lux ..., depending on the mode) \\
+\hline
+{\em Threshold\+High} & High threshold (mm, lux ..., depending on the mode) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+NE Success 
+
+\char`\"{}\+Other error code\char`\"{} See \+::\+V\+L53\+L0\+X\+\_\+\+Error 
+\end{DoxyReturn}

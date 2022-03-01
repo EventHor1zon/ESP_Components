@@ -1,0 +1,220 @@
+\hypertarget{group__VL53L0X__init__group}{}\section{V\+L53\+L0X Init Functions}
+\label{group__VL53L0X__init__group}\index{V\+L53\+L0\+X Init Functions@{V\+L53\+L0\+X Init Functions}}
+
+
+V\+L53\+L0X Init Functions.  
+
+
+Collaboration diagram for V\+L53\+L0X Init Functions\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{group__VL53L0X__init__group}
+\end{center}
+\end{figure}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__init__group_ga7cb9d3ec8f6e74e921df2eeb600647d7}{V\+L53\+L0\+X\+\_\+\+Set\+Device\+Address} (\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV} Dev, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} Device\+Address)
+\begin{DoxyCompactList}\small\item\em Set new device address. \end{DoxyCompactList}\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__init__group_gabb81d6ad638363d555a1b1b038b23354}{V\+L53\+L0\+X\+\_\+\+Data\+Init} (\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV} Dev)
+\begin{DoxyCompactList}\small\item\em One time device initialization. \end{DoxyCompactList}\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__init__group_gabf9df2a66482932ebedab524ecedaaf1}{V\+L53\+L0\+X\+\_\+\+Set\+Tuning\+Setting\+Buffer} (\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV} Dev, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$p\+Tuning\+Setting\+Buffer, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} Use\+Internal\+Tuning\+Settings)
+\begin{DoxyCompactList}\small\item\em Set the tuning settings pointer. \end{DoxyCompactList}\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__init__group_ga6ecb2af8572433323cc3bff093bbf636}{V\+L53\+L0\+X\+\_\+\+Get\+Tuning\+Setting\+Buffer} (\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV} Dev, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$$\ast$pp\+Tuning\+Setting\+Buffer, \hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$p\+Use\+Internal\+Tuning\+Settings)
+\begin{DoxyCompactList}\small\item\em Get the tuning settings pointer and the internal external switch value. \end{DoxyCompactList}\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__init__group_ga7cf27cba40b2f87dabdc5020aa567b77}{V\+L53\+L0\+X\+\_\+\+Static\+Init} (\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV} Dev)
+\begin{DoxyCompactList}\small\item\em Do basic device init (and eventually patch loading) This function will change the V\+L53\+L0\+X\+\_\+\+State from V\+L53\+L0\+X\+\_\+\+S\+T\+A\+T\+E\+\_\+\+W\+A\+I\+T\+\_\+\+S\+T\+A\+T\+I\+C\+I\+N\+IT to V\+L53\+L0\+X\+\_\+\+S\+T\+A\+T\+E\+\_\+\+I\+D\+LE. In this stage all default setting will be applied. \end{DoxyCompactList}\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__init__group_ga079f2bafbcb26cb4ccf897bb835fcdc8}{V\+L53\+L0\+X\+\_\+\+Wait\+Device\+Booted} (\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV} Dev)
+\begin{DoxyCompactList}\small\item\em Wait for device booted after chip enable (hardware standby) This function can be run only when V\+L53\+L0\+X\+\_\+\+State is V\+L53\+L0\+X\+\_\+\+S\+T\+A\+T\+E\+\_\+\+P\+O\+W\+E\+R\+D\+O\+WN. \end{DoxyCompactList}\item 
+V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error \hyperlink{group__VL53L0X__init__group_gab089144ebdc35ee9abca9ca6c785561c}{V\+L53\+L0\+X\+\_\+\+Reset\+Device} (\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV} Dev)
+\begin{DoxyCompactList}\small\item\em Do an hard reset or soft reset (depending on implementation) of the device  call of this function, device must be in same state as right after a power-\/up sequence.\+This function will change the V\+L53\+L0\+X\+\_\+\+State to V\+L53\+L0\+X\+\_\+\+S\+T\+A\+T\+E\+\_\+\+P\+O\+W\+E\+R\+D\+O\+WN. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+V\+L53\+L0X Init Functions. 
+
+
+
+\subsection{Function Documentation}
+\mbox{\Hypertarget{group__VL53L0X__init__group_gabb81d6ad638363d555a1b1b038b23354}\label{group__VL53L0X__init__group_gabb81d6ad638363d555a1b1b038b23354}} 
+\index{V\+L53\+L0\+X Init Functions@{V\+L53\+L0\+X Init Functions}!V\+L53\+L0\+X\+\_\+\+Data\+Init@{V\+L53\+L0\+X\+\_\+\+Data\+Init}}
+\index{V\+L53\+L0\+X\+\_\+\+Data\+Init@{V\+L53\+L0\+X\+\_\+\+Data\+Init}!V\+L53\+L0\+X Init Functions@{V\+L53\+L0\+X Init Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Data\+Init()}{VL53L0X\_DataInit()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Data\+Init (\begin{DoxyParamCaption}\item[{\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV}}]{Dev }\end{DoxyParamCaption})}
+
+
+
+One time device initialization. 
+
+To be called once and only once after device is brought out of reset (Chip enable) and booted see {\itshape \hyperlink{group__VL53L0X__init__group_ga079f2bafbcb26cb4ccf897bb835fcdc8}{V\+L53\+L0\+X\+\_\+\+Wait\+Device\+Booted()}} 
+
+\begin{DoxyParagraph}{Function Description}
+When not used after a fresh device \char`\"{}power up\char`\"{} or reset, it may return {\itshape \hyperlink{group__VL53L0X__define__Error__group_ga4bc7046c2d7a01b8c925af91d5325a65}{V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+C\+A\+L\+I\+B\+R\+A\+T\+I\+O\+N\+\_\+\+W\+A\+R\+N\+I\+NG}} meaning wrong calibration data may have been fetched from device that can result in ranging offset error~\newline
+If application cannot execute device reset or need to run V\+L53\+L0\+X\+\_\+\+Data\+Init multiple time then it must ensure proper offset calibration saving and restore on its own by using {\itshape V\+L53\+L0\+X\+\_\+\+Get\+Offset\+Calibration\+Data()} on first power up and then {\itshape V\+L53\+L0\+X\+\_\+\+Set\+Offset\+Calibration\+Data()} in all subsequent init This function will change the V\+L53\+L0\+X\+\_\+\+State from V\+L53\+L0\+X\+\_\+\+S\+T\+A\+T\+E\+\_\+\+P\+O\+W\+E\+R\+D\+O\+WN to V\+L53\+L0\+X\+\_\+\+S\+T\+A\+T\+E\+\_\+\+W\+A\+I\+T\+\_\+\+S\+T\+A\+T\+I\+C\+I\+N\+IT.
+\end{DoxyParagraph}
+\begin{DoxyNote}{Note}
+This function Access to the device
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Dev} & Device Handle \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+NE Success 
+
+\char`\"{}\+Other error code\char`\"{} See \+::\+V\+L53\+L0\+X\+\_\+\+Error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__VL53L0X__init__group_ga6ecb2af8572433323cc3bff093bbf636}\label{group__VL53L0X__init__group_ga6ecb2af8572433323cc3bff093bbf636}} 
+\index{V\+L53\+L0\+X Init Functions@{V\+L53\+L0\+X Init Functions}!V\+L53\+L0\+X\+\_\+\+Get\+Tuning\+Setting\+Buffer@{V\+L53\+L0\+X\+\_\+\+Get\+Tuning\+Setting\+Buffer}}
+\index{V\+L53\+L0\+X\+\_\+\+Get\+Tuning\+Setting\+Buffer@{V\+L53\+L0\+X\+\_\+\+Get\+Tuning\+Setting\+Buffer}!V\+L53\+L0\+X Init Functions@{V\+L53\+L0\+X Init Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Get\+Tuning\+Setting\+Buffer()}{VL53L0X\_GetTuningSettingBuffer()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Get\+Tuning\+Setting\+Buffer (\begin{DoxyParamCaption}\item[{\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV}}]{Dev,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$$\ast$}]{pp\+Tuning\+Setting\+Buffer,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$}]{p\+Use\+Internal\+Tuning\+Settings }\end{DoxyParamCaption})}
+
+
+
+Get the tuning settings pointer and the internal external switch value. 
+
+This function is used to get the Tuning settings buffer pointer and the value. of the switch to select either external or internal tuning settings.
+
+\begin{DoxyNote}{Note}
+This function Access to the device
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Dev} & Device Handle \\
+\hline
+{\em pp\+Tuning\+Setting\+Buffer} & Pointer to tuning settings buffer. \\
+\hline
+{\em p\+Use\+Internal\+Tuning\+Settings} & Pointer to store Use internal tuning settings value. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+NE Success 
+
+\char`\"{}\+Other error code\char`\"{} See \+::\+V\+L53\+L0\+X\+\_\+\+Error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__VL53L0X__init__group_gab089144ebdc35ee9abca9ca6c785561c}\label{group__VL53L0X__init__group_gab089144ebdc35ee9abca9ca6c785561c}} 
+\index{V\+L53\+L0\+X Init Functions@{V\+L53\+L0\+X Init Functions}!V\+L53\+L0\+X\+\_\+\+Reset\+Device@{V\+L53\+L0\+X\+\_\+\+Reset\+Device}}
+\index{V\+L53\+L0\+X\+\_\+\+Reset\+Device@{V\+L53\+L0\+X\+\_\+\+Reset\+Device}!V\+L53\+L0\+X Init Functions@{V\+L53\+L0\+X Init Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Reset\+Device()}{VL53L0X\_ResetDevice()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Reset\+Device (\begin{DoxyParamCaption}\item[{\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV}}]{Dev }\end{DoxyParamCaption})}
+
+
+
+Do an hard reset or soft reset (depending on implementation) of the device  call of this function, device must be in same state as right after a power-\/up sequence.\+This function will change the V\+L53\+L0\+X\+\_\+\+State to V\+L53\+L0\+X\+\_\+\+S\+T\+A\+T\+E\+\_\+\+P\+O\+W\+E\+R\+D\+O\+WN. 
+
+\begin{DoxyNote}{Note}
+This function Access to the device
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Dev} & Device Handle \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+NE Success 
+
+\char`\"{}\+Other error code\char`\"{} See \+::\+V\+L53\+L0\+X\+\_\+\+Error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__VL53L0X__init__group_ga7cb9d3ec8f6e74e921df2eeb600647d7}\label{group__VL53L0X__init__group_ga7cb9d3ec8f6e74e921df2eeb600647d7}} 
+\index{V\+L53\+L0\+X Init Functions@{V\+L53\+L0\+X Init Functions}!V\+L53\+L0\+X\+\_\+\+Set\+Device\+Address@{V\+L53\+L0\+X\+\_\+\+Set\+Device\+Address}}
+\index{V\+L53\+L0\+X\+\_\+\+Set\+Device\+Address@{V\+L53\+L0\+X\+\_\+\+Set\+Device\+Address}!V\+L53\+L0\+X Init Functions@{V\+L53\+L0\+X Init Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Set\+Device\+Address()}{VL53L0X\_SetDeviceAddress()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Set\+Device\+Address (\begin{DoxyParamCaption}\item[{\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV}}]{Dev,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t}}]{Device\+Address }\end{DoxyParamCaption})}
+
+
+
+Set new device address. 
+
+After completion the device will answer to the new address programmed. This function should be called when several devices are used in parallel before start programming the sensor. When a single device us used, there is no need to call this function.
+
+\begin{DoxyNote}{Note}
+This function Access to the device
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Dev} & Device Handle \\
+\hline
+{\em Device\+Address} & \hyperlink{structThe}{The} new Device address \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+NE Success 
+
+\char`\"{}\+Other error code\char`\"{} See \+::\+V\+L53\+L0\+X\+\_\+\+Error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__VL53L0X__init__group_gabf9df2a66482932ebedab524ecedaaf1}\label{group__VL53L0X__init__group_gabf9df2a66482932ebedab524ecedaaf1}} 
+\index{V\+L53\+L0\+X Init Functions@{V\+L53\+L0\+X Init Functions}!V\+L53\+L0\+X\+\_\+\+Set\+Tuning\+Setting\+Buffer@{V\+L53\+L0\+X\+\_\+\+Set\+Tuning\+Setting\+Buffer}}
+\index{V\+L53\+L0\+X\+\_\+\+Set\+Tuning\+Setting\+Buffer@{V\+L53\+L0\+X\+\_\+\+Set\+Tuning\+Setting\+Buffer}!V\+L53\+L0\+X Init Functions@{V\+L53\+L0\+X Init Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Set\+Tuning\+Setting\+Buffer()}{VL53L0X\_SetTuningSettingBuffer()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Set\+Tuning\+Setting\+Buffer (\begin{DoxyParamCaption}\item[{\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV}}]{Dev,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t} $\ast$}]{p\+Tuning\+Setting\+Buffer,  }\item[{\hyperlink{vl53l0x__types_8h_aba7bc1797add20fe3efdf37ced1182c5}{uint8\+\_\+t}}]{Use\+Internal\+Tuning\+Settings }\end{DoxyParamCaption})}
+
+
+
+Set the tuning settings pointer. 
+
+This function is used to specify the Tuning settings buffer to be used for a given device. \hyperlink{structThe}{The} buffer contains all the necessary data to permit the A\+PI to write tuning settings. This function permit to force the usage of either external or internal tuning settings.
+
+\begin{DoxyNote}{Note}
+This function Access to the device
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Dev} & Device Handle \\
+\hline
+{\em p\+Tuning\+Setting\+Buffer} & Pointer to tuning settings buffer. \\
+\hline
+{\em Use\+Internal\+Tuning\+Settings} & Use internal tuning settings value. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+NE Success 
+
+\char`\"{}\+Other error code\char`\"{} See \+::\+V\+L53\+L0\+X\+\_\+\+Error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__VL53L0X__init__group_ga7cf27cba40b2f87dabdc5020aa567b77}\label{group__VL53L0X__init__group_ga7cf27cba40b2f87dabdc5020aa567b77}} 
+\index{V\+L53\+L0\+X Init Functions@{V\+L53\+L0\+X Init Functions}!V\+L53\+L0\+X\+\_\+\+Static\+Init@{V\+L53\+L0\+X\+\_\+\+Static\+Init}}
+\index{V\+L53\+L0\+X\+\_\+\+Static\+Init@{V\+L53\+L0\+X\+\_\+\+Static\+Init}!V\+L53\+L0\+X Init Functions@{V\+L53\+L0\+X Init Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Static\+Init()}{VL53L0X\_StaticInit()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Static\+Init (\begin{DoxyParamCaption}\item[{\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV}}]{Dev }\end{DoxyParamCaption})}
+
+
+
+Do basic device init (and eventually patch loading) This function will change the V\+L53\+L0\+X\+\_\+\+State from V\+L53\+L0\+X\+\_\+\+S\+T\+A\+T\+E\+\_\+\+W\+A\+I\+T\+\_\+\+S\+T\+A\+T\+I\+C\+I\+N\+IT to V\+L53\+L0\+X\+\_\+\+S\+T\+A\+T\+E\+\_\+\+I\+D\+LE. In this stage all default setting will be applied. 
+
+\begin{DoxyNote}{Note}
+This function Access to the device
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Dev} & Device Handle \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+NE Success 
+
+\char`\"{}\+Other error code\char`\"{} See \+::\+V\+L53\+L0\+X\+\_\+\+Error 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__VL53L0X__init__group_ga079f2bafbcb26cb4ccf897bb835fcdc8}\label{group__VL53L0X__init__group_ga079f2bafbcb26cb4ccf897bb835fcdc8}} 
+\index{V\+L53\+L0\+X Init Functions@{V\+L53\+L0\+X Init Functions}!V\+L53\+L0\+X\+\_\+\+Wait\+Device\+Booted@{V\+L53\+L0\+X\+\_\+\+Wait\+Device\+Booted}}
+\index{V\+L53\+L0\+X\+\_\+\+Wait\+Device\+Booted@{V\+L53\+L0\+X\+\_\+\+Wait\+Device\+Booted}!V\+L53\+L0\+X Init Functions@{V\+L53\+L0\+X Init Functions}}
+\subsubsection{\texorpdfstring{V\+L53\+L0\+X\+\_\+\+Wait\+Device\+Booted()}{VL53L0X\_WaitDeviceBooted()}}
+{\footnotesize\ttfamily V\+L53\+L0\+X\+\_\+\+A\+PI V\+L53\+L0\+X\+\_\+\+Error V\+L53\+L0\+X\+\_\+\+Wait\+Device\+Booted (\begin{DoxyParamCaption}\item[{\hyperlink{group__VL53L0X__platform__group_ga2d6405308b1dd524b462f1b8fb97d167}{V\+L53\+L0\+X\+\_\+\+D\+EV}}]{Dev }\end{DoxyParamCaption})}
+
+
+
+Wait for device booted after chip enable (hardware standby) This function can be run only when V\+L53\+L0\+X\+\_\+\+State is V\+L53\+L0\+X\+\_\+\+S\+T\+A\+T\+E\+\_\+\+P\+O\+W\+E\+R\+D\+O\+WN. 
+
+\begin{DoxyNote}{Note}
+This function is not Implemented
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em Dev} & Device Handle \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+V\+L53\+L0\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+N\+O\+T\+\_\+\+I\+M\+P\+L\+E\+M\+E\+N\+T\+ED Not implemented 
+\end{DoxyReturn}

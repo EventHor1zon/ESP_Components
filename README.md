@@ -25,7 +25,7 @@ a device handle and a pointer to a value (set) or value storage (get)
 
 - A4988 Stepper motor IC         (beta)
 - APA102 Addressable LEDs        (beta)
-- APDS Color/IR sensor           (beta)
+- APDS Color/Prox/Gesture sensor (beta)
 - BM(P|E) 280 Temperature sensor (ok)
 - CBuffer_Utils                  (not complete)
 - CCS811 Gas sensor              (not complete)
