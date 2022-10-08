@@ -1,6 +1,0 @@
-<map id="VL53L0X cut1.1 Device Specific Defines" name="VL53L0X cut1.1 Device Specific Defines">
-<area shape="rect" id="node1" href="$group__VL53L0X__DeviceError__group.html" title="Device Error code. " alt="" coords="229,5,324,32"/>
-<area shape="rect" id="node2" href="$group__VL53L0X__GpioFunctionality__group.html" title="Defines the different functionalities for the device GPIO(s) " alt="" coords="213,56,340,83"/>
-<area shape="rect" id="node4" href="$group__VL53L0X__CheckEnable__group.html" title="Check Enable code. " alt="" coords="214,107,339,133"/>
-<area shape="rect" id="node5" href="$group__VL53L0X__DefineRegisters__group.html" title="List of all the defined registers. " alt="" coords="217,157,337,184"/>
-</map>

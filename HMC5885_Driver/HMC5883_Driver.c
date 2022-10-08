@@ -79,7 +79,7 @@ static void hmc_driver_task(void *args) {
                      dev->results.z_val, dev->results.z_raw
             ); 
 
-            vTaskDelay(pdMS_TO_TICKS(200));
+            vTaskDelay(pdMS_TO_TICKS(1000));
 
         }
     }

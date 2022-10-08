@@ -23,12 +23,12 @@
 
 
 /****** Function Prototypes ***********/
-static int32_t bm280_compensate_T_int32(bm_controlData_t *bmCtrl);
-static uint32_t bm280_compensate_P_int64(bm_controlData_t *bmCtrl);
+static int32_t bm280_compensate_T_int32(BM_DEV bmCtrl);
+static uint32_t bm280_compensate_P_int64(BM_DEV bmCtrl);
 #ifdef BME_280
-static uint32_t bm280_compensate_H_int32(bm_controlData_t *bmCtrl);
+static uint32_t bm280_compensate_H_int32(BM_DEV bmCtrl);
 #endif
-static esp_err_t bm280_getDeviceStatus(bm_controlData_t *bmCtrl);
+static esp_err_t bm280_getDeviceStatus(BM_DEV bmCtrl);
 /************ ISR *********************/
 
 /****** Global Data *******************/
@@ -73,7 +73,7 @@ const char *BM_DRIVER_TAG = "[BM280 DRIVER]";
 
 /* Returns temperature in DegC, resolution is 0.01 DegC. Output value of “5123” equals 51.23 DegC. */
 /* bmCtrl->calibrationData.t_fine carries fine temperature as global value int32_t bmCtrl->calibrationData.t_fine; */
-static int32_t bm280_compensate_T_int32(bm_controlData_t *bmCtrl)
+static int32_t bm280_compensate_T_int32(BM_DEV bmCtrl)
 {
     if (bmCtrl->calibrationAquired)
     {
@@ -95,7 +95,7 @@ static int32_t bm280_compensate_T_int32(bm_controlData_t *bmCtrl)
 
 /* Returns pressure in Pa as unsigned 32 bit integer in Q24.8 format (24 integer bits and 8 fractional bits).*/
 /* Output value of “24674867” represents 24674867 / 256 = 96386.2 Pa = 963.862 hPa */
-static uint32_t bm280_compensate_P_int64(bm_controlData_t *bmCtrl)
+static uint32_t bm280_compensate_P_int64(BM_DEV bmCtrl)
 {
     if (bmCtrl->calibrationAquired)
     {
@@ -130,7 +130,7 @@ static uint32_t bm280_compensate_P_int64(bm_controlData_t *bmCtrl)
 
 // Returns humidity in %RH as unsigned 32 bit integer in Q22.10 format (22 integer and 10 fractional bits).
 // Output value of “47445” represents 47445/1024 = 46.333 %RH
-static uint32_t bm280_compensate_H_int32(bm_controlData_t *bmCtrl)
+static uint32_t bm280_compensate_H_int32(BM_DEV bmCtrl)
 {
     if (bmCtrl->calibrationAquired)
     {
@@ -151,7 +151,7 @@ static uint32_t bm280_compensate_H_int32(bm_controlData_t *bmCtrl)
 }
 #endif
 
-static uint16_t bm280_sleepTime(bm_controlData_t *bmCtrl)
+static uint16_t bm280_sleepTime(BM_DEV bmCtrl)
 {
     uint8_t timeSetting = bmCtrl->devSettings.sampleInterval;
     uint16_t time;
@@ -198,7 +198,8 @@ static uint16_t bm280_sleepTime(bm_controlData_t *bmCtrl)
     return time;
 }
 
-static esp_err_t bm280_getDeviceStatus(bm_controlData_t *bmCtrl)
+
+static esp_err_t bm280_getDeviceStatus(BM_DEV bmCtrl)
 {
     esp_err_t trxStatus = ESP_OK;
 
@@ -213,7 +214,8 @@ static esp_err_t bm280_getDeviceStatus(bm_controlData_t *bmCtrl)
     return trxStatus;
 }
 
-static esp_err_t bm280_getCalibrationData(bm_controlData_t *bmCtrl)
+
+static esp_err_t bm280_getCalibrationData(BM_DEV bmCtrl)
 {
     esp_err_t trxStatus = ESP_OK;
 
@@ -280,7 +282,8 @@ static esp_err_t bm280_getCalibrationData(bm_controlData_t *bmCtrl)
     return trxStatus;
 }
 
-static esp_err_t bm280_InitDeviceSettings(bm_controlData_t *bmCtrl)
+
+static esp_err_t bm280_InitDeviceSettings(BM_DEV bmCtrl)
 {
 
     esp_err_t trxStatus = ESP_OK;
@@ -406,7 +409,7 @@ static esp_err_t bm280_InitDeviceSettings(bm_controlData_t *bmCtrl)
 
 /****** Global Functions *************/
 
-esp_err_t bm280_getDeviceID(bm_controlData_t *bmCtrl, uint8_t *deviceID)
+esp_err_t bm280_getDeviceID(BM_DEV bmCtrl, uint8_t *deviceID)
 {
 
     esp_err_t trxStatus = ESP_OK;
@@ -425,7 +428,8 @@ esp_err_t bm280_getDeviceID(bm_controlData_t *bmCtrl, uint8_t *deviceID)
     return trxStatus;
 }
 
-esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
+
+esp_err_t bm280_updateMeasurements(BM_DEV bmCtrl)
 {
 
     esp_err_t trxStatus = ESP_OK;
@@ -550,7 +554,8 @@ esp_err_t bm280_updateMeasurements(bm_controlData_t *bmCtrl)
     return trxStatus;
 }
 
-esp_err_t bm280_getTemperature(bm_controlData_t *bmCtrl, float *realTemp)
+
+esp_err_t bm280_getTemperature(BM_DEV bmCtrl, float *realTemp)
 {
     esp_err_t status = ESP_OK;
 
@@ -559,7 +564,8 @@ esp_err_t bm280_getTemperature(bm_controlData_t *bmCtrl, float *realTemp)
     return status;
 }
 
-esp_err_t bm280_getPressure(bm_controlData_t *bmCtrl, float *realPressure)
+
+esp_err_t bm280_getPressure(BM_DEV bmCtrl, float *realPressure)
 {
     esp_err_t status = ESP_OK;
 
@@ -570,7 +576,7 @@ esp_err_t bm280_getPressure(bm_controlData_t *bmCtrl, float *realPressure)
 
 
 #ifdef BME_280
-esp_err_t bm280_getHumidity(bm_controlData_t *bmCtrl, float *realHumidity)
+esp_err_t bm280_getHumidity(BM_DEV bmCtrl, float *realHumidity)
 {
     esp_err_t status = ESP_OK;
 
@@ -580,7 +586,7 @@ esp_err_t bm280_getHumidity(bm_controlData_t *bmCtrl, float *realHumidity)
 }
 
 
-esp_err_t bm280_getHumidityOS(bm_controlData_t *bmCtrl, uint8_t *humidOS)
+esp_err_t bm280_getHumidityOS(BM_DEV bmCtrl, uint8_t *humidOS)
 {
     esp_err_t status = ESP_OK;
     *humidOS = bmCtrl->devSettings.humidOS;
@@ -588,7 +594,7 @@ esp_err_t bm280_getHumidityOS(bm_controlData_t *bmCtrl, uint8_t *humidOS)
 }
 
 
-esp_err_t bm280_setHumidityOS(bm_controlData_t *bmCtrl, BM_overSample_t *os)
+esp_err_t bm280_setHumidityOS(BM_DEV bmCtrl, BM_overSample_t *os)
 {
     esp_err_t status = ESP_OK;
     uint8_t OSlevel = *os;
@@ -607,14 +613,15 @@ esp_err_t bm280_setHumidityOS(bm_controlData_t *bmCtrl, BM_overSample_t *os)
 
 #endif /** BME_280 **/
 
-esp_err_t bm280_getTemperatureOS(bm_controlData_t *bmCtrl, uint8_t *tempOS)
+esp_err_t bm280_getTemperatureOS(BM_DEV bmCtrl, uint8_t *tempOS)
 {
     esp_err_t status = ESP_OK;
     *tempOS = bmCtrl->devSettings.humidOS;
     return status;
 }
 
-esp_err_t bm280_getPressureOS(bm_controlData_t *bmCtrl, uint8_t *presOS)
+
+esp_err_t bm280_getPressureOS(BM_DEV bmCtrl, uint8_t *presOS)
 {
     esp_err_t status = ESP_OK;
     uint8_t p = *presOS;
@@ -623,7 +630,7 @@ esp_err_t bm280_getPressureOS(bm_controlData_t *bmCtrl, uint8_t *presOS)
 }
 
 
-esp_err_t bm280_setTemperatureOS(bm_controlData_t *bmCtrl, BM_overSample_t *os)
+esp_err_t bm280_setTemperatureOS(BM_DEV bmCtrl, BM_overSample_t *os)
 {
     esp_err_t status = ESP_OK;
     uint8_t _os = *os;
@@ -649,7 +656,8 @@ esp_err_t bm280_setTemperatureOS(bm_controlData_t *bmCtrl, BM_overSample_t *os)
     return status;
 }
 
-esp_err_t bm280_setPressureOS(bm_controlData_t *bmCtrl, BM_overSample_t *os)
+
+esp_err_t bm280_setPressureOS(BM_DEV bmCtrl, BM_overSample_t *os)
 {
     esp_err_t status = ESP_OK;
     uint8_t _os = *os;
@@ -674,7 +682,8 @@ esp_err_t bm280_setPressureOS(bm_controlData_t *bmCtrl, BM_overSample_t *os)
     return status;
 }
 
-esp_err_t bm280_getSampleMode(bm_controlData_t *bmCtrl, uint8_t *sampleMode)
+
+esp_err_t bm280_getSampleMode(BM_DEV bmCtrl, uint8_t *sampleMode)
 {
     esp_err_t status = ESP_OK;
 
@@ -683,7 +692,8 @@ esp_err_t bm280_getSampleMode(bm_controlData_t *bmCtrl, uint8_t *sampleMode)
     return status;
 }
 
-esp_err_t bm280_setSampleMode(bm_controlData_t *bmCtrl, BM_sampleMode_t *sampleMode)
+
+esp_err_t bm280_setSampleMode(BM_DEV bmCtrl, BM_sampleMode_t *sampleMode)
 {
     esp_err_t status = ESP_OK;
     uint8_t sm = *sampleMode;
@@ -706,7 +716,8 @@ esp_err_t bm280_setSampleMode(bm_controlData_t *bmCtrl, BM_sampleMode_t *sampleM
     return status;
 }
 
-esp_err_t bm280_getSampleType(bm_controlData_t *bmCtrl, uint8_t *sampleType)
+
+esp_err_t bm280_getSampleType(BM_DEV bmCtrl, uint8_t *sampleType)
 {
     esp_err_t status = ESP_OK;
 
@@ -715,14 +726,16 @@ esp_err_t bm280_getSampleType(bm_controlData_t *bmCtrl, uint8_t *sampleType)
     return status;
 }
 
-esp_err_t bm280_getFilterSetting(bm_controlData_t *bmCtrl, uint8_t *filter)
+
+esp_err_t bm280_getFilterSetting(BM_DEV bmCtrl, uint8_t *filter)
 {
     esp_err_t status = ESP_OK;
     *filter = bmCtrl->devSettings.filterCoefficient;
     return status;
 }
 
-esp_err_t bm280_setFilterSetting(bm_controlData_t *bmCtrl, bm_filter_t *filter)
+
+esp_err_t bm280_setFilterSetting(BM_DEV bmCtrl, bm_filter_t *filter)
 {
     esp_err_t status = ESP_OK;
     uint8_t reg = 0;
@@ -737,14 +750,16 @@ esp_err_t bm280_setFilterSetting(bm_controlData_t *bmCtrl, bm_filter_t *filter)
     return status;
 }
 
-esp_err_t bm280_getSampleInterval(bm_controlData_t *bmCtrl, uint8_t *dT)
+
+esp_err_t bm280_getSampleInterval(BM_DEV bmCtrl, uint8_t *dT)
 {
     esp_err_t status = ESP_OK;
     *dT = bmCtrl->devSettings.sampleInterval;
     return status;
 }
 
-esp_err_t bm280_setSampleInterval(bm_controlData_t *bmCtrl, BM_standbyT_t *dT)
+
+esp_err_t bm280_setSampleInterval(BM_DEV bmCtrl, BM_standbyT_t *dT)
 {
     esp_err_t status = ESP_OK;
     uint8_t reg = 0;
@@ -766,13 +781,14 @@ esp_err_t bm280_setSampleInterval(bm_controlData_t *bmCtrl, BM_standbyT_t *dT)
     return status;
 }
 
+
 void bmCtrlTask(void *args)
 {
     /**  DONE: Message pump - dont really need - only actuve command is sample?
      *        task delay based on timing? 
      *        auto sample mode for latest?
      * **/
-    bm_controlData_t *bmCtrl = (bm_controlData_t *)args;
+    BM_DEV bmCtrl = (BM_DEV )args;
 
     uint16_t sleep_time = 0;
 
@@ -821,13 +837,14 @@ void bmCtrlTask(void *args)
     }
 }
 
-bm_controlData_t *bm280_init(bm_initData_t *initData)
+
+BM_DEV bm280_init(bm_initData_t *initData)
 {
     esp_err_t initStatus = ESP_OK;
 
     /** assign some heap memory for the control structure **/
 
-    bm_controlData_t *bmCtrl = (bm_controlData_t *)calloc(1, sizeof(bm_controlData_t));
+    BM_DEV bmCtrl = (BM_DEV )calloc(1, sizeof(bm_controlData_t));
     if (bmCtrl == NULL)
     {
         ESP_LOGE(BM_DRIVER_TAG, "Error in assigning control structure memory!");

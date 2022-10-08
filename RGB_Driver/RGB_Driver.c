@@ -26,7 +26,6 @@
 
 const char *RGB_TAG = "RGB_Driver";
 
-#define CONFIG_USE_PERIPH_MANAGER 1
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
 

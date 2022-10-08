@@ -34,6 +34,22 @@ const peripheral_t lora_peripheral_template;
 
 #endif 
 
+
+/** Driver defines **/
+
+#define SX_READWRITE_BIT (1 << 7)
+#define SX_WRITE 1
+#define SX_READ  0
+#define SX_SPI_TIMEOUT_DEFAULT 500
+
+#define SX1276_LORA_FREQ_EURO 868000000UL
+// this is the highest possible frq value based on 
+#define SX_LORA_MAX_FREQUENCY 1024000000UL
+
+#define SX_FRQ_HERTZ_PER_REGCOUNT   61.035
+
+
+
 /** TODONE: put these in a couple of arrays or prefix lora/fsk 
  ***/ 
 
@@ -323,12 +339,6 @@ const peripheral_t lora_peripheral_template;
 #define RE_PA_STD_PWR 0x84
 #define RE_PA_HP_ENABLE 0x87
 
-#define SX_READWRITE_BIT (1 << 8)
-#define SX_WRITE 1
-#define SX_READ  0
-#define SX_SPI_TIMEOUT_DEFAULT 500
-
-#define SX1276_LORA_FREQ_EURO 868000000UL
 
 /********** Types **********************/
 
@@ -575,9 +585,27 @@ typedef enum {
 } low_batt_trim_t;
 
 
+typedef enum {
+    DIO_FUNC_NONE,
+    DIO_FUNC_RX_DONE,   /** DIO 0 **/
+    DIO_FUNC_RX_TIMEOUT, /** DIO 1 **/
+    DIO_FUNC_TX_DONE,    /** DIO 0 **/
+    DIO_FUNC_CAD_DONE,   /** DIO 0 **/
+    DIO_FUNC_CAD_DETECT, /** DIO 1 **/
+    DIO_FUNC_MODE_RDY,   /** DIO 5 **/
+    DIO_FUNC_CLK_OUT,    /** DIO 5 **/
+    DIO_FUNC_PLL_LOCK,   /** DIO 4 **/
+    DIO_FUNC_VALID_HDR,  /** DIO 3 **/
+    DIO_FUNC_FHSS_CHAN_CHG,  /** DIO 2/1 **/
+    DIO_FUNC_PAYLOAD_CRC_ERR, /** DIO 3 **/
+    DIO_FUNC_INVALID,
+} sx_dio_func_t;
+
 typedef struct {
     gpio_num_t rst_pin;
     gpio_num_t cs_pin;
+    gpio_num_t data0;
+    gpio_num_t irq_pin;
     uint8_t spi_bus;
 
 } sx1276_init_t;
@@ -586,7 +614,7 @@ typedef struct {
 typedef struct SX1276_Device_Settings
 {
     uint32_t  frequency;
-    sx_mode_t current_mode;
+    sx_device_mode_t current_mode;
     lna_gain_t gain;
     lora_bw_t bw;
     lora_spread_fac_t sf;
@@ -603,17 +631,17 @@ typedef struct SX1276_Driver
     sx_device_mode_t device_mode;
 
     /** internal register maps **/
-    FSK_Register_Map_t fsk_reg;
-    Lora_Register_Map_t lora_reg;
-
-    uint8_t rx_buffer[256];
-    uint8_t tx_buffer[256];
+    union {
+        FSK_Register_Map_t fsk_reg;
+        Lora_Register_Map_t lora_reg;
+    } registers;
 
     gpio_num_t rst_pin; 
     gpio_num_t cs_pin; 
+    gpio_num_t irq_pin;
     spi_device_handle_t spi_handle;
 
-
+    TaskHandle_t task;
 
 } sx1276_driver_t;
 
@@ -624,17 +652,283 @@ typedef sx1276_driver_t * SX1276_DEV;  /** found this approach in the VL53L0X dr
 
 /******** Function Definitions *********/
 
+/**
+ *  \brief Initialises the sx1276 device 
+ *  \param init ptr to populated sx1276_init_t struct
+ *  \return SX1276 handle or NULL on error
+ *  **/
+SX1276_DEV sx1276_init(sx1276_init_t *init);
 
-SX1276_DEV sx1276_init();
+/**
+ *  \brief Gets the device Version number
+ *  \param dev device handle
+ *  \param ver ptr to value storage
+ *  \return ESP_OK or error code
+ *  **/
+esp_err_t sx_get_version(SX1276_DEV dev, uint8_t *ver);
 
-esp_err_t sx1276_get_opmode_LoRa(sx1276_driver_t *dev, uint8_t *mode);
+/**
+ *  \brief Sets the device transaction mode
+ *  \param dev device handle
+ *  \param mode ptr to value - one of sx_trxmode_t
+ *  \return ESP_OK or error code
+ *  **/
+esp_err_t sx_set_trx_mode(SX1276_DEV dev, sx_trxmode_t *mode);
 
-esp_err_t sx1276_get_modtype(sx1276_driver_t *dev, uint8_t *mode);
+/**
+ *  \brief Gets the device radio mode
+ *  \param dev device handle
+ *  \param mode ptr to value storage
+ *  \return ESP_OK or error code
+ *  **/
+esp_err_t sx_get_device_mode(SX1276_DEV dev, sx_device_mode_t *mode);
 
-esp_err_t sx1276_get_lowfreq_mode(sx1276_driver_t *dev, uint8_t *mode);
+/**
+ *  \brief Sets the device radio mode
+ *  \param dev device handle
+ *  \param mode ptr to value - one of sx_device_mode_t
+ *  \return ESP_OK or error code
+ *  **/
+esp_err_t sx_set_device_mode(SX1276_DEV dev, sx_device_mode_t *mode);
 
-esp_err_t sx1276_get_mode(sx1276_driver_t *dev, uint8_t *mode);
+/**
+ *  \brief Gets the device frequency (in Hertz)
+ *  \param dev device handle
+ *  \param mode ptr to value storage
+ *  \return ESP_OK or error code
+ *  **/
+esp_err_t sx_get_frequency(SX1276_DEV dev, uint32_t *frq);
+
+/**
+ *  \brief Sets the device frequency (in Hertz)
+ *  \param dev device handle
+ *  \param mode ptr to value (Max = SX_LORA_MAX_FREQUENCY-1)
+ *  \return ESP_OK or error code
+ * **/
+esp_err_t sx_set_frequency(SX1276_DEV dev, uint32_t *frq);
+
+/**
+ *  \brief Gets the device power amp output pin
+ *         - 0 RFO Pin (max +14dB)
+ *         - 1 PA BOOST Pin (max +20dB) 
+ *  \param dev device handle
+ *  \param mode ptr to value storage
+ *  \return ESP_OK or error code
+ *  **/
+esp_err_t sx_get_pa_sel(SX1276_DEV dev, bool *pa_sel);
+
+/**
+ *  \brief Sets the device power amp output pin
+ *         - 0 RFO Pin (max +14dB)
+ *         - 1 PA BOOST Pin (max +20dB) 
+ *  \param dev device handle
+ *  \param mode ptr to value storage
+ *  \return ESP_OK or error code
+ *  **/
+esp_err_t sx_set_pa_sel(SX1276_DEV dev, bool *pa_sel);
+
+/**
+ *  \brief Gets the lora header mode
+ *         - 0 Explict
+ *         - 1+ Implicit
+ *  \param dev device handle
+ *  \param mode ptr to value 
+ *  \return ESP_OK or error code
+ * **/
+esp_err_t sx_get_lora_headermode(SX1276_DEV dev, uint8_t *val);
+
+/**
+ *  \brief Sets the lora header mode
+ *  \param dev device handle
+ *  \param mode ptr to value (0 = Explict, 1+ = implicit)
+ *  \return ESP_OK or error code
+ * **/
+esp_err_t sx_set_lora_headermode(SX1276_DEV dev, uint8_t *val);
 
 
+/**
+ *  \brief Gets the device Overcurrent Protection
+ *          enabled status
+ *         - 0 disabled
+ *         - 1 enabled
+ *  \param dev device handle
+ *  \param mode ptr to value storage 
+ *  \return ESP_OK or error code
+ * **/
+esp_err_t sx_get_ocp_en(SX1276_DEV dev, bool *en);
+
+/**
+ *  \brief Sets the device Overcurrent Protection
+ *          enabled status
+ *         - 0 disabled
+ *         - 1 enabled
+ *  \param dev device handle
+ *  \param mode ptr to value
+ *  \return ESP_OK or error code
+ * **/
+esp_err_t sx_set_ocp_en(SX1276_DEV dev, bool *en);
+
+/**
+ *  \brief Gets the overcurrent protection trim
+ *  \param dev device handle
+ *  \param trim ptr to value storage
+ *  \return ESP_OK or error code
+ * **/
+esp_err_t sx_get_ocp_trim(SX1276_DEV dev, uint8_t *trim);
+
+/**
+ *  \brief Sets the overcurrent protection trim
+ *          Trimming of OCP current:
+ *          Maximum register value: 15
+ *          I max = 45+5*OcpTrim [mA] if OcpTrim <= 15 (120 mA) /
+ *          I max = -30+10*OcpTrim [mA] if 15 < OcpTrim <= 27 (130 to 240
+ *          mA)
+ *          I max = 240mA for higher settings
+ *          Default I max = 100m
+ *          
+ *  \param dev device handle
+ *  \param trim ptr to value
+ *  \return ESP_OK or error code
+ * **/
+esp_err_t sx_set_ocp_trim(SX1276_DEV dev, uint8_t *trim);
+
+// esp_err_t sx1276_get_modtype(SX1276_DEV dev, uint8_t *mode);
+
+// esp_err_t sx1276_get_lowfreq_mode(SX1276_DEV dev, uint8_t *mode);
+
+/**
+ *  \brief Gets the device Low Noise Amplifier gain setting
+ *  \param dev device handle
+ *  \param mode ptr to value storage 
+ *  \return ESP_OK or error code
+ * **/
+esp_err_t sx_get_lna_gain(SX1276_DEV dev, uint8_t *gain);
+
+/**
+ *  \brief Sets device LNA Gain
+ *          Should be one of lna_gain_t
+ *          (max: 6)
+ *  \param dev device handle
+ *  \param mode ptr to value 
+ *  \return ESP_OK or error code
+ * **/
+esp_err_t sx_set_lna_gain(SX1276_DEV dev, uint8_t *gain);
+
+/**
+ *  \brief Gets the device LNA HF boost
+ *          status
+ *         - 0 disabled
+ *         - 1 enabled
+ *  \param dev device handle
+ *  \param mode ptr to value storage 
+ *  \return ESP_OK or error code
+ * **/
+esp_err_t sx_get_lna_boost_hf(SX1276_DEV dev, bool *io);
+
+/**
+ *  \brief Sets the device LNA HF boost
+ *          status
+ *         - 0 disabled
+ *         - 1 enabled
+ *  \param dev device handle
+ *  \param mode ptr to value 
+ *  \return ESP_OK or error code
+ * **/
+esp_err_t sx_set_lna_boost_hf(SX1276_DEV dev, bool *io);
+
+
+/**
+ *  \brief Sets the device lora bandwidth
+ *          must be one of lora_bw_t
+ *  \param dev device handle
+ *  \param mode ptr to value 
+ *  \return ESP_OK or error code
+ * **/
+esp_err_t sx_set_signal_bandwidth(SX1276_DEV dev, lora_bw_t *bw);
+
+
+esp_err_t sx_get_lora_spreading_factor(SX1276_DEV dev, uint8_t *val);
+
+esp_err_t sx_set_lora_spreading_factor(SX1276_DEV dev, uint8_t *val);
+
+esp_err_t sx_get_rx_payload_crc_en(SX1276_DEV dev,  bool *en);
+
+esp_err_t sx_set_rx_payload_crc_en(SX1276_DEV dev, bool *en);
+
+esp_err_t sx_get_lora_headermode(SX1276_DEV dev, uint8_t *val);
+
+esp_err_t sx_set_lora_headermode(SX1276_DEV dev, uint8_t *val);
+
+esp_err_t sx_get_low_datarate_optimise(SX1276_DEV dev,  bool *en);
+
+esp_err_t sx_get_low_datarate_optimise(SX1276_DEV dev,  bool *en);
+
+/**
+ *  \brief Gets the device AGC Auto Enabled
+ *          status (LNA Gain controlled by AGC)
+ *         - 0 disabled
+ *         - 1 enabled
+ *  \param dev device handle
+ *  \param mode ptr to value 
+ *  \return ESP_OK or error code
+ * **/
+esp_err_t sx_get_agc_auto(SX1276_DEV dev,  bool *io);
+
+/**
+ *  \brief Gets the LoRa device AGC Auto Enabled
+ *          status
+ *         - 0 disabled
+ *         - 1 enabled
+ *  \param dev device handle
+ *  \param mode ptr to value 
+ *  \return ESP_OK or error code
+ * **/
+esp_err_t sx_set_agc_auto(SX1276_DEV dev, bool *io);
+
+
+
+esp_err_t sx_get_frequency_err(SX1276_DEV dev, uint32_t *frq);
+
+esp_err_t sx_get_lora_syncword(SX1276_DEV dev, uint8_t *val);
+
+esp_err_t sx_set_lora_syncword(SX1276_DEV dev, uint8_t *val);
+
+esp_err_t sx_set_tx_pwr(SX1276_DEV dev, uint16_t pwr);
+
+esp_err_t sx_get_valid_hdr_count(SX1276_DEV dev, uint32_t *cnt);
+
+esp_err_t sx_get_valid_pkt_count(SX1276_DEV dev, uint32_t *cnt);
+
+esp_err_t sx_get_last_rx_len(SX1276_DEV dev, uint8_t *len);
+
+esp_err_t sx_get_last_rx_coding_rate(SX1276_DEV dev, uint8_t *cr);
+
+esp_err_t sx_get_last_pkt_snr(SX1276_DEV dev, int16_t *snr);
+
+esp_err_t sx_get_last_pkt_rssi(SX1276_DEV dev, uint16_t *rssi);
+
+esp_err_t sx_get_lora_dio0_func(SX1276_DEV dev, sx_dio_func_t *val);
+
+esp_err_t sx_set_lora_dio0_func(SX1276_DEV dev, sx_dio_func_t *val);
+
+esp_err_t sx_lora_transmit_data(SX1276_DEV dev, uint8_t *data, uint8_t len);
+
+/**
+ *  \brief Sets the sx1276 device to LoRa mode and
+ *          initialises several settings - 
+ *          sets tx fifo ptr to 0
+ *          sets the LNA Gain to max
+ *          sets the AGC Auto enabled bit
+ *          sets the TxPower to 17
+ *          sets the lora header mode to explicit
+ *          sets the device into standby mode
+ *  \param dev device handle
+ *  \return ESP_OK or error code
+ *  **/
+esp_err_t sx_setup_lora(SX1276_DEV dev);
+
+esp_err_t sx_lora_set_fifo_tx_start(SX1276_DEV dev, uint8_t *val);
+
+esp_err_t sx_lora_set_fifo_rx_start(SX1276_DEV dev, uint8_t *val);
 
 #endif /* LORA_SX1276_H */

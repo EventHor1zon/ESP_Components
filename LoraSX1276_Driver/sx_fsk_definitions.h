@@ -103,7 +103,7 @@ typedef enum {
 typedef struct FSK_Register_Map
 {
     /* Fifo  */
-    uint8_t regFifo;    /**< 0x00 **/
+    uint8_t regFifo;                    /**< 0x00 **/
     
     /** Common Settings Registers **/
     union {
@@ -115,10 +115,10 @@ typedef struct FSK_Register_Map
             uint8_t modulationType : 2;
             uint8_t longRangeMode : 1;
         } regBits;
-    } regOpMode;    /**< 0x01 **/
+    } regOpMode;                        /**< 0x01 **/
 
-    uint8_t regBitrateMsb;  /**< 0x02 **/
-    uint8_t regBitrateLsb;  /**< 0x03 **/
+    uint8_t regBitrateMsb;              /**< 0x02 **/
+    uint8_t regBitrateLsb;              /**< 0x03 **/
 
     union {
         uint8_t regByte;
@@ -126,13 +126,13 @@ typedef struct FSK_Register_Map
             uint8_t freqDevnMsb : 6;
             uint8_t resvd : 2;
         } regBits;
-    } regFreqDevnMsb;   /**< 0x04 **/
+    } regFreqDevnMsb;                   /**< 0x04 **/
 
-    uint8_t regFreqDevn;    /**< 0x05 **/
+    uint8_t regFreqDevn;                /**< 0x05 **/
 
-    uint8_t regRfCarrierFreqMsb;    /**< 0x06 **/
-    uint8_t regRfCarrierFreqMidsb;  /**< 0x07 **/
-    uint8_t regRfCarrierFreqLsb;    /**< 0x08 **/
+    uint8_t regRfCarrierFreqMsb;        /**< 0x06 **/
+    uint8_t regRfCarrierFreqMidsb;      /**< 0x07 **/
+    uint8_t regRfCarrierFreqLsb;        /**< 0x08 **/
 
 
     /** Transmitter registers **/
@@ -144,7 +144,7 @@ typedef struct FSK_Register_Map
             uint8_t maxPower : 3;
             uint8_t pAmpSel : 1;
         } regBits;
-    } regPwrAmpCfg;     /**< 0x09 **/
+    } regPwrAmpCfg;                     /**< 0x09 **/
 
     union {
         uint8_t regByte;
@@ -154,7 +154,7 @@ typedef struct FSK_Register_Map
             uint8_t modulationShape : 2;
             uint8_t unused : 1;
         } regBits;
-    } regPaRamp;    /**< 0x0A **/
+    } regPaRamp;                        /**< 0x0A **/
 
     union {
         uint8_t regByte;
@@ -163,7 +163,8 @@ typedef struct FSK_Register_Map
             uint8_t ocpEn : 1;
             uint8_t unsused : 2;
         } regBits;
-    } regOcp;   /**< 0x0B **/
+    } regOcp;                           /**< 0x0B **/
+
     /** Receiver Settings Registers **/
 
     union {
@@ -174,7 +175,7 @@ typedef struct FSK_Register_Map
             uint8_t lnaBoostLFrq : 2;
             uint8_t lnaGain : 3;
         } regBits;
-    } regLNA;       /**< 0x0C **/
+    } regLNA;                           /**< 0x0C **/
 
     union {
         uint8_t regByte;
@@ -186,7 +187,7 @@ typedef struct FSK_Register_Map
             uint8_t restartRxWoPLL : 1;
             uint8_t restartRxOnCollision : 1;
         } regBits;
-    } regRxCfg;     /**< 0x0D **/
+    } regRxCfg;                         /**< 0x0D **/
 
     union {
         uint8_t regByte;
@@ -194,12 +195,12 @@ typedef struct FSK_Register_Map
             uint8_t rssiSmoothing : 3;
             uint8_t rssiOffset : 5;
         } regBits;
-    } regRssiCfg;       /**< 0x0E **/
+    } regRssiCfg;                       /**< 0x0E **/
 
     
-    uint8_t rssiCollisionThresh;    /**< 0x0F **/
-    uint8_t rssiThresh;             /**< 0x10 **/
-    uint8_t rssiValue;              /**< 0x11 **/
+    uint8_t rssiCollisionThresh;        /**< 0x0F **/
+    uint8_t rssiThresh;                 /**< 0x10 **/
+    uint8_t rssiValue;                  /**< 0x11 **/
 
     union {
         uint8_t regByte;
@@ -209,7 +210,7 @@ typedef struct FSK_Register_Map
             uint8_t rsvd : 2;
             uint8_t unused : 1;
         } regBits;
-    } regRxBw;          /**< 0x12 **/
+    } regRxBw;                          /**< 0x12 **/
 
     union {
         uint8_t regByte;
@@ -218,7 +219,7 @@ typedef struct FSK_Register_Map
             uint8_t rxBwMantAfc : 2;
             uint8_t rsvd : 3;
         } regBits;
-    } regAfcBw;         /**< 0x13 **/
+    } regAfcBw;                         /**< 0x13 **/
 
     union {
         uint8_t regByte;
@@ -228,9 +229,9 @@ typedef struct FSK_Register_Map
             uint8_t bitSyncEn : 1;
             uint8_t rsvd : 2;
         } regBits;
-    } regOokPeak;       /**< 0x14 **/
+    } regOokPeak;                       /**< 0x14 **/
     
-    uint8_t regOOKFix;  /**< 0x15 **/
+    uint8_t regOOKFix;                  /**< 0x15 **/
 
     union {
         uint8_t regByte;
@@ -240,11 +241,11 @@ typedef struct FSK_Register_Map
             uint8_t rsvd : 1;
             uint8_t ookPeakThreshDecrm : 3;
         } regBits;
-    } regOOKAvg;        /**< 0x16 **/
+    } regOOKAvg;                        /**< 0x16 **/
 
-    uint8_t regRsvd17;  /**< 0x17 **/
-    uint8_t regRsvd18;  /**< 0x18 **/
-    uint8_t regRsvd19;  /**< 0x19 **/
+    uint8_t regRsvd17;                  /**< 0x17 **/
+    uint8_t regRsvd18;                  /**< 0x18 **/
+    uint8_t regRsvd19;                  /**< 0x19 **/
 
     union {
         uint8_t regByte;
@@ -256,13 +257,13 @@ typedef struct FSK_Register_Map
             uint8_t agcStart : 1;
             uint8_t unused : 2;
         } regBits;
-    } regAfcFei;        /**< 0x1A **/
+    } regAfcFei;                        /**< 0x1A **/
 
-    uint8_t regAfcMsb;  /**< 0x1B **/
-    uint8_t regAfcLsb;  /**< 0x1C **/
+    uint8_t regAfcMsb;                  /**< 0x1B **/
+    uint8_t regAfcLsb;                  /**< 0x1C **/
 
-    uint8_t regFeiMsb;  /**< 0x1D **/
-    uint8_t regFeiLsb;  /**< 0x1E **/
+    uint8_t regFeiMsb;                  /**< 0x1D **/
+    uint8_t regFeiLsb;                  /**< 0x1E **/
 
     union {
         uint8_t regByte;
@@ -271,12 +272,12 @@ typedef struct FSK_Register_Map
             uint8_t preambleDetectorSize : 2;
             uint8_t preambleDetectorEn : 1;
         } regBits;
-    } regPreambleDetect; /**< 0x1F **/
+    } regPreambleDetect;                /**< 0x1F **/
 
-    uint8_t regRxTimeout1;  /**< 0x20 **/
-    uint8_t regRxTimeout2;  /**< 0x21 **/
-    uint8_t regRxTimeout3;  /**< 0x22 **/
-    uint8_t regRxDelay;     /**< 0x23 **/
+    uint8_t regRxTimeout1;              /**< 0x20 **/
+    uint8_t regRxTimeout2;              /**< 0x21 **/
+    uint8_t regRxTimeout3;              /**< 0x22 **/
+    uint8_t regRxDelay;                 /**< 0x23 **/
 
     /** RC Oscilator Registers **/
     union {
@@ -286,12 +287,12 @@ typedef struct FSK_Register_Map
             uint8_t rcCalStart : 1;
             uint8_t unused : 4;
         } regBits;
-    } regOsc;           /**< 0x24 **/
+    } regOsc;                           /**< 0x24 **/
 
     /** Packet Handling Registers **/
 
-    uint8_t regPreambleMsb;     /**< 0x25 **/
-    uint8_t regPreambleLsb;     /**< 0x26 **/
+    uint8_t regPreambleMsb;             /**< 0x25 **/
+    uint8_t regPreambleLsb;             /**< 0x26 **/
 
     union {
         uint8_t regByte;
@@ -302,16 +303,16 @@ typedef struct FSK_Register_Map
             uint8_t  preamblePolarity : 1;
             uint8_t autoRestartRxMode : 2;
         } regBits;
-    } regSyncCfg;               /**< 0x27 **/
+    } regSyncCfg;                       /**< 0x27 **/
 
-    uint8_t regSyncValue1;      /**< 0x28 **/
+    uint8_t regSyncValue1;              /**< 0x28 **/
     uint8_t regSyncValue2;
     uint8_t regSyncValue3;
     uint8_t regSyncValue4;
     uint8_t regSyncValue5;
     uint8_t regSyncValue6;
     uint8_t regSyncValue7;
-    uint8_t regSyncValue8;      /**< 0x2F **/
+    uint8_t regSyncValue8;              /**< 0x2F **/
 
     union {
         uint8_t regByte;
@@ -323,7 +324,7 @@ typedef struct FSK_Register_Map
             uint8_t dcFree : 2;
             uint8_t pktFormat : 1;
         } regBits;
-    } regPacketCfg1;            /**< 0x30 **/
+    } regPacketCfg1;                    /**< 0x30 **/
 
     union {
         uint8_t regByte;
@@ -335,11 +336,11 @@ typedef struct FSK_Register_Map
             uint8_t dataMode : 1;
             uint8_t unused : 1;
         } regBits;
-    } regPacketCfg2;            /**< 0x31 **/
+    } regPacketCfg2;                    /**< 0x31 **/
 
-    uint8_t payloadLenLsb;      /**< 0x32 **/
-    uint8_t regNodeAddress;     /**< 0x33 **/
-    uint8_t regBroadcastAddress;    /**< 0x34 **/
+    uint8_t payloadLenLsb;              /**< 0x32 **/
+    uint8_t regNodeAddress;             /**< 0x33 **/
+    uint8_t regBroadcastAddress;        /**< 0x34 **/
 
     union {
         uint8_t regByte;
@@ -348,7 +349,7 @@ typedef struct FSK_Register_Map
             uint8_t unused : 1;
             uint8_t txStartCondition : 1;
         } regBits;
-    } regFifoThresh;                /**< 0x35 **/
+    } regFifoThresh;                    /**< 0x35 **/
 
     /** Sequence Registers **/
 
@@ -363,7 +364,7 @@ typedef struct FSK_Register_Map
             uint8_t sequencerStop : 1;
             uint8_t sequencerStart : 1;
         } regBits;
-    } regSequencerConf1;            /**< 0x36 **/
+    } regSequencerConf1;                /**< 0x36 **/
 
     union {
         uint8_t regByte;
@@ -372,7 +373,7 @@ typedef struct FSK_Register_Map
             uint8_t fromRxTimeout : 2;
             uint8_t fromReceive : 3;
         } regBits;
-    } regSequencerCfg2;             /**< 0x37 **/
+    } regSequencerCfg2;                 /**< 0x37 **/
 
     union {
         uint8_t regByte;
@@ -381,10 +382,10 @@ typedef struct FSK_Register_Map
             uint8_t timer1Resolution : 2;
             uint8_t unused : 4;
         } regBits;
-    } regTimerResolution;           /**< 0x38 **/
+    } regTimerResolution;               /**< 0x38 **/
 
-    uint8_t regTimer1Coeff;         /**< 0x39 **/
-    uint8_t regTimer2Coeff;         /**< 0x3A **/
+    uint8_t regTimer1Coeff;             /**< 0x39 **/
+    uint8_t regTimer2Coeff;             /**< 0x3A **/
 
     /** Service Registers **/
 
@@ -399,9 +400,9 @@ typedef struct FSK_Register_Map
             uint8_t imageCalibrStart : 1;
             uint8_t autoImageCalEn : 1;
         } regBits;
-    } regImageCal;                  /**< 0x3B **/
+    } regImageCal;                      /**< 0x3B **/
 
-    uint8_t regTemp;                /**< 0x3C **/
+    uint8_t regTemp;                    /**< 0x3C **/
 
     union {
         uint8_t regByte;
@@ -410,7 +411,7 @@ typedef struct FSK_Register_Map
             uint8_t lowBatEn : 1;
             uint8_t unused : 4;
         } regBits;
-    } regLowBat;                    /**< 0x3D **/
+    } regLowBat;                        /**< 0x3D **/
 
     union {
         uint8_t regByte;
@@ -424,7 +425,7 @@ typedef struct FSK_Register_Map
             uint8_t rxReady : 1;
             uint8_t modeReady : 1;
         } regBits;
-    } regIrqFlags1;                 /**< 0x3E **/
+    } regIrqFlags1;                     /**< 0x3E **/
 
     union {
         uint8_t regByte;
@@ -438,7 +439,7 @@ typedef struct FSK_Register_Map
             uint8_t fifoEmpty : 1;
             uint8_t fifoFull : 1; 
         } regBits;
-    } regIrqFlags2;                 /**< 0x3F **/
+    } regIrqFlags2;                     /**< 0x3F **/
 
     /** IO Control Registers **/
     union {
@@ -449,7 +450,7 @@ typedef struct FSK_Register_Map
             uint8_t dio1mapping : 2;
             uint8_t dio0mapping : 2;
         } regBits;
-    } regDioMapping1;               /**< 0x40 **/
+    } regDioMapping1;                   /**< 0x40 **/
 
     union {
         uint8_t regByte;
@@ -459,12 +460,12 @@ typedef struct FSK_Register_Map
             uint8_t dio5mapping : 2;
             uint8_t dio4mapping : 2;
         } regBits;
-    } regDioMapping2;               /**< 0x41 **/
+    } regDioMapping2;                   /**< 0x41 **/
 
     /** Version Register **/
 
-    uint8_t regVersion;             /**< 0x42 **/
-    uint8_t reg20rsvd;              /**< 0x43 **/
+    uint8_t regVersion;                 /**< 0x42 **/
+    uint8_t reg20rsvd;                  /**< 0x43 **/
 
     /** Additional registers **/
 
@@ -474,7 +475,7 @@ typedef struct FSK_Register_Map
             uint8_t rsvd : 7;
             uint8_t fastHopEn : 1;
         } regBits;
-    } regPllHop;                    /**< 0x44 **/
+    } regPllHop;                        /**< 0x44 **/
 
 
     union {
@@ -484,7 +485,7 @@ typedef struct FSK_Register_Map
             uint8_t txcoInputEn : 1;
             uint8_t rsvd1 : 3;
         } regBits;
-    } regTxco;                      /**< 0x4B **/
+    } regTxco;                          /**< 0x4B **/
 
     union {
         uint8_t regByte;
@@ -492,7 +493,7 @@ typedef struct FSK_Register_Map
             uint8_t paDac : 3;
             uint8_t rsvd : 5;
         } regBits;
-    } regPaDac;                     /**< 0x4D **/
+    } regPaDac;                         /**< 0x4D **/
 
     uint8_t regFormerTemp;
 
@@ -502,7 +503,7 @@ typedef struct FSK_Register_Map
             uint8_t bitRateFractional : 4;
             uint8_t unused : 4;
         } regBits;
-    } regBitrateFrac;               /**< 0x5B **/
+    } regBitrateFrac;                   /**< 0x5B **/
 
     union {
         uint8_t regByte;
@@ -510,7 +511,7 @@ typedef struct FSK_Register_Map
             uint8_t agcReferenceLvl : 6;
             uint8_t unused : 2;
         } regBits;
-    } regAgcRef;                    /**< 0x61 **/
+    } regAgcRef;                        /**< 0x61 **/
 
     union {
         uint8_t regByte;
@@ -518,7 +519,7 @@ typedef struct FSK_Register_Map
             uint8_t agcStep1 : 4;
             uint8_t unused : 4;
         } regBits;
-    } regAcgThresh1;                /**< 0x62 **/
+    } regAcgThresh1;                    /**< 0x62 **/
 
     union {
         uint8_t regByte;
@@ -526,7 +527,7 @@ typedef struct FSK_Register_Map
             uint8_t agcStep3 : 4;
             uint8_t agcStep2 : 4;
         } regBits;
-    } regAgcThresh2;                /**< 0x63 **/
+    } regAgcThresh2;                    /**< 0x63 **/
 
     union {
         uint8_t regByte;
@@ -534,8 +535,10 @@ typedef struct FSK_Register_Map
             uint8_t agcStep5 : 4;
             uint8_t agcStep4 : 4;
         } regBits;
-    } regAgcThresh3;                /**< 0x64 **/
+    } regAgcThresh3;                    /**< 0x64 **/
 
+    uint8_t dummy[11];
+    uint8_t regPll;                     /**< 0x70 **/
 
 } FSK_Register_Map_t;
 

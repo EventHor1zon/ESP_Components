@@ -57,9 +57,9 @@ const peripheral_t apa_periph_template;
 
 #endif 
 
-/** @struct The APA102 init structure
+/** @struct apa102_init_t
  *  @brief Contains the information used to intialise the driver
- **/
+ */
 typedef struct apa102_init 
 {
     uint8_t numleds;                /*!< number of leds in strand **/
@@ -73,11 +73,10 @@ typedef struct apa102_init
 /** @} APA102_definitions */
 
 
-/******** Function Definitions
- *  @defgroup APA102_functions
+/** @defgroup APA102_functions
  *  @brief The APA102 Driver functions 
  *  @{
- **********/
+ */
 
 /**
  * @brief Initialises the APA102 Driver and returns the driver handle

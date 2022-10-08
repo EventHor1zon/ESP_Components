@@ -92,23 +92,22 @@ static void test_mode(msg_handle_t *handle) {
     uint16_t arr[7] = {0};
 
     int ch = 0;
-    for(uint16_t j=0; j < 1000; j++) {
-        gpio_set_level(handle->rst_pin, 1);
-        vTaskDelay(pdMS_TO_TICKS(5));
-        gpio_set_level(handle->rst_pin, 0);
 
-        for(uint16_t i=0; i < 7; i++) {
-            ch = i+1;
-            gpio_set_level(handle->strobe_pin, 1);
-            vTaskDelay(pdMS_TO_TICKS(1));
-            gpio_set_level(handle->strobe_pin, 0);
-            vTaskDelay(pdMS_TO_TICKS(5));
-            read = adc1_get_raw((adc1_channel_t)handle->adc_channel);
-            arr[i] = read;
-            vTaskDelay(5);
-        }
-        ESP_LOGI(MSG_TAG, "%u %u %u %u %u %u %u", arr[0], arr[1], arr[2], arr[3], arr[4], arr[5], arr[6]);
+    gpio_set_level(handle->rst_pin, 1);
+    vTaskDelay(pdMS_TO_TICKS(5));
+    gpio_set_level(handle->rst_pin, 0);
+
+    for(uint16_t i=0; i < 7; i++) {
+        ch = i+1;
+        gpio_set_level(handle->strobe_pin, 1);
+        vTaskDelay(pdMS_TO_TICKS(1));
+        gpio_set_level(handle->strobe_pin, 0);
+        vTaskDelay(pdMS_TO_TICKS(5));
+        read = adc1_get_raw((adc1_channel_t)handle->adc_channel);
+        arr[i] = read;
+        vTaskDelay(5);
     }
+    ESP_LOGI(MSG_TAG, "%u %u %u %u %u %u %u", arr[0], arr[1], arr[2], arr[3], arr[4], arr[5], arr[6]);
     /** try to read the ADC **/
     return;
 }
@@ -125,18 +124,20 @@ static void msg_task(void *arg) {
 
     while (1)
     {
-        /* code */
-        if (handle->autosample) {
-            ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-            ESP_LOGI(MSG_TAG, "Got notified...");
+        // /* code */
+        // if (handle->autosample) {
+        //     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        //     ESP_LOGI(MSG_TAG, "Got notified...");
         
 
-        }
-        else {
-            /** just do nothing **/
-            vTaskDelay(1000);
-        }
+        // }
+        // else {
+        //     /** just do nothing **/
+        //     vTaskDelay(1000);
+        // }
 
+        test_mode(handle);
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
     /** here be dragons **/
 }
@@ -173,7 +174,7 @@ msg_handle_t *msg_init(msg_init_t *init) {
         /** Get the channel from pin **/
         /** TODO: Make this a utility function **/
         uint32_t pin = init->data;
-        channel = adc_channel_from_gpio(pin);
+        channel = ADC1_CHANNEL_4;
     }
 
     /** init adc **/
@@ -254,9 +255,9 @@ msg_handle_t *msg_init(msg_init_t *init) {
         ESP_LOGI(MSG_TAG, "Failed to started MSG_EQ7 Driver!");
     }
 
-#ifdef DEBUG
-    test_mode(handle);
-#endif
+// #ifdef DEBUG
+//     test_mode(handle);
+// #endif
 
     return handle;
 }

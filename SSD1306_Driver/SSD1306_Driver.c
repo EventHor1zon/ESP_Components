@@ -20,7 +20,7 @@
 #include "freertos/timers.h"
 #include "Utilities.h"
 
-#include "font8x8_basic.h"
+#include "../Utils/font8x8_basic.h"
 
 #include "SSD1306_Driver.h"
 
@@ -33,7 +33,7 @@ const parameter_t ssd1306_param_map[screen_param_len] = {
     {"line",        2, &ssd1306_get_line, &ssd1306_set_line, NULL,  PARAMTYPE_UINT8, 8, (GET_FLAG | SET_FLAG) },
     {"clear line",  3, NULL, NULL, &ssd1306_clear_current_line,     PARAMTYPE_NONE,  0, (ACT_FLAG) },
     {"write line",  4, NULL, NULL, &ssd1306_write_current_line,     PARAMTYPE_NONE,  0, (ACT_FLAG) },
-    {"clear all",   5, NULL, NULL, &ssd1306_set_text,               PARAMTYPE_NONE,  0, (ACT_FLAG) },
+    {"clear all",   5, NULL, NULL, &ssd1306_clear_screen,           PARAMTYPE_NONE,  0, (ACT_FLAG) },
     {"write text",  6, NULL, NULL, &ssd1306_set_text,               PARAMTYPE_NONE,  0, (ACT_FLAG) },
 };
 
@@ -96,7 +96,7 @@ static uint16_t scroll_wait_time(ssd1306_handle_t *screen, screen_scroll_dir_t d
         frames = 128;
         break;
     case 3:
-        frames = 256;
+        frames = 255;
         break;
     case 4:
         frames = 3;
@@ -453,7 +453,7 @@ ssd1306_handle_t *ssd1306_init(ssd1306_init_t *init) {
     }
 
     if(!err) {
-        TimerHandle_t timer = xTimerCreate("screen timer", 0, pdFALSE, NULL, screen_timer_callback);
+        TimerHandle_t timer = xTimerCreate("screen timer", 1000, pdFALSE, NULL, (TimerCallbackFunction_t )screen_timer_callback);
         if(timer != NULL) {
             handle->timer = timer;
         }

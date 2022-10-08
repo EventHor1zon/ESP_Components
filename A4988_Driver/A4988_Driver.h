@@ -43,7 +43,8 @@ const peripheral_t a4988_periph_template;
 #define A4988_DEFAULT_STEP_DELAY 100
 
 
-/** @brief Defines the step size types **/
+/** @enum step_size_t 
+ *  @brief Defines the step size types **/
 typedef enum {
     FULL_STEP_T = 0,
     HALF_STEP_T = 1,
@@ -52,11 +53,12 @@ typedef enum {
     SXTN_STEP_T = 7,
 } step_size_t;
 
-/** @brief Defines the initialisation data **/
+/** @struct a4988_init_t 
+ *  @brief Defines the initialisation data 
+ */
 
 typedef struct A4988_Init
 {
-    /* data */
     
     gpio_num_t sleep;       /*!< sleep pin - optional **/
     gpio_num_t enable;      /*!< enable pin - optional **/
@@ -74,10 +76,10 @@ typedef struct A4988_Init
 
 /**  
  * @struct Structure containing the driver information
- * @brief The driver handle structure */
+ * @brief The driver handle structure
+ */
 typedef struct A4988_Driver
 {
-    /* data */
     gpio_num_t sleep;       /**< sleep pin - optional **/
     gpio_num_t enable;      /**< enable pin - optional **/
     gpio_num_t step;        /**< step pin - must be set **/

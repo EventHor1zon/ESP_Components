@@ -79,7 +79,7 @@ typedef enum {
 
 
 
-typedef struct FSK_Register_Map
+typedef struct Lora_Register_Map
 {
     /* Fifo  */
     uint8_t regFifo;    /**< 0x00 **/
@@ -249,7 +249,7 @@ typedef struct FSK_Register_Map
         } regBits;
     } regModemConfig3;          /**< 0x26 **/
 
-    uint8_t regPpmCorrection;   /**< 0x27 **/
+    uint8_t rsvd1;   /**< 0x27 **/
 
     union {
         uint8_t regByte;
@@ -352,7 +352,7 @@ typedef struct FSK_Register_Map
 
     uint8_t regFormerTemp;
 
-    uint8_t unused44;               /**< 0x5B **/
+    uint8_t unused45;               /**< 0x5B **/
 
     union {
         uint8_t regByte;
@@ -386,6 +386,8 @@ typedef struct FSK_Register_Map
         } regBits;
     } regAgcThresh3;                /**< 0x64 **/
 
+    uint8_t dummy[11];
+    uint8_t regPll;
 
 } Lora_Register_Map_t;
 

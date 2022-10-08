@@ -27,18 +27,13 @@ const peripheral_t apds_periph_template;
 #endif
 
 
-/** Function Definitions
- *  @defgroup APDS9960_FunctionDefines 
- *  @brief The APDS9960 driver functions
- *  @{
- */
 
 
-/********* Definitions
- * @defgroup APDS9960_RegisterDefines
- * @brief Definitions of the IC registers and offsets
+
+/** @defgroup APDS9960_RegisterDefines
+ *  @brief Definitions of the IC registers and offsets
  * @{ 
- ******************/
+ */
 
 #define APDS_I2C_ADDRESS                0x39
 
@@ -175,15 +170,14 @@ const peripheral_t apds_periph_template;
 
 /* @} APDS9960_RegisterDefines */
 
-/********** Types
- * @defgroup APDS9960_TypeDefines
- * @brief    Definitions of the types used in APDS9960 driver
- * @{
- ***********************/
+/** @defgroup APDS9960_TypeDefines
+ *  @brief    Definitions of the types used in APDS9960 driver
+ *  @{
+ */
 
 /** @enum apds_direction_t
  *  @brief APDS gesture detected type 
- ***/
+ */
 typedef enum {
     APDS_DIRECTION_UP,
     APDS_DIRECTION_DOWN,
@@ -195,7 +189,7 @@ typedef enum {
 
 /** @enum apds_swipe_t
  *  @brief APDS swipe detected type 
- ***/
+ */
 typedef enum {
     APDS_SWIPE_UP_TO_DOWN,
     APDS_SWIPE_DOWN_TO_UP,
@@ -206,7 +200,7 @@ typedef enum {
 
 /** @enum gst_fifo_thresh_t
  *  @brief Gst FIFO threshold packet number
- ***/
+ */
 typedef enum {
     APDS_FIFO_THRESH_1,
     APDS_FIFO_THRESH_4,
@@ -217,7 +211,7 @@ typedef enum {
 
 /** @enum gst_pulselen_t
  *  @brief Gst led pulse length
- ***/
+ */
 typedef enum {
     APDS_GST_PLSLEN_4US,
     APDS_GST_PLSLEN_8US,
@@ -228,7 +222,7 @@ typedef enum {
 
 /** @enum gst_direction_t
  *  @brief DEPRECATED, remove
- ***/
+ */
 typedef enum {
     APDS_GST_DIR_UD_LR,
     APDS_GST_DIR_UD,
@@ -239,7 +233,7 @@ typedef enum {
 
 /** @enum gst_gain_t
  *  @brief Gst gain setting
- ***/
+ */
 typedef enum {
     APDS_GST_GAIN_1,
     APDS_GST_GAIN_2,
@@ -250,7 +244,7 @@ typedef enum {
 
 /** @enum als_gain_t
  *  @brief Proximity gain setting
- ***/
+ */
 typedef enum {
     APDS_PRX_GAIN_1,
     APDS_PRX_GAIN_4,
@@ -261,7 +255,7 @@ typedef enum {
 
 /** @enum apds_led_drive_t
  *  @brief led drive strength setting
- ***/
+ */
 typedef enum {
     APDS_LEDDRIVE_100MA,
     APDS_LEDDRIVE_50MA,
@@ -272,7 +266,7 @@ typedef enum {
 
 /** @enum gst_wait_t
  *  @brief gesture wait duration (time between measures)
- ***/
+ */
 typedef enum {
     APDS_GST_WAIT_T_0MS,
     APDS_GST_WAIT_T_2_8MS,
@@ -289,7 +283,7 @@ typedef enum {
  *  @brief gesture end persistence 
  *          (number of measures outside of threshold 
  *          before GST eengine exits)
- ***/
+ */
 typedef enum {
     APDS_GST_END_PERSIST_1,
     APDS_GST_END_PERSIST_2,
@@ -300,7 +294,7 @@ typedef enum {
 
 /** @enum prx_ledtime_t
  *  @brief led on-time per cycle
- ***/
+ */
 typedef enum {
     APDS_PRX_LEDTIME_4US,
     APDS_PRX_LEDTIME_8US,
@@ -311,7 +305,7 @@ typedef enum {
 
 /** @enum apds_ledboost_t
  *  @brief led power boost setting
- ***/
+ */
 typedef enum {
     APDS_LEDBOOST_100PC,
     APDS_LEDBOOST_150PC,
@@ -322,7 +316,7 @@ typedef enum {
 
 /** @struct apds_init_t
  *  @brief The initialiser info for the APDS driver
- ***/
+ */
 typedef struct APDS_Init
 {
     uint8_t i2c_bus;        /**!< i2c bus to use (should be initialised) **/
@@ -333,7 +327,7 @@ typedef struct APDS_Init
 
 /** @struct apds_data_t
  *  @brief The latest fifo data
- ***/
+ */
 typedef struct APDS9960_Data
 {
     /* data */
@@ -345,7 +339,7 @@ typedef struct APDS9960_Data
 
 /** @struct als_settings_t
  *  @brief The driver's ALS settings
- ***/
+ */
 typedef struct APDS9960_ALS_Settings
 {
     /* data */
@@ -363,7 +357,7 @@ typedef struct APDS9960_ALS_Settings
 
 /** @struct prx_settings_t
  *  @brief The driver's Proximity settings
- ***/
+ */
 typedef struct APDS9960_PRX_Settings
 {
     /* data */
@@ -384,24 +378,22 @@ typedef struct APDS9960_PRX_Settings
 
 /** @struct gen_settings_t
  *  @brief The driver's general operation settings
- ***/
+ */
 typedef struct APDS_GeneralSettings
 {
-    /* data */
-    bool sleep_after_intr;      /**< sleep after interrupt enabled **/
-    bool pwr_on;                /**< power on! **/
-    uint32_t wait_time_ms;      /**< time to idle per cycle in ms(see datasheet for state machine) **/
-    uint8_t wait_time;          /**<  value set to wait register **/
-    bool wait_long_en;          /**<  longer waits enabled **/
-    bool wait_en;               /**< wait enabled **/
+    bool sleep_after_intr;      /** sleep after interrupt enabled **/
+    bool pwr_on;                /** power on! **/
+    uint32_t wait_time_ms;      /** time to idle per cycle in ms(see datasheet for state machine) **/
+    uint8_t wait_time;          /**  value set to wait register **/
+    bool wait_long_en;          /**  longer waits enabled **/
+    bool wait_en;               /** wait enabled **/
 } gen_settings_t;
 
 /** @struct gst_settings_t
  *  @brief The driver's gesture engine settings
- ***/
+ */
 typedef struct APDS9960_GST_Settings
 {
-    /* data */
     bool gst_en;        
     bool gmode;
     bool low_pwr_clk;
@@ -429,24 +421,25 @@ typedef struct APDS9960_GST_Settings
 } gst_settings_t;
 
 
+/** @struct apds_handle_t
+ *  @brief The driver handle structure
+ */
 typedef struct APDS9960_Driver
 {
-    /* data */
+    uint8_t bus;                    /* I2C bus */
+    uint8_t addr;                   /* I2C address */
 
-    uint8_t bus;
-    uint8_t addr;
+    bool intr_en;                   /* interrupts enabled */
+    gpio_num_t intr_pin;            /* gpio pin for interrupts */
 
-    bool intr_en;
-    gpio_num_t intr_pin;
+    gst_settings_t gst_settings;    /* gesture settings struct **/
+    prx_settings_t prx_settings;    /* proximity settings struct **/
+    als_settings_t als_settings;    /* Colour engine settings struct **/
+    gen_settings_t gen_settings;    /* general settings struct **/
 
-    gst_settings_t gst_settings;
-    prx_settings_t prx_settings;
-    als_settings_t als_settings;
-    gen_settings_t gen_settings;
+    apds_data_t data;               /* latest data */
 
-    apds_data_t data;
-
-    TaskHandle_t t_handle;
+    TaskHandle_t t_handle;          /* the driver task handle */
 
 } adps_handle_t;
 
@@ -457,6 +450,13 @@ typedef adps_handle_t * APDS_DEV;
 /** @} APDS9960_TypeDefines **/
 
 
+
+
+
+/** @defgroup APDS9960_FunctionDefines 
+ *  @brief The APDS9960 driver functions
+ *  @{
+ */
 
 /** 
  * @defgroup APDS9960_SetStatusFunctions
@@ -1106,12 +1106,11 @@ esp_err_t apds_get_proximity_data(APDS_DEV dev, uint8_t *d);
 
 /** @} APDS9960_DataFunctions **/
 
-/*************** FIFO Settings **
- * @defgroup APDS9960_FifoFunctions
+/** @defgroup APDS9960_FifoFunctions
  *  @brief Functions to configure and control the device's built-in
  *          fifo buffer
  * @{
- * ********************/
+ */
 
 /**
  * \brief - Read all available fifo data - stored in the device struct

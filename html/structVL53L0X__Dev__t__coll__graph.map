@@ -1,9 +1,0 @@
-<map id="VL53L0X_Dev_t" name="VL53L0X_Dev_t">
-<area shape="rect" id="node2" href="$structVL53L0X__DevData__t.html" title="VL53L0X PAL device ST private data structure &#160;End user should never access any of these field directl..." alt="" coords="461,130,607,157"/>
-<area shape="rect" id="node3" href="$structVL53L0X__DeviceSpecificParameters__t.html" title="VL53L0X_DeviceSpecificParameters_t" alt="" coords="5,79,253,106"/>
-<area shape="rect" id="node4" href="$structVL53L0X__RangingMeasurementData__t.html" title="VL53L0X_RangingMeasurement\lData_t" alt="" coords="25,5,234,47"/>
-<area shape="rect" id="node5" href="$structVL53L0X__DMaxData__t.html" title="Structure containing the Dmax computation parameters and data. " alt="" coords="51,181,207,207"/>
-<area shape="rect" id="node6" href="$structVL53L0X__DeviceParameters__t.html" title="Defines all parameters for the device. " alt="" coords="29,231,230,258"/>
-<area shape="rect" id="node7" href="$structVL53L0X__HistogramMeasurementData__t.html" title="VL53L0X_HistogramMeasurement\lData_t" alt="" coords="19,283,240,324"/>
-<area shape="rect" id="node8" href="$structVL53L0X__SpadData__t.html" title="Spad Configuration Data. " alt="" coords="54,130,205,157"/>
-</map>
