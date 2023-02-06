@@ -62,10 +62,10 @@ const ws2812b_timing_t ws2812Timings = {
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
 const parameter_t ws2812_param_map[ws2812_param_len] = {
-    {"NumLeds", 1, &ws2812_get_numleds, NULL, NULL, PARAMTYPE_UINT32, 0, (GET_FLAG)},
-    {"Mode", 2, &ws2812_get_mode, &ws2812_set_mode, NULL, PARAMTYPE_UINT8, 4, (GET_FLAG | SET_FLAG)},
-    {"Colour", 3, &ws2812_get_colour, &ws2812_set_colour, NULL, PARAMTYPE_UINT32, 0xFFFFFF, (GET_FLAG | SET_FLAG) },
-    {"Brightness", 4, &ws2812_get_brightness, &ws2812_set_brightness, NULL, PARAMTYPE_UINT8, 5, (GET_FLAG | SET_FLAG)}
+    {"NumLeds", 1, &ws2812_get_numleds, NULL, NULL, DATATYPE_UINT32, 0, (GET_FLAG)},
+    {"Mode", 2, &ws2812_get_mode, &ws2812_set_mode, NULL, DATATYPE_UINT8, 4, (GET_FLAG | SET_FLAG)},
+    {"Colour", 3, &ws2812_get_colour, &ws2812_set_colour, NULL, DATATYPE_UINT32, 0xFFFFFF, (GET_FLAG | SET_FLAG) },
+    {"Brightness", 4, &ws2812_get_brightness, &ws2812_set_brightness, NULL, DATATYPE_UINT8, 5, (GET_FLAG | SET_FLAG)}
 };
 
 

@@ -9,7 +9,7 @@ set(srcs
     # "DS2321_Driver.c"
     # "HMC5883_Driver.c"
     # "HPDL1414_Driver.c"
-    "LoraSX1276_Driver/Lora_SX1276_Driver.c"
+    # "LoraSX1276_Driver/Lora_SX1276_Driver.c"
     # "LSM_Driver/LSM_Driver.c"
     # "Max30102_Driver.c"
     # "MSGEQ7_Driver/MSGEQ7_Driver.c"
@@ -25,11 +25,13 @@ set(srcs
     # "CBuffer/CircularBuffer.c"
     # "FutabaVFD_Driver.c"
     # "MFRC522_Driver/MFRC522_Driver.c"
-    # "TestComponent/TestComponent.c"
+     "TestComponent/TestComponent.c"
     )
 
 set(includes "../main/inc"
-             "../include_base")
+             "/home/rich/Tools/ToolChains/ESP/esp-idf/components/esp_http_server/include"
+            "/home/rich/Tools/ToolChains/ESP/esp-idf/components/nghttp/port/include"
+)
 
 idf_component_register(SRCS "${srcs}"
                     INCLUDE_DIRS ${includes}

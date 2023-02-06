@@ -35,18 +35,18 @@ static esp_err_t bm280_getDeviceStatus(BM_DEV bmCtrl);
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
 const parameter_t bm_param_map[bm_param_len] = {
-    {"Sample Interval", 1, &bm280_getSampleInterval, &bm280_setSampleInterval, NULL, PARAMTYPE_UINT8, 7, (GET_FLAG | SET_FLAG)},
-    {"Filter Setting", 2, &bm280_getFilterSetting, &bm280_setFilterSetting, NULL, PARAMTYPE_UINT8, 4, (GET_FLAG | SET_FLAG)},
-    {"Device ID", 3, &bm280_getDeviceID, NULL, NULL, PARAMTYPE_UINT8, 0, (GET_FLAG)},
-    {"Temperature", 4, &bm280_getTemperature, NULL, NULL, PARAMTYPE_FLOAT, 0, (GET_FLAG | STREAM_FLAG)},
-    {"Pressure", 5, &bm280_getPressure, NULL, NULL, PARAMTYPE_FLOAT, 0, (GET_FLAG | STREAM_FLAG)},
-    {"Humidity", 6, &bm280_getHumidity, NULL, NULL, PARAMTYPE_FLOAT, 0, (GET_FLAG | STREAM_FLAG)},
-    {"Temperature OSample", 7, &bm280_getTemperatureOS, &bm280_setTemperatureOS, NULL, PARAMTYPE_UINT8, 5, (GET_FLAG | SET_FLAG)},
-    {"Pressure OSample", 8, &bm280_getPressureOS, &bm280_setPressureOS, NULL, PARAMTYPE_UINT8, 5, (GET_FLAG | SET_FLAG)},
-    {"Humidity OSample", 9, &bm280_getHumidityOS, &bm280_setHumidityOS, NULL, PARAMTYPE_UINT8, 5, (GET_FLAG | SET_FLAG)},
-    {"Sample Mode", 10, &bm280_getSampleMode, &bm280_setSampleMode, NULL, PARAMTYPE_UINT8, 3, (GET_FLAG | SET_FLAG)},
-    {"Sample Type", 11, &bm280_getSampleType, NULL, NULL, PARAMTYPE_UINT8, 7, (GET_FLAG)},
-    {"Update Measurements", 12, NULL, NULL, &bm280_updateMeasurements, PARAMTYPE_NONE, 0, (ACT_FLAG)},
+    {"Sample Interval", 1, &bm280_getSampleInterval, &bm280_setSampleInterval, NULL, DATATYPE_UINT8, 7, (GET_FLAG | SET_FLAG)},
+    {"Filter Setting", 2, &bm280_getFilterSetting, &bm280_setFilterSetting, NULL, DATATYPE_UINT8, 4, (GET_FLAG | SET_FLAG)},
+    {"Device ID", 3, &bm280_getDeviceID, NULL, NULL, DATATYPE_UINT8, 0, (GET_FLAG)},
+    {"Temperature", 4, &bm280_getTemperature, NULL, NULL, DATATYPE_FLOAT, 0, (GET_FLAG | STREAM_FLAG)},
+    {"Pressure", 5, &bm280_getPressure, NULL, NULL, DATATYPE_FLOAT, 0, (GET_FLAG | STREAM_FLAG)},
+    {"Humidity", 6, &bm280_getHumidity, NULL, NULL, DATATYPE_FLOAT, 0, (GET_FLAG | STREAM_FLAG)},
+    {"Temperature OSample", 7, &bm280_getTemperatureOS, &bm280_setTemperatureOS, NULL, DATATYPE_UINT8, 5, (GET_FLAG | SET_FLAG)},
+    {"Pressure OSample", 8, &bm280_getPressureOS, &bm280_setPressureOS, NULL, DATATYPE_UINT8, 5, (GET_FLAG | SET_FLAG)},
+    {"Humidity OSample", 9, &bm280_getHumidityOS, &bm280_setHumidityOS, NULL, DATATYPE_UINT8, 5, (GET_FLAG | SET_FLAG)},
+    {"Sample Mode", 10, &bm280_getSampleMode, &bm280_setSampleMode, NULL, DATATYPE_UINT8, 3, (GET_FLAG | SET_FLAG)},
+    {"Sample Type", 11, &bm280_getSampleType, NULL, NULL, DATATYPE_UINT8, 7, (GET_FLAG)},
+    {"Update Measurements", 12, NULL, NULL, &bm280_updateMeasurements, DATATYPE_NONE, 0, (ACT_FLAG)},
 };
 
 

@@ -31,13 +31,13 @@ const char *RGB_TAG = "RGB_Driver";
 
 
 const parameter_t rgb_param_map[rgb_param_len] = {
-    {"Red Duty", 1, &rgb_get_r_duty, &rgb_set_r_duty, NULL, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
-    {"Green Duty", 2, &rgb_get_g_duty, &rgb_set_g_duty, NULL, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
-    {"Blue Duty", 3, &rgb_get_b_duty, &rgb_set_b_duty, NULL, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
-    {"Red (percent)", 4, NULL, &rgb_set_r_duty_percent, NULL, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
-    {"Green (percent)", 5, NULL, &rgb_set_g_duty_percent,NULL,  PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
-    {"Blue (percent)", 6, NULL, &rgb_set_b_duty_percent, NULL, PARAMTYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
-    {"Fade time", 7, &rgb_get_fade_time, &rgb_set_fade_time, NULL, PARAMTYPE_UINT32, 10000, (GET_FLAG | SET_FLAG)},
+    {"Red Duty", 1, &rgb_get_r_duty, &rgb_set_r_duty, NULL, DATATYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
+    {"Green Duty", 2, &rgb_get_g_duty, &rgb_set_g_duty, NULL, DATATYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
+    {"Blue Duty", 3, &rgb_get_b_duty, &rgb_set_b_duty, NULL, DATATYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
+    {"Red (percent)", 4, NULL, &rgb_set_r_duty_percent, NULL, DATATYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
+    {"Green (percent)", 5, NULL, &rgb_set_g_duty_percent,NULL,  DATATYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
+    {"Blue (percent)", 6, NULL, &rgb_set_b_duty_percent, NULL, DATATYPE_UINT32, 100000, (GET_FLAG | SET_FLAG)},
+    {"Fade time", 7, &rgb_get_fade_time, &rgb_set_fade_time, NULL, DATATYPE_UINT32, 10000, (GET_FLAG | SET_FLAG)},
 };
 
 const peripheral_t rgb_periph_template = {

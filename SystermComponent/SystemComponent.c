@@ -47,9 +47,9 @@ const char  *SYS_TAG = "SYSTEM";
 
 
 const parameter_t sys_param_map[sys_cmd_len] = {
-    {"total mem", 1, &sys_get_total_memory, NULL, PARAMTYPE_UINT32, 0, (GET_FLAG)},
-    // {"WiFi MAC", 2, &sys_get_wifi_mac, NULL, PARAMTYPE_STRING, 0, (GET_FLAG)},
-    // {"BT MAC", 3, &sys_get_bt_mac, NULL, PARAMTYPE_STRING, 0, (GET_FLAG)},
+    {"total mem", 1, &sys_get_total_memory, NULL, DATATYPE_UINT32, 0, (GET_FLAG)},
+    // {"WiFi MAC", 2, &sys_get_wifi_mac, NULL, DATATYPE_STRING, 0, (GET_FLAG)},
+    // {"BT MAC", 3, &sys_get_bt_mac, NULL, DATATYPE_STRING, 0, (GET_FLAG)},
 };
 
 

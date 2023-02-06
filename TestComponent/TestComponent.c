@@ -7,6 +7,21 @@
 #include "esp_log.h"
 
 
+#ifdef CONFIG_USE_PERIPH_MANAGER
+#include "CommandAPI.h"
+
+const parameter_t test_param_map[0] = {};
+
+const peripheral_t test_periph_template = {
+    .handle = NULL,
+    .param_len = 0,
+    .params = test_param_map,
+    .peripheral_name = "Test component",
+    .peripheral_id = 0,
+    .periph_type = PTYPE_NONE,
+};
+#endif
+
 void testcomponent_driver_task(void *args) {
  
     testcomponent_t *tc = (testcomponent_t *)args;

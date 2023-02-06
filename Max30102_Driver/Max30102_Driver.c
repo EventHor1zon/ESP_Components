@@ -33,19 +33,19 @@ void max31_interrupt_handler(void *args);
 
 const parameter_t max31_param_map[max31_param_length] = {
     // name, getfunc, setfunc, actfunc, parameter type, max value, flags //
-    {"device ID", 1, &max31_get_device_id, NULL, NULL, PARAMTYPE_UINT8, 0, (GET_FLAG)},
-    {"Mode", 2, &max31_get_mode, &max31_set_mode, NULL, PARAMTYPE_UINT8, 7, (GET_FLAG | SET_FLAG)},
-    {"Sample Avg", 3, &max31_get_sample_average, &max31_set_sample_average, NULL, PARAMTYPE_UINT8, 5, (GET_FLAG | SET_FLAG)},
-    {"FIFO Rollover", 4, &max31_get_fifo_rollover, &max31_set_fifo_rollover, NULL, PARAMTYPE_UINT8, 1, (GET_FLAG | SET_FLAG)},
-    {"Almost full", 5, &max31_get_almost_full_val, &max31_set_almost_full_val, NULL, PARAMTYPE_UINT8, 0x0f, (GET_FLAG | SET_FLAG)},
-    {"Shutdown", 6, &max31_get_shutdown, &max31_set_shutdown, NULL, PARAMTYPE_BOOL, 1, (GET_FLAG | SET_FLAG)},
-    {"Sample Rate", 7, &max31_get_spo2_samplerate, &max31_set_spo2_samplerate, NULL, PARAMTYPE_UINT8, 7, (GET_FLAG | SET_FLAG)},
-    {"Led PWM", 8, &max31_get_ledpwm, &max31_get_ledpwm, NULL, PARAMTYPE_UINT8, MAX31_LED_PWM_411, (GET_FLAG | SET_FLAG)},
-    {"Red Amplitude", 9, &max31_get_redledamplitude, &max31_set_redledamplitude, NULL, PARAMTYPE_UINT8, 0xFF, (GET_FLAG | SET_FLAG)},
-    {"IR Amplitude", 10, &max31_get_irledamplitude, &max31_set_irledamplitude, NULL, PARAMTYPE_UINT8, 0xFF, (GET_FLAG | SET_FLAG)},
-    {"Red Amplitude", 11, &max31_get_redledamplitude, &max31_set_redledamplitude, NULL, PARAMTYPE_UINT8, 0xFF, (GET_FLAG | SET_FLAG)},
-    {"Reset", 12, NULL, NULL, &max31_reset_device, PARAMTYPE_NONE, 0, (ACT_FLAG)},
-    {"Ambi ovr", 13, &max31_get_ambient_light_invalidates, &max31_set_ambient_light_invalidates, PARAMTYPE_BOOL, 1, (GET_FLAG | SET_FLAG)},
+    {"device ID", 1, &max31_get_device_id, NULL, NULL, DATATYPE_UINT8, 0, (GET_FLAG)},
+    {"Mode", 2, &max31_get_mode, &max31_set_mode, NULL, DATATYPE_UINT8, 7, (GET_FLAG | SET_FLAG)},
+    {"Sample Avg", 3, &max31_get_sample_average, &max31_set_sample_average, NULL, DATATYPE_UINT8, 5, (GET_FLAG | SET_FLAG)},
+    {"FIFO Rollover", 4, &max31_get_fifo_rollover, &max31_set_fifo_rollover, NULL, DATATYPE_UINT8, 1, (GET_FLAG | SET_FLAG)},
+    {"Almost full", 5, &max31_get_almost_full_val, &max31_set_almost_full_val, NULL, DATATYPE_UINT8, 0x0f, (GET_FLAG | SET_FLAG)},
+    {"Shutdown", 6, &max31_get_shutdown, &max31_set_shutdown, NULL, DATATYPE_BOOL, 1, (GET_FLAG | SET_FLAG)},
+    {"Sample Rate", 7, &max31_get_spo2_samplerate, &max31_set_spo2_samplerate, NULL, DATATYPE_UINT8, 7, (GET_FLAG | SET_FLAG)},
+    {"Led PWM", 8, &max31_get_ledpwm, &max31_get_ledpwm, NULL, DATATYPE_UINT8, MAX31_LED_PWM_411, (GET_FLAG | SET_FLAG)},
+    {"Red Amplitude", 9, &max31_get_redledamplitude, &max31_set_redledamplitude, NULL, DATATYPE_UINT8, 0xFF, (GET_FLAG | SET_FLAG)},
+    {"IR Amplitude", 10, &max31_get_irledamplitude, &max31_set_irledamplitude, NULL, DATATYPE_UINT8, 0xFF, (GET_FLAG | SET_FLAG)},
+    {"Red Amplitude", 11, &max31_get_redledamplitude, &max31_set_redledamplitude, NULL, DATATYPE_UINT8, 0xFF, (GET_FLAG | SET_FLAG)},
+    {"Reset", 12, NULL, NULL, &max31_reset_device, DATATYPE_NONE, 0, (ACT_FLAG)},
+    {"Ambi ovr", 13, &max31_get_ambient_light_invalidates, &max31_set_ambient_light_invalidates, DATATYPE_BOOL, 1, (GET_FLAG | SET_FLAG)},
 };
 
 const peripheral_t max31_periph_template = {

@@ -10,9 +10,6 @@
 
 #include "sdkconfig.h" 
 
-#ifdef CONFIG_USE_PERIPH_MANAGER
-#include "CommandAPI.h"
-#endif
 
 /********* Includes ********************/
 

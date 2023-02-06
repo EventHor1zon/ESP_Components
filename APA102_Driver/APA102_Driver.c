@@ -27,10 +27,10 @@
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
 const parameter_t apa_param_map[apa_param_len] = {
-    {"NumLeds", 1, &apa_getNumleds, NULL, NULL, PARAMTYPE_UINT32, 0, (GET_FLAG) },
-    {"Mode", 2, &apa_getMode, &apa_setMode, NULL, PARAMTYPE_UINT8, LEDFX_NUM_EFFECTS, (GET_FLAG | SET_FLAG) },
-    {"Colour", 3, &apa_getColour, &apa_setColour, NULL, PARAMTYPE_UINT32, UINT32_MAX, (GET_FLAG | SET_FLAG ) },
-    {"Brightness", 4, &apa_getBrightness, &apa_setBrightness, NULL, PARAMTYPE_UINT8, 31, (GET_FLAG | SET_FLAG )},
+    {"NumLeds", 1, &apa_getNumleds, NULL, NULL, DATATYPE_UINT32, 0, (GET_FLAG) },
+    {"Mode", 2, &apa_getMode, &apa_setMode, NULL, DATATYPE_UINT8, LEDFX_NUM_EFFECTS, (GET_FLAG | SET_FLAG) },
+    {"Colour", 3, &apa_getColour, &apa_setColour, NULL, DATATYPE_UINT32, UINT32_MAX, (GET_FLAG | SET_FLAG ) },
+    {"Brightness", 4, &apa_getBrightness, &apa_setBrightness, NULL, DATATYPE_UINT8, 31, (GET_FLAG | SET_FLAG )},
 };
 
 const peripheral_t apa_periph_template = {

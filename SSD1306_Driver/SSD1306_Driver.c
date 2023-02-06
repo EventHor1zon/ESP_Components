@@ -29,12 +29,12 @@
 #ifdef CONFIG_USE_PERIPH_MANAGER
 
 const parameter_t ssd1306_param_map[screen_param_len] = {
-    {"text",        1, NULL, &ssd1306_set_text, NULL,               PARAMTYPE_STRING, (SSD_MAX_STRLEN-1), (SET_FLAG) },
-    {"line",        2, &ssd1306_get_line, &ssd1306_set_line, NULL,  PARAMTYPE_UINT8, 8, (GET_FLAG | SET_FLAG) },
-    {"clear line",  3, NULL, NULL, &ssd1306_clear_current_line,     PARAMTYPE_NONE,  0, (ACT_FLAG) },
-    {"write line",  4, NULL, NULL, &ssd1306_write_current_line,     PARAMTYPE_NONE,  0, (ACT_FLAG) },
-    {"clear all",   5, NULL, NULL, &ssd1306_clear_screen,           PARAMTYPE_NONE,  0, (ACT_FLAG) },
-    {"write text",  6, NULL, NULL, &ssd1306_set_text,               PARAMTYPE_NONE,  0, (ACT_FLAG) },
+    {"text",        1, NULL, &ssd1306_set_text, NULL,               DATATYPE_STRING, (SSD_MAX_STRLEN-1), (SET_FLAG) },
+    {"line",        2, &ssd1306_get_line, &ssd1306_set_line, NULL,  DATATYPE_UINT8, 8, (GET_FLAG | SET_FLAG) },
+    {"clear line",  3, NULL, NULL, &ssd1306_clear_current_line,     DATATYPE_NONE,  0, (ACT_FLAG) },
+    {"write line",  4, NULL, NULL, &ssd1306_write_current_line,     DATATYPE_NONE,  0, (ACT_FLAG) },
+    {"clear all",   5, NULL, NULL, &ssd1306_clear_screen,           DATATYPE_NONE,  0, (ACT_FLAG) },
+    {"write text",  6, NULL, NULL, &ssd1306_set_text,               DATATYPE_NONE,  0, (ACT_FLAG) },
 };
 
 const peripheral_t ssd1306_peripheral_template = {
