@@ -123,8 +123,11 @@ typedef hmc_driver_t * HMC_DEV;
 /******** Function Definitions *********/
 
 
+#ifdef CONFIG_DRIVERS_USE_HEAP
 HMC_DEV hmc_init(hmc_init_t *ini);
-
+#else
+HMC_DEV hmc_init(HMC_DEV dev, hmc_init_t *ini);
+#endif
 
 esp_err_t hmc_get_mode(HMC_DEV dev, uint8_t *val);
 

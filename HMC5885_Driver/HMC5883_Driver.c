@@ -90,8 +90,12 @@ static void hmc_driver_task(void *args) {
 
 /****** Global Functions *************/
 
-
-HMC_DEV hmc_init(hmc_init_t *ini) {
+#ifdef CONFIG_DRIVERS_USE_HEAP
+HMC_DEV hmc_init(hmc_init_t *ini) 
+#else
+HMC_DEV hmc_init(HMC_DEV dev, hmc_init_t *ini)
+#endif
+{
 
     esp_err_t err = ESP_OK;
     HMC_DEV dev = NULL;
@@ -102,6 +106,27 @@ HMC_DEV hmc_init(hmc_init_t *ini) {
         ESP_LOGE(HMC_TAG, "Error: Invalid i2c Bus");
         err = ESP_ERR_INVALID_ARG;
     }
+    /** create driver handle **/
+#ifdef CONFIG_DRIVERS_USE_HEAP
+    if(!err) {
+        dev = heap_caps_calloc(1, sizeof(hmc_driver_t), MALLOC_CAP_DEFAULT);
+        if(dev == NULL) {
+            err= ESP_ERR_NO_MEM;
+            ESP_LOGE(HMC_TAG, "Error: Could not create driver handle!");
+        }
+    }
+#else
+    memset(dev, 0, sizeof(hmc_driver_t));
+#endif
+    if(!err) {
+        /** set default values in the handle **/
+        dev->drdy_pin = ini->drdy_pin;
+        dev->i2c_bus = ini->i2c_bus;
+        dev->i2c_address = HMC_I2C_ADDR;
+        dev->mode = HMC_MODE_STANDBY;
+    }
+
+
     /** EC/Config the GPIO pin **/
     if(!err) {
         if(ini->drdy_pin > 0) {
@@ -119,27 +144,6 @@ HMC_DEV hmc_init(hmc_init_t *ini) {
             }
         } 
     }
-    /** create driver handle **/
-    if(!err) {
-        dev = heap_caps_calloc(1, sizeof(hmc_driver_t), MALLOC_CAP_DEFAULT);
-        if(dev == NULL) {
-            err= ESP_ERR_NO_MEM;
-            ESP_LOGE(HMC_TAG, "Error: Could not create driver handle!");
-        }
-        else {
-            /** set default values in the handle **/
-            dev->drdy_pin = ini->drdy_pin;
-            dev->i2c_bus = ini->i2c_bus;
-            dev->i2c_address = HMC_I2C_ADDR;
-            dev->mode = HMC_MODE_STANDBY;
-        }
-    }
-
-    if(!err) {
-        uint8_t mode = 1;
-
-        hmc_set_mode(dev, &mode);
-    }
 
     /** create the driver task ***/
     if(!err && xTaskCreate(hmc_driver_task, "hmc_driver_task", 5012, dev, 3, &t_handle) != pdTRUE) {
@@ -153,9 +157,11 @@ HMC_DEV hmc_init(hmc_init_t *ini) {
     /** if setup fails and heap has been allocated, free now **/
     if(err){
         ESP_LOGE(HMC_TAG, "Error: Failed to initialise HMC device! [%u]", err);
+#ifdef CONFIG_DRIVERS_USE_HEAP
         if(dev != NULL ){
             heap_caps_free(dev);
         }
+#endif
     }
     else {
         ESP_LOGI(HMC_TAG, "Succesfully started the HMC Driver!");

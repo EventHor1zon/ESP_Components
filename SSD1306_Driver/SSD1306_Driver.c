@@ -407,11 +407,13 @@ esp_err_t ssd1306_write_text(ssd1306_handle_t *screen) {
     return stat;
 }
 
-
+#ifdef CONFIG_DRIVERS_USE_HEAP
 ssd1306_handle_t *ssd1306_init(ssd1306_init_t *init) {
+#else
+ssd1306_handle_t *ssd1306_init(ssd1306_handle_t *handle, ssd1306_init_t *init) {
+#endif
 
     esp_err_t err = ESP_OK;
-    ssd1306_handle_t *handle = NULL;
     TaskHandle_t ssd_taskhandle = NULL;
     
     ESP_LOGI(SSD_TAG, "Starting SSD1306 Driver");
@@ -420,16 +422,21 @@ ssd1306_handle_t *ssd1306_init(ssd1306_init_t *init) {
         err = ESP_ERR_INVALID_ARG;
     }
 
+#ifdef CONFIG_DRIVERS_USE_HEAP
     if(err == ESP_OK) {
-        handle = heap_caps_calloc(1, sizeof(ssd1306_handle_t), MALLOC_CAP_8BIT);
+        ssd1306_handle_t *handle = heap_caps_calloc(1, sizeof(ssd1306_handle_t), MALLOC_CAP_8BIT);
         if(handle == NULL) {
             err = ESP_ERR_NO_MEM;
             ESP_LOGE(SSD_TAG, "Error allocating driver memory");
         }
-        else {
-            handle->bus = init->i2c_bus;
-            handle->dev_addr = init->i2c_addr;
-        }
+    }
+#else 
+    memset(handle, 0, sizeof(ssd1306_handle_t));
+#endif
+
+    if(err == ESP_OK) {
+        handle->bus = init->i2c_bus;
+        handle->dev_addr = init->i2c_addr;
     }
 
     if(err == ESP_OK) {

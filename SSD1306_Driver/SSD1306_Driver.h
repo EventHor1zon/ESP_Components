@@ -145,9 +145,11 @@ esp_err_t ssd1306_clear_screen(ssd1306_handle_t *screen);
 
 esp_err_t ssd1306_write_text(ssd1306_handle_t *screen);
 
-ssd1306_handle_t *ssd1306_init(ssd1306_init_t *init);
-
-
+#ifdef CONFIG_DRIVERS_USE_HEAP
+    ssd1306_handle_t *ssd1306_init(ssd1306_init_t *init);
+#else
+    ssd1306_handle_t *ssd1306_init(ssd1306_handle_t *handle, ssd1306_init_t *init);
+#endif
 
 
 #endif /* SSD1306_DRIVER_H */

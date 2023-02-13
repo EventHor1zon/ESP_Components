@@ -283,6 +283,8 @@ static esp_err_t bm280_getCalibrationData(BM_DEV bmCtrl)
 }
 
 
+/** TODO: Refactor init function to bring inline with other drivers */
+
 static esp_err_t bm280_InitDeviceSettings(BM_DEV bmCtrl)
 {
 

@@ -446,8 +446,9 @@ max31_driver_t *max31_init(max31_initdata_t *init) {
     
         if(istatus != ESP_OK && handle != NULL) {
             /** dont leave trash if init fails **/
+#ifdef CONFIG_DRIVERS_USE_HEAP
             heap_caps_free(handle);
-            handle = NULL;
+#endif
         } else {
             ESP_LOGI(MX_TAG, "Max30102 driver started succesfully!");
 #ifdef DEBUG_MODE

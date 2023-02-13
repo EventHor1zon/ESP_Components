@@ -144,9 +144,11 @@ ccs811_Device_t *css811_init(ccs811_init_t *init) {
 
     if(status != ESP_OK) {
         ESP_LOGI(CCS_TAG, "Error starting the CCS driver :(");
+#ifdef CONFIG_DRIVERS_USE_HEAP
         if(handle != NULL ) {
             heap_caps_free(handle);
         }
+#endif
     }
 
     return handle;

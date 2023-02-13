@@ -592,8 +592,13 @@ static void mrfc_driver_task(void *args) {
 
 /****** Global Functions *************/
 
+#ifdef CONFIG_DRIVERS_USE_HEAP
+MFRC_DEV mfrc_init(mfrc_init_t *init) 
+#else
+MFRC_DEV mfrc_init(MFRC_DEV handle, mfrc_init_t *init) 
+#endif
 
-MFRC_DEV mfrc_init(mfrc_init_t *init) {
+{
 
     MFRC_DEV handle = NULL;
     gpio_config_t pin_config = {0};
@@ -609,18 +614,25 @@ MFRC_DEV mfrc_init(mfrc_init_t *init) {
 
     /** create handle **/
     if(!err) {
-        handle = heap_caps_calloc(1, sizeof(MFRC522_Driver_t), MALLOC_CAP_DEFAULT);
+#ifdef CONFIG_DRIVERS_USE_HEAP
+        MFRC_DEV handle = heap_caps_calloc(1, sizeof(MFRC522_Driver_t), MALLOC_CAP_DEFAULT);
         if(handle == NULL) {
             err = ESP_ERR_NO_MEM;
             ESP_LOGE(MFRC_TAG, "Error - unable to assign heap memory for handle [%u]", err);
         }
-        else {
-            handle->comms_bus = init->comms_bus;
-            handle->comms_mode = init->comms_mode;
-            handle->irq_pin = init->irq_pin;
-            handle->rst_pin = init->rst_pin;
-        }
+#else
+        memset(handle, 0, sizeof(MFRC522_Driver_t));
+#endif
     }
+
+
+    if(!err) {
+        handle->comms_bus = init->comms_bus;
+        handle->comms_mode = init->comms_mode;
+        handle->irq_pin = init->irq_pin;
+        handle->rst_pin = init->rst_pin;
+    }
+
 
     if(!err && handle->comms_mode == MFRC_SPI_COMMS_MODE) {
 
@@ -705,9 +717,11 @@ MFRC_DEV mfrc_init(mfrc_init_t *init) {
 
     if(err) {
         ESP_LOGE(MFRC_TAG, "Error initialising MFRC522 driver [%u]", err);
+#ifdef CONFIG_DRIVERS_USE_HEAP
         if(handle) {
             heap_caps_free(handle);
         }
+#endif
     } 
     else {
         ESP_LOGI(MFRC_TAG, "Succesfully started MFRC522 Driver");

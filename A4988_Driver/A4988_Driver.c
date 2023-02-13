@@ -12,6 +12,7 @@
 #include "esp_err.h"
 #include "esp_log.h"
 #include "esp_types.h"
+#include "string.h"
 
 #include "esp_heap_caps.h"
 #include "freertos/FreeRTOS.h"
@@ -102,23 +103,29 @@ static void a4988_driver_task(void *args) {
 
 /****** Global Functions *************/
 
-
+#ifdef CONFIG_DRIVERS_USE_HEAP
 A4988_DEV a4988_init(a4988_init_t *init) {
+#else
+A4988_DEV a4988_init(A4988_DEV dev, a4988_init_t *init) {
+#endif
 
-    A4988_DEV dev = NULL;
     esp_err_t err = ESP_OK;
     TaskHandle_t t_handle = NULL;
     TimerHandle_t timer = NULL;
     gpio_config_t pins = {0};
 
 
+#ifdef CONFIG_DRIVERS_USE_HEAP
     /** initialise the handle **/
-    dev = heap_caps_calloc(1, sizeof(a4988_handle_t), MALLOC_CAP_DEFAULT);
+    A4988_DEV dev = heap_caps_calloc(1, sizeof(a4988_handle_t), MALLOC_CAP_DEFAULT);
     if(dev == NULL) {
         ESP_LOGE(DEV_TAG, "Error assigning memory for the handle");
         err = ESP_ERR_NO_MEM;
     }
-    else {
+#else
+    memset(dev, 0, sizeof(a4988_handle_t));
+#endif
+    if(err == ESP_OK) {
         dev->step_pulse_len = A4988_DEFAULT_STEP_PULSE_LEN;
         dev->step_wait = A4988_DEFAULT_STEP_DELAY;
         dev->is_enabled = true;
@@ -224,6 +231,14 @@ A4988_DEV a4988_init(a4988_init_t *init) {
 
     if(!err) {
         ESP_LOGI(DEV_TAG, "Succesfully started the A4988 Driver!");
+    }
+    else {
+        ESP_LOGE(DEV_TAG, "Error starting the driver (Error: %u)", err);
+#ifdef CONFIG_DRIVERS_USE_HEAP
+        if(dev != NULL) {
+            heap_caps_free(dev);
+        }
+#endif
     }
 
     return dev;

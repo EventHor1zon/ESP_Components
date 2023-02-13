@@ -122,12 +122,15 @@ static void rgb_driver_task(void *args) {
 
 /****** Global Functions *************/
 
-
-RGB_HANDLE rgb_driver_init(rgb_init_t *init) {
+#ifdef CONFIG_DRIVERS_USE_HEAP
+RGB_HANDLE rgb_driver_init(rgb_init_t *init) 
+#else
+RGB_HANDLE rgb_driver_init(RGB_HANDLE handle, rgb_init_t *init) 
+#endif
+{
 
     esp_err_t err = ESP_OK;
     ledc_channel_config_t cfg = {0};
-    RGB_HANDLE handle = NULL;
     TaskHandle_t t_handle;
 
     ESP_LOGI(RGB_TAG, "Starting RGB driver");
@@ -137,15 +140,45 @@ RGB_HANDLE rgb_driver_init(rgb_init_t *init) {
         ESP_LOGE(RGB_TAG, "Error, frequency is too damn high!");
     }
 
-    ledc_timer_config_t tmrcfg = {0};
-    tmrcfg.freq_hz = init->freq;
-    tmrcfg.clk_cfg = LEDC_USE_APB_CLK;
-    tmrcfg.timer_num = LEDC_TIMER_0;
-    tmrcfg.speed_mode = LEDC_HIGH_SPEED_MODE;
-    tmrcfg.duty_resolution = LEDC_TIMER_12_BIT;
-    ESP_LOGI(RGB_TAG, "Setting up LedCtrl timer at freq %u", tmrcfg.freq_hz);
 
-    err = ledc_timer_config(&tmrcfg);
+    if(!err) {
+#ifdef CONFIG_DRIVERS_USE_HEAP
+        RGB_HANDLE handle = heap_caps_calloc(1, sizeof(rgb_driver_t), MALLOC_CAP_DEFAULT);
+        if(handle == NULL) {
+            ESP_LOGE(RGB_TAG, "Error allocating heap for driver structure!");
+            err = ESP_ERR_NO_MEM;
+        }
+#else
+        memset(handle, 0, sizeof(rgb_driver_t));
+#endif
+    }
+
+    if(!err) {
+        handle->fade_time = 1000;
+        handle->active_level = init->active_level;
+        handle->b_duty = 0;
+        handle->r_duty = 0;
+        handle->g_duty = 0;
+        handle->frequency = init->freq;
+        handle->r_channel = 0;
+        handle->g_channel = 1;
+        handle->b_channel = 2;
+        handle->resolution = 12;        /** TODO: don't hardwire values! **/
+        handle->max_duty = RGB_LEDC_DUTY;
+    }
+
+
+    ledc_timer_config_t tmrcfg = {0};
+    if(!err) {
+        tmrcfg.freq_hz = init->freq;
+        tmrcfg.clk_cfg = LEDC_USE_APB_CLK;
+        tmrcfg.timer_num = LEDC_TIMER_0;
+        tmrcfg.speed_mode = LEDC_HIGH_SPEED_MODE;
+        tmrcfg.duty_resolution = LEDC_TIMER_12_BIT;
+        ESP_LOGI(RGB_TAG, "Setting up LedCtrl timer at freq %u", tmrcfg.freq_hz);
+
+        err = ledc_timer_config(&tmrcfg);
+    }
 
     if(err) {
         ESP_LOGE(RGB_TAG, "Error configuring timer");        
@@ -173,26 +206,6 @@ RGB_HANDLE rgb_driver_init(rgb_init_t *init) {
         }
     }
 
-    if(!err) {
-        handle = heap_caps_calloc(1, sizeof(rgb_driver_t), MALLOC_CAP_DEFAULT);
-        if(handle == NULL) {
-            ESP_LOGE(RGB_TAG, "Error allocating heap for driver structure!");
-            err = ESP_ERR_NO_MEM;
-        }
-        else {
-            handle->fade_time = 1000;
-            handle->active_level = init->active_level;
-            handle->b_duty = 0;
-            handle->r_duty = 0;
-            handle->g_duty = 0;
-            handle->frequency = init->freq;
-            handle->r_channel = 0;
-            handle->g_channel = 1;
-            handle->b_channel = 2;
-            handle->resolution = 12;        /** TODO: don't hardwire values! **/
-            handle->max_duty = RGB_LEDC_DUTY;
-        }
-    }
 
     if(!err && xTaskCreate(rgb_driver_task, "rgb_driver_task", 5012, handle, 3, &t_handle) != pdTRUE) {
         ESP_LOGE(RGB_TAG, "Error creating driver task!");
@@ -211,9 +224,11 @@ RGB_HANDLE rgb_driver_init(rgb_init_t *init) {
     }
     else {
         ESP_LOGE(RGB_TAG, "Failed to start RGB driver!");
+#ifdef CONFIG_DRIVERS_USE_HEAP
         if(handle != NULL) {
             heap_caps_free(handle);
         }
+#endif
     }
 
     return handle;

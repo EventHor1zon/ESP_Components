@@ -11,6 +11,7 @@
 #include "driver/adc_common.h"
 #include "driver/gpio.h"
 #include "driver/adc.h"
+#include "string.h"
 
 #include "soc/adc_channel.h"
 #include "esp_heap_caps.h"
@@ -156,14 +157,15 @@ TimerCallbackFunction_t msgeq7_timer_callback(TimerHandle_t timer) {
 
 /****** Global Functions *************/
 
-
-msg_handle_t *msg_init(msg_init_t *init) {
+#ifdef CONFIG_DRIVERS_USE_HEAP
+msg_handle_t *msg_init(msg_init_t *init) 
+#else
+msg_handle_t *msg_init(msg_handle_t *handle, msg_init_t *init) 
+#endif
+{
 
     esp_err_t istat = ESP_OK;
     gpio_config_t conf = {0};
-
-    msg_handle_t *handle = NULL;
-
     uint8_t channel = 0;
 
     if(init->data > 39 || init->data < 32) {
@@ -207,18 +209,23 @@ msg_handle_t *msg_init(msg_init_t *init) {
 
     /** Init handle **/
     if (istat == ESP_OK) {
-        handle = (msg_handle_t *)heap_caps_calloc(1, sizeof(msg_handle_t), MALLOC_CAP_8BIT);
+#ifdef CONFIG_DRIVERS_USE_HEAP
+        msg_handle_t *handle = (msg_handle_t *)heap_caps_calloc(1, sizeof(msg_handle_t), MALLOC_CAP_8BIT);
         if(handle == NULL) {
             ESP_LOGE(MSG_TAG, "Error alocating memory for handle!");
             istat = ESP_ERR_NO_MEM;
         }
-        else {
-            handle->adc_bits = ADC_WIDTH_10Bit; /** TODO: make configurable **/
-            handle->adc_channel = (adc_channel_t)channel;      
-            handle->data_pin = init->data;
-            handle->rst_pin = init->rst;
-            handle->strobe_pin = init->strobe;
-        }
+#else
+        memset(handle, 0, sizeof(msg_handle_t));
+#endif
+    }
+
+    if(istat == ESP_OK) {
+        handle->adc_bits = ADC_WIDTH_10Bit; /** TODO: make configurable **/
+        handle->adc_channel = (adc_channel_t)channel;      
+        handle->data_pin = init->data;
+        handle->rst_pin = init->rst;
+        handle->strobe_pin = init->strobe;
     }
 
     /** Init Task **/
@@ -244,10 +251,12 @@ msg_handle_t *msg_init(msg_init_t *init) {
         }
     }
 
+#ifdef CONFIG_DRIVERS_USE_HEAP
     /** If init fails, free handle **/
     if(istat != ESP_OK && handle != NULL) {
         heap_caps_free(handle);
     }
+#endif
 
     if(istat == ESP_OK) {
         ESP_LOGI(MSG_TAG, "Succesfully started MSG_EQ7 Driver!");

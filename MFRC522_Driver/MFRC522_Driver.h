@@ -971,7 +971,11 @@ typedef MFRC522_Driver_t * MFRC_DEV;
 
 /******** Function Declarations *********/
 
+#ifdef CONFIG_DRIVERS_USE_HEAP
 MFRC_DEV mfrc_init(mfrc_init_t *init);
+#else
+MFRC_DEV mfrc_init(MFRC_DEV handle, mfrc_init_t *init);
+#endif
 
 void mfrc_deinit(MFRC_DEV dev);
 

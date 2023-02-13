@@ -76,7 +76,11 @@ typedef struct msg_handle
 /******** Function Definitions *********/
 
 
-msg_handle_t *msg_init(msg_init_t *init); 
+#ifdef CONFIG_DRIVERS_USE_HEAP
+msg_handle_t *msg_init(msg_init_t *init);
+#else
+msg_handle_t *msg_init(msg_handle_t *handle, msg_init_t *init);
+#endif
 
 
 

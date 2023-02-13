@@ -91,6 +91,8 @@ IRAM_ATTR void apds_intr_handler(void *args) {
 
 /****** Private Functions *************/
 
+/** TODO: These should be in GCD **/ 
+
 /** Sets the BITS in mask **/
 static esp_err_t regSetMask(APDS_DEV dev, uint8_t regaddr, uint8_t mask) {
 
@@ -520,10 +522,15 @@ static void apds_driver_task(void *args) {
 
 /****** Global Functions *************/
 
-APDS_DEV apds_init(apds_init_t *init) {
+#ifdef CONFIG_DRIVERS_USE_HEAP
+APDS_DEV apds_init(apds_init_t *init) 
+#else
+APDS_DEV apds_init(APDS_DEV dev, apds_init_t *init)
+#endif
+
+{
 
     esp_err_t err = ESP_OK;
-    APDS_DEV dev = NULL;
     TaskHandle_t t_handle = NULL;
 
     if(!gcd_i2c_check_bus(init->i2c_bus)) {
@@ -531,16 +538,23 @@ APDS_DEV apds_init(apds_init_t *init) {
         ESP_LOGE(APDS_TAG, "Error - invalid i2c bus");
     }
 
+#ifdef CONFIG_DRIVERS_USE_HEAP
+    APDS_DEV dev;
+    
     if(!err) {
         dev = heap_caps_calloc(1, sizeof(adps_handle_t), MALLOC_CAP_DEFAULT);
         if(dev == NULL) {
             ESP_LOGE(APDS_TAG, "Error: Error assigning heap mem [%u]", err);
             err = ESP_ERR_NO_MEM;
         }
-        else {
-            dev->addr = APDS_I2C_ADDRESS;
-            dev->bus = init->i2c_bus;
-        }
+    }
+#else
+    memset(dev, 0, sizeof(adps_handle_t));
+#endif
+
+    if(!err) {
+        dev->addr = APDS_I2C_ADDRESS;
+        dev->bus = init->i2c_bus;
     }
 
     if(!err && apds_initialise_device(dev)) {
@@ -564,6 +578,12 @@ APDS_DEV apds_init(apds_init_t *init) {
     if(!err) {
         ESP_LOGI(APDS_TAG, "Entering test mode!");
         testmode(dev);
+    }
+
+    if(err && dev != NULL) {
+#ifdef CONFIG_DRIVERS_USE_HEAP
+        heap_caps_free(dev);
+#endif
     }
     
     return dev;

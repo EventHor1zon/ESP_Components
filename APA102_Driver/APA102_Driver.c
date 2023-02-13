@@ -307,8 +307,14 @@ esp_err_t apa_setBrightness(StrandData_t *strand, uint8_t *var) {
     return status;
 }
 
+
+#ifdef CONFIG_DRIVERS_USE_HEAP
 StrandData_t *APA102_init(apa102_init_t *init_data)
+#else
+StrandData_t *APA102_init(StrandData_t *handle, apa102_init_t *init_data)
+#endif
 {
+
 
     StrandData_t *strand = NULL;
     esp_err_t init_status = ESP_OK;
@@ -469,10 +475,12 @@ StrandData_t *APA102_init(apa102_init_t *init_data)
         ESP_LOGI(APA_TAG, "APA strand initialised");
     } else {
         ESP_LOGE(APA_TAG, "Error initialising APA strand (%u)", init_status);
+#ifdef CONFIG_DRIVERS_USE_HEAP
         if(strand != NULL) {
             heap_caps_free(strand);
             strand = NULL;
         }
+#endif
     }
 
     return strand;

@@ -117,29 +117,36 @@ static void ds2321_driver_task(void *args) {
 /****** Global Data *******************/
 
 /****** Global Functions *************/
-
+#ifdef CONFIG_DRIVERS_USE_HEAP
 DS2321_DEV ds2321_init(ds2321_init_t *ini) {
-
+#else 
+DS2321_DEV ds2321_init(DS2321_DEV dev, ds2321_init_t *ini) {
+#endif
     esp_err_t err = ESP_OK;
-    DS2321_DEV dev = NULL;
     
     if(!gcd_i2c_check_bus(ini->i2c_bus)) {
         ESP_LOGE(DS_TAG, "Invalid I2C bus");
         err = ESP_ERR_INVALID_ARG;
     }
 
+#ifdef CONFIG_DRIVERS_USE_HEAP
+    DS2321_DEV dev = NULL;
     if(!err) {
         dev = (ds2321_handle_t *)heap_caps_calloc(1, sizeof(ds2321_handle_t), MALLOC_CAP_DEFAULT);
         if(dev == NULL) {
             err = ESP_ERR_NO_MEM;
             ESP_LOGE(DS_TAG, "Error assigning driver handle memory");
         }
-        else {
-            /** set some defaults **/
-            dev->i2c_bus = ini->i2c_bus;
-            dev->opmode = DS2321_OPMODE_SAMPLE_1S;
-            dev->settings.twentyfour_hour = true;
-        }
+    }
+#else 
+    memset(dev, 0, sizeof(ds2321_driver_task));
+#endif
+
+    if(!err) {
+        /** set some defaults **/
+        dev->i2c_bus = ini->i2c_bus;
+        dev->opmode = DS2321_OPMODE_SAMPLE_1S;
+        dev->settings.twentyfour_hour = true;
     }
 
     if(!err && xTaskCreate(ds2321_driver_task, "ds2321_driver_task", 5012, dev, 3, &(dev->t_handle)) != pdTRUE) {
@@ -147,12 +154,12 @@ DS2321_DEV ds2321_init(ds2321_init_t *ini) {
         ESP_LOGE(DS_TAG, "Error creating driver task");       
     }
 
-
-
+#ifdef CONFIG_DRIVERS_USE_HEAP
     if(err && dev != NULL) {
         /** free mem if init fails **/
         heap_caps_free(dev);
     }
+#endif
 
     if(err) {
         ESP_LOGE(DS_TAG, "Failed to intialise DS2321 Driver :(");

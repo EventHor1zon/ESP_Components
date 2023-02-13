@@ -12,7 +12,8 @@ Each driver follows a basic pattern
 
 - Each driver has a task. This task is periodic if device mode requires, else waits on task notifications
 - Each driver has an init function which should take a pointer to an init structure and return a handle to the driver structure or NULL
-- The driver structures are stored in allocated heap memory (I know it's baad practice, but the ESP has so much memory... where else could I store them, I wonder?)
+- Each driver should have an option to store handle on the heap. Using stack always better but some of these handles are 
+    pretty chunky and the ESP32 has a lot of heap. Plus these handles are not really designed with re-use in mind
 - Each driver controls a single device (lookin at you, WS2812b driver!)
 - Each driver has a set of public Getter/Setter functions, which take as arguments
 a device handle and a pointer to a value (set) or value storage (get)
@@ -57,3 +58,17 @@ a device handle and a pointer to a value (set) or value storage (get)
 
 Some of these drivers built with inspiration or borrowed sections from other's code. Credit where it's due. 
 
+## TODOs
+
+- Driver handles are chunky and drivers are often disorganised and bloated. Slim them down!
+- Refactor drivers with simplicity in mind. Event/Interrupt based task actions. Let users implement polling if neccesary.
+- Replace all driver heap allocation with stack where possible. Also consider enabling heap with preprocessor config
+- Any number of driver instances will use a single task so remember to keep tasks state-agnostic and rely on the handle
+- Also remember that the task only needs to be initialised ONCE. Check for running task?
+- TaskHandle_t task can be static to the driver file
+- Careful with task operations like sleep/standby etc!
+
+
+Refactors:
+
+- APA102: Don't include spi init code. Simplify the ledfx struct & store as member not pointer.

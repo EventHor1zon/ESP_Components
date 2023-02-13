@@ -704,7 +704,11 @@ typedef LSM_DriverHandle_t * LSMDEV;
  *  \param LSM_initData_t initData 
  *  \return ESP_OK or error
  */
-LSMDEV LSM_init(LSM_initData_t *initData);
+#ifdef CONFIG_DRIVERS_USE_HEAP
+LSM_DriverHandle_t *LSM_init(LSM_initData_t *initData);
+#else
+LSM_DriverHandle_t *LSM_init(LSMDEV device, LSM_initData_t *initData);
+#endif
 
 /** 
  *  LSM_deinit() 

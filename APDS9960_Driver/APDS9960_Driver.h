@@ -471,7 +471,11 @@ typedef adps_handle_t * APDS_DEV;
  * 
  * \return Handle or Null on fail
  **/
+#ifdef CONFIG_DRIVERS_USE_HEAP
 APDS_DEV apds_init(apds_init_t *init);
+else
+APDS_DEV apds_init(APDS_DEV dev, apds_init_t *init);
+#endif
 
 /**
  * \brief - Get power-on status

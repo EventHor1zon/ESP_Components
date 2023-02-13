@@ -81,8 +81,11 @@ typedef struct apa102_init
  * @param   init    Pointer to a populated APA102_init struct
  * @return  Device handle or NULL on error
  */
+#ifdef CONFIG_DRIVERS_USE_HEAP
 StrandData_t *APA102_init(apa102_init_t *init_data);
-
+#else
+StrandData_t *APA102_init(StrandData_t *handle, apa102_init_t *init_data);
+#endif
 /**
  * @brief Get the number of leds in the strand
  *

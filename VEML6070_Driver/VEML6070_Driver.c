@@ -43,29 +43,34 @@ static void veml_driver_task(void *args) {
 
 /****** Global Functions *************/
 
-
-VEML_DEV veml_init(veml_init_t *init) {
+#ifdef CONFIG_DRIVERS_USE_HEAP
+VEML_DEV veml_init(veml_init_t *init) 
+#else
+VEML_DEV veml_init(VEML_DEV dev, veml_init_t *init) 
+#endif
+{
 
     esp_err_t err = ESP_OK;
     TaskHandle_t thandle = NULL;
-    VEML_DEV dev = NULL;
 
     if(!gcd_i2c_check_bus(init->i2c_bus)) {
         ESP_LOGE(VEML_TAG, "Error invalid i2c bus");
         err = ESP_ERR_INVALID_ARG;
     }
 
-    if(!err) {
-        dev = heap_caps_calloc(1, sizeof(veml_driver_t), MALLOC_CAP_DEFAULT);
-        if(dev == NULL) {
-            ESP_LOGE(VEML_TAG, "Error initialising device memory");
-            err = ESP_ERR_NO_MEM;
-        }
-        else {
-            dev->bus = init->i2c_bus;
-        }
-
+#ifdef CONFIG_DRIVERS_USE_HEAP
+    VEML_DEV dev = heap_caps_calloc(1, sizeof(veml_driver_t), MALLOC_CAP_DEFAULT);
+    if(dev == NULL) {
+        ESP_LOGE(VEML_TAG, "Error initialising device memory");
+        err = ESP_ERR_NO_MEM;
     }
+#else
+    memset(dev, 0, sizeof(veml_driver_t));
+#endif
+    if(!err) {
+        dev->bus = init->i2c_bus;
+    }
+
 
     if(!err && init->ack_pin > 0) {
         gpio_config_t conf = {
@@ -100,9 +105,11 @@ VEML_DEV veml_init(veml_init_t *init) {
     }
     else {
         ESP_LOGE(VEML_TAG, "VEML Driver initialisation failed");
+#ifdef CONFIG_DRIVERS_USE_HEAP
         if(dev != NULL) {
             heap_caps_free(dev);
         }
+#endif
     }
 
     return dev;

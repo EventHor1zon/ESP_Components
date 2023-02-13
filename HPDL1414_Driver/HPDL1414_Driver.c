@@ -123,33 +123,43 @@ static esp_err_t set_char_data(hpdl_driver_t *dev, char *c) {
 
 /****** Global Functions *************/
 
-
-hpdl_driver_t *hpdl_init(hpdl_initdata_t *init) {
-
+#ifdef CONFIG_DRIVERS_USE_HEAP
+hpdl_driver_t *hpdl_init(hpdl_initdata_t *init) 
+#else
+hpdl_driver_t *hpdl_init(hpdl_driver_t *handle, hpdl_initdata_t *init)
+#endif
+{
 
     esp_err_t status = ESP_OK;
 
     /** make a pinmask of the outputs **/
-    uint32_t pinmask = 
-        (1 << (init->D0)) |
-        (1 << (init->D1)) |
-        (1 << (init->D2)) |
-        (1 << (init->D3)) |
-        (1 << (init->D4)) |
-        (1 << (init->D5)) |
-        (1 << (init->D6)) |
-        (1 << (init->A0)) |
-        (1 << (init->A1)) 
-    ;
+    uint32_t pinmask;
 
-
+#ifdef CONFIG_DRIVERS_USE_HEAP
     hpdl_driver_t *handle = (hpdl_driver_t *)heap_caps_calloc(1, sizeof(hpdl_driver_t), MALLOC_CAP_8BIT);
     if(handle == NULL) {
         ESP_LOGE(HPDL_TAG, "Error assigning memory for driver handle");
         status = ESP_ERR_NO_MEM;
     }
+#else
+    memset(handle, 0, sizeof(hpdl_driver_t));
+#endif
 
-    else {
+    if(status == ESP_OK) {
+        pinmask = 
+            (1 << (init->D0)) |
+            (1 << (init->D1)) |
+            (1 << (init->D2)) |
+            (1 << (init->D3)) |
+            (1 << (init->D4)) |
+            (1 << (init->D5)) |
+            (1 << (init->D6)) |
+            (1 << (init->A0)) |
+            (1 << (init->A1)) 
+        ;
+    }
+
+    if(status == ESP_OK) {
         handle->rowpins.DR0 = init->D0;
         handle->rowpins.DR1 = init->D1;
         handle->rowpins.DR2 = init->D2;
@@ -190,6 +200,15 @@ hpdl_driver_t *hpdl_init(hpdl_initdata_t *init) {
         ESP_LOGI(HPDL_TAG, "Succesfully init the driver!");
         //test(handle);
     }
+    else {
+        ESP_LOGE(HPDL_TAG, "Failed to init the driver (Error %u)", status); 
+#ifdef CONFIG_DRIVERS_USE_HEAP
+        if(handle != NULL) {
+            heap_caps_free(handle);
+        }
+#endif
+    }
+
 
     return handle;
 }

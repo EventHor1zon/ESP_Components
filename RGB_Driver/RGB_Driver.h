@@ -97,7 +97,11 @@ typedef rgb_driver_t * RGB_HANDLE;
 /******** Function Definitions *********/
 
 
+#ifdef CONFIG_DRIVERS_USE_HEAP
 RGB_HANDLE rgb_driver_init(rgb_init_t *init);
+#else
+RGB_HANDLE rgb_driver_init(RGB_HANDLE handle, rgb_init_t *init);
+#endif
 
 esp_err_t rgb_get_fade_time(RGB_HANDLE handle, uint32_t *val);
 

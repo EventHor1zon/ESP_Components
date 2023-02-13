@@ -771,8 +771,11 @@ void LSMDriverTask(void *args)
 
 
 /**** MAIN CONFIG & ACTIONS *****/
-
+#ifdef CONFIG_DRIVERS_USE_HEAP
 LSM_DriverHandle_t *LSM_init(LSM_initData_t *initData)
+#else
+LSM_DriverHandle_t *LSM_init(LSMDEV device, LSM_initData_t *initData)
+#endif
 {
 
     esp_err_t initStatus = ESP_OK;
@@ -787,193 +790,198 @@ LSM_DriverHandle_t *LSM_init(LSM_initData_t *initData)
         ESP_LOGE("LSM Driver", "Error - invalid comms channel");
         initStatus = ESP_ERR_INVALID_ARG;
     }
-    else
+    
+    if(initStatus == ESP_OK) 
     {
         /** allocate memory on the heap for the control structure */
-        device = (LSM_DriverHandle_t *)heap_caps_calloc(1, sizeof(LSM_DriverHandle_t), MALLOC_CAP_8BIT);
-
+#ifdef CONFIG_DRIVERS_USE_HEAP
+        LSM_DriverHandle_t *device = (LSM_DriverHandle_t *)heap_caps_calloc(1, sizeof(LSM_DriverHandle_t), MALLOC_CAP_8BIT);
         if (device == NULL)
         {
             ESP_LOGE("LSM Driver", "Error assigning mem for the device structure");
             initStatus = ESP_ERR_NO_MEM;
         }
-        else
+#else
+        memset(device, 0, sizeof(LSM_DriverHandle_t));
+    }
+#endif
+
+    if(initStatus == ESP_OK) {
+
+        device->commsHandle = 0;
+
+        if ((initData->commMode == LSM_DEVICE_COMM_MODE_SPI || initData->commMode == LSM_DEVICE_COMM_MODE_SPI_3))
         {
+            /** TODO: setup spi  **/
+            return NULL;
+        }
+        else if (initData->commMode == LSM_DEVICE_COMM_MODE_I2C)
+        {
+            device->commMode = LSM_DEVICE_COMM_MODE_I2C;
+            device->commsChannel = initData->commsChannel;
 
-            device->commsHandle = 0;
-
-            if ((initData->commMode == LSM_DEVICE_COMM_MODE_SPI || initData->commMode == LSM_DEVICE_COMM_MODE_SPI_3))
+            if (initData->addrPinState)
             {
-                /** TODO: setup spi  **/
-                return NULL;
-            }
-            else if (initData->commMode == LSM_DEVICE_COMM_MODE_I2C)
-            {
-                device->commMode = LSM_DEVICE_COMM_MODE_I2C;
-                device->commsChannel = initData->commsChannel;
-
-                if (initData->addrPinState)
-                {
-                    device->devAddr = LSM_I2C_ADDR + 1;
-                }
-                else
-                {
-                    device->devAddr = LSM_I2C_ADDR;
-                }
+                device->devAddr = LSM_I2C_ADDR + 1;
             }
             else
             {
-                initStatus = ESP_ERR_INVALID_ARG;
+                device->devAddr = LSM_I2C_ADDR;
             }
         }
-
-        /** set up interrupts **/
-        if (initStatus == ESP_OK && (initData->int1Pin || initData->int2Pin))
+        else
         {
-            uint32_t gpioMask = 0;
-            if (initData->int1Pin)
-            {
-                gpioMask |= (1ULL << initData->int1Pin);
-            }
-            if (initData->int2Pin)
-            {
-                gpioMask |= (1ULL << initData->int2Pin);
-            }
+            initStatus = ESP_ERR_INVALID_ARG;
+        }
+    }
 
-            gpio_config_t gpioInit = {0};
-            gpioInit.intr_type = GPIO_INTR_NEGEDGE;
-            gpioInit.mode = GPIO_MODE_INPUT;
-            gpioInit.pin_bit_mask = gpioMask;
-            gpioInit.pull_up_en = GPIO_PULLUP_ENABLE;
-            gpioInit.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    /** set up interrupts **/
+    if (initStatus == ESP_OK && (initData->int1Pin || initData->int2Pin))
+    {
+        uint32_t gpioMask = 0;
+        if (initData->int1Pin)
+        {
+            gpioMask |= (1ULL << initData->int1Pin);
+        }
+        if (initData->int2Pin)
+        {
+            gpioMask |= (1ULL << initData->int2Pin);
+        }
 
-            initStatus = gpio_config(&gpioInit);
+        gpio_config_t gpioInit = {0};
+        gpioInit.intr_type = GPIO_INTR_NEGEDGE;
+        gpioInit.mode = GPIO_MODE_INPUT;
+        gpioInit.pin_bit_mask = gpioMask;
+        gpioInit.pull_up_en = GPIO_PULLUP_ENABLE;
+        gpioInit.pull_down_en = GPIO_PULLDOWN_DISABLE;
+
+        initStatus = gpio_config(&gpioInit);
+
+        if (initStatus == ESP_OK)
+        {
+            initStatus = gpio_install_isr_service(ESP_INTR_FLAG_LEVEL1);
+            if (initStatus == ESP_ERR_INVALID_STATE)
+            {
+                /** driver already initialised, don't freak out */
+                ESP_LOGI("LSM_Driver", "Cannot install gpio isr service");
+                initStatus = ESP_OK;
+            }
 
             if (initStatus == ESP_OK)
             {
-                initStatus = gpio_install_isr_service(ESP_INTR_FLAG_LEVEL1);
-                if (initStatus == ESP_ERR_INVALID_STATE)
+                if (initData->int1Pin)
                 {
-                    /** driver already initialised, don't freak out */
-                    ESP_LOGI("LSM_Driver", "Cannot install gpio isr service");
-                    initStatus = ESP_OK;
+                    ESP_ERROR_CHECK(gpio_isr_handler_add(initData->int1Pin, ISR_int1, device));
+                    printf("Added interrupt handler to pin %u : 0x%p\n", initData->int1Pin, ISR_int1);
+                    device->i1Pin = initData->int1Pin;
+                    device->int1En = 1;
                 }
-
-                if (initStatus == ESP_OK)
+                if (initData->int2Pin)
                 {
-                    if (initData->int1Pin)
-                    {
-                        ESP_ERROR_CHECK(gpio_isr_handler_add(initData->int1Pin, ISR_int1, device));
-                        printf("Added interrupt handler to pin %u : 0x%p\n", initData->int1Pin, ISR_int1);
-                        device->i1Pin = initData->int1Pin;
-                        device->int1En = 1;
-                    }
-                    if (initData->int2Pin)
-                    {
-                        ESP_ERROR_CHECK(gpio_isr_handler_add(initData->int2Pin, ISR_int2, device));
-                        device->i2Pin = initData->int2Pin;
-                        device->int2En = 1;
-                    }
-                }
-                else 
-                {
-                    ESP_LOGE("LSM Driver", "Error installing ISR service [%u]", initStatus);
+                    ESP_ERROR_CHECK(gpio_isr_handler_add(initData->int2Pin, ISR_int2, device));
+                    device->i2Pin = initData->int2Pin;
+                    device->int2En = 1;
                 }
             }
-            else
+            else 
             {
-                ESP_LOGE("LSM Driver", "Error configuring GPIO pins! [%u]", initStatus);
+                ESP_LOGE("LSM Driver", "Error installing ISR service [%u]", initStatus);
             }
         }
-
-
-        if(initStatus == ESP_OK && initData->use_cbuffer && initData->cbuff != NULL) {
-            ESP_LOGI("LSM_Driver", "Configuring Cbuffer for use!");
-            device->use_cbuffer = true;
-            device->cbuff = initData->cbuff;
-            device->cbuff_store_packets = initData->cbuff_store_packets;
-            device->cbuff_store_raw = initData->cbuff_store_raw;
-        }
-        else if (initStatus == ESP_OK && initData->assignFifoBuffer)
+        else
         {
-            size_t dmaMem = heap_caps_get_free_size(MALLOC_CAP_DMA);
-            if (dmaMem < LSM_FIFO_BUFFER_MEM_LEN)
-            {
-                ESP_LOGE("LSM Driver", "Error: insufficient DMA cap mem. Only %d bytes available", dmaMem);
-                initStatus = ESP_ERR_NO_MEM;
-            }
-            else
-            {
-                void *fifoMem = heap_caps_malloc(LSM_FIFO_BUFFER_MEM_LEN, MALLOC_CAP_DMA);
-                if (fifoMem != NULL)
-                {
-                    device->fifoBuffer = fifoMem;
-                    ESP_LOGI("LSM_Driver", "FIFO Buffer initialised at %p", fifoMem);
-                }
-                else
-                {
-                    ESP_LOGE("LSM", "Error insufficient memory for buffer!");
-                    initStatus = ESP_ERR_NO_MEM;
-                }
-            }
-        }
-
-        /** device settings - start these all at default values (unless specified in initData) **/
-        if(initStatus == ESP_OK) {
-            device->settings.accelAA = 0;
-            device->settings.accelRate = initData->accelRate;
-            device->settings.accelScale = LSM_ACCSCALE_2G;
-            device->settings.accelDec = 1;
-
-            device->settings.gyroDec = 1;
-            device->settings.gyroPwr = LSM_GYROPWR_NORMAL;
-            device->settings.gyroRate = initData->gyroRate;
-            device->settings.gyroScale = LSM_GYRO_SCALE_250DPS;
-            device->settings.highPass = 0;
-
-            device->settings.opMode = initData->opMode;
-            device->settings.int1_mask = 0;
-            device->settings.int2_mask = 0;
-            device->settings.fifoMode = LSM_FIFO_MODE_BYPASS;
-            device->settings.fifoODR = LSM_FIFO_ODR_DISABLED;
-            device->settings.fifoPktLen = 0;
-        }
-
-        /** try to get the device id to check the i2c & device **/
-        if(initStatus == ESP_OK) {
-            uint8_t who = 0;
-            initStatus = LSM_getWhoAmI(device, &who);
-            if(initStatus == ESP_OK && who != LSM_WHOAMI) {
-                ESP_LOGE("LSM Driver", "Error - invalid device id! Expected %02x, Recevied: %02x", LSM_WHOAMI, who);
-                initStatus = ESP_ERR_INVALID_RESPONSE;
-            }
-            else {
-                ESP_LOGI("LSM_Driver", "Device ID read succesful!");
-            }
-        }
-
-        if (initStatus == ESP_OK)
-        {
-            /** initialise device settings **/
-            ESP_LOGI("LSM_Driver", "Setting Data rates");
-            LSM_setOpMode(device, &initData->opMode);
-            LSM_setAccelODRMode(device, &initData->accelRate);
-            LSM_setGyroODRMode(device, &initData->gyroRate);
-        }
-
-
-        if (initStatus == ESP_OK)
-        {
-            TaskHandle_t taskHandle;
-            if (xTaskCreate(LSMDriverTask, "LSMDriverTask", 5012, (void *)device, 3, &taskHandle) == pdFALSE)
-            {
-                ESP_LOGE("LSM_Driver", "Error creating control task!");
-                initStatus = ESP_ERR_INVALID_RESPONSE;
-            }
-
-            device->taskHandle = taskHandle;
+            ESP_LOGE("LSM Driver", "Error configuring GPIO pins! [%u]", initStatus);
         }
     }
+
+
+    if(initStatus == ESP_OK && initData->use_cbuffer && initData->cbuff != NULL) {
+        ESP_LOGI("LSM_Driver", "Configuring Cbuffer for use!");
+        device->use_cbuffer = true;
+        device->cbuff = initData->cbuff;
+        device->cbuff_store_packets = initData->cbuff_store_packets;
+        device->cbuff_store_raw = initData->cbuff_store_raw;
+    }
+    else if (initStatus == ESP_OK && initData->assignFifoBuffer)
+    {
+        size_t dmaMem = heap_caps_get_free_size(MALLOC_CAP_DMA);
+        if (dmaMem < LSM_FIFO_BUFFER_MEM_LEN)
+        {
+            ESP_LOGE("LSM Driver", "Error: insufficient DMA cap mem. Only %d bytes available", dmaMem);
+            initStatus = ESP_ERR_NO_MEM;
+        }
+        else
+        {
+            void *fifoMem = heap_caps_malloc(LSM_FIFO_BUFFER_MEM_LEN, MALLOC_CAP_DMA);
+            if (fifoMem != NULL)
+            {
+                device->fifoBuffer = fifoMem;
+                ESP_LOGI("LSM_Driver", "FIFO Buffer initialised at %p", fifoMem);
+            }
+            else
+            {
+                ESP_LOGE("LSM", "Error insufficient memory for buffer!");
+                initStatus = ESP_ERR_NO_MEM;
+            }
+        }
+    }
+
+    /** device settings - start these all at default values (unless specified in initData) **/
+    if(initStatus == ESP_OK) {
+        device->settings.accelAA = 0;
+        device->settings.accelRate = initData->accelRate;
+        device->settings.accelScale = LSM_ACCSCALE_2G;
+        device->settings.accelDec = 1;
+
+        device->settings.gyroDec = 1;
+        device->settings.gyroPwr = LSM_GYROPWR_NORMAL;
+        device->settings.gyroRate = initData->gyroRate;
+        device->settings.gyroScale = LSM_GYRO_SCALE_250DPS;
+        device->settings.highPass = 0;
+
+        device->settings.opMode = initData->opMode;
+        device->settings.int1_mask = 0;
+        device->settings.int2_mask = 0;
+        device->settings.fifoMode = LSM_FIFO_MODE_BYPASS;
+        device->settings.fifoODR = LSM_FIFO_ODR_DISABLED;
+        device->settings.fifoPktLen = 0;
+    }
+
+    /** try to get the device id to check the i2c & device **/
+    if(initStatus == ESP_OK) {
+        uint8_t who = 0;
+        initStatus = LSM_getWhoAmI(device, &who);
+        if(initStatus == ESP_OK && who != LSM_WHOAMI) {
+            ESP_LOGE("LSM Driver", "Error - invalid device id! Expected %02x, Recevied: %02x", LSM_WHOAMI, who);
+            initStatus = ESP_ERR_INVALID_RESPONSE;
+        }
+        else {
+            ESP_LOGI("LSM_Driver", "Device ID read succesful!");
+        }
+    }
+
+    if (initStatus == ESP_OK)
+    {
+        /** initialise device settings **/
+        ESP_LOGI("LSM_Driver", "Setting Data rates");
+        LSM_setOpMode(device, &initData->opMode);
+        LSM_setAccelODRMode(device, &initData->accelRate);
+        LSM_setGyroODRMode(device, &initData->gyroRate);
+    }
+
+
+    if (initStatus == ESP_OK)
+    {
+        TaskHandle_t taskHandle;
+        if (xTaskCreate(LSMDriverTask, "LSMDriverTask", 5012, (void *)device, 3, &taskHandle) == pdFALSE)
+        {
+            ESP_LOGE("LSM_Driver", "Error creating control task!");
+            initStatus = ESP_ERR_INVALID_RESPONSE;
+        }
+
+        device->taskHandle = taskHandle;
+    }
+
 
     if (initStatus == ESP_OK)
     {

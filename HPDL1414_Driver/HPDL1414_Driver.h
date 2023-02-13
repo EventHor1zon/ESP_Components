@@ -91,7 +91,11 @@ typedef struct HPDL1414_Driver
  * 
  *  \return hpdl_driver_t driver handle or NULL
  **/
+#ifdef CONFIG_DRIVERS_USE_HEAP
 hpdl_driver_t *hpdl_init(hpdl_initdata_t *init);
+#else
+hpdl_driver_t *hpdl_init(hpdl_driver_t *dev, hpdl_initdata_t *init);
+#endif
 
 
 /** \brief hpdl_set_char - send a single char data

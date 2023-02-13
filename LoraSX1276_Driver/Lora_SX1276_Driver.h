@@ -657,7 +657,11 @@ typedef sx1276_driver_t * SX1276_DEV;  /** found this approach in the VL53L0X dr
  *  \param init ptr to populated sx1276_init_t struct
  *  \return SX1276 handle or NULL on error
  *  **/
+#ifdef CONFIG_DRIVERS_USE_HEAP
 SX1276_DEV sx1276_init(sx1276_init_t *init);
+#else
+SX1276_DEV sx1276_init(SX1276_DEV dev_handle, sx1276_init_t *init);
+#endif
 
 /**
  *  \brief Gets the device Version number

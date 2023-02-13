@@ -125,11 +125,15 @@ typedef a4988_handle_t * A4988_DEV;
 
 /**
  * @brief Initialises the A4988 Driver and returns the driver handle
- *
+ * @param   dev     Pointer to device handle 
  * @param   init    Pointer to a populated A4988_init_t
  * @return  Device handle or NULL on error
  */
+#ifdef CONFIG_DRIVERS_USE_HEAP
 A4988_DEV a4988_init(a4988_init_t *init);
+#else
+A4988_DEV a4988_init(A4988_DEV dev, a4988_init_t *init);
+#endif
 
 /**
  * @brief Take a single step in the configured direction

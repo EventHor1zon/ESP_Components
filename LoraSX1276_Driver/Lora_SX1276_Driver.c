@@ -637,13 +637,17 @@ static void sx1276_driver_task(void *args) {
  *  - IRQ    26
  **/
 
-SX1276_DEV sx1276_init(sx1276_init_t *init) {
-    
+#ifdef CONFIG_DRIVERS_USE_HEAP
+SX1276_DEV sx1276_init(sx1276_init_t *init) 
+#else
+SX1276_DEV sx1276_init(SX1276_DEV dev_handle, sx1276_init_t *init)
+#endif
+{
+
 
     esp_err_t err = ESP_OK;
     spi_device_handle_t spi_handle;
     gpio_config_t conf = {0};
-    SX1276_DEV dev_handle = NULL;
     TaskHandle_t t_handle = NULL;
 
     if(!err) {
@@ -675,21 +679,27 @@ SX1276_DEV sx1276_init(sx1276_init_t *init) {
     }
 
     /** create the device handle **/
+#ifdef CONFIG_DRIVERS_USE_HEAP
     if(!err) {
-        dev_handle = (sx1276_driver_t *) heap_caps_calloc(1, sizeof(sx1276_driver_t), MALLOC_CAP_DEFAULT);
+            SX1276_DEV dev_handle = (sx1276_driver_t *) heap_caps_calloc(1, sizeof(sx1276_driver_t), MALLOC_CAP_DEFAULT);
         if(dev_handle == NULL) {
             ESP_LOGE(LORA_TAG, "Error allocating memory for driver handle!");
             err = ESP_ERR_NO_MEM;
         }
-        else {
-            dev_handle->cs_pin = init->cs_pin;
-            dev_handle->rst_pin = init->rst_pin;
-            dev_handle->spi_handle = spi_handle;
-            dev_handle->irq_pin = init->irq_pin;
-            /** initialise the registers to their reset defaults **/
-            memcpy(&dev_handle->registers, &resetDefaults, sizeof(Lora_Register_Map_t));
-        }
     }
+#else
+    memset(dev_handle, 0, sizeof(sx1276_driver_t));
+#endif
+
+    if(!err) {
+        dev_handle->cs_pin = init->cs_pin;
+        dev_handle->rst_pin = init->rst_pin;
+        dev_handle->spi_handle = spi_handle;
+        dev_handle->irq_pin = init->irq_pin;
+        /** initialise the registers to their reset defaults **/
+        memcpy(&dev_handle->registers, &resetDefaults, sizeof(Lora_Register_Map_t));
+    }
+
 
 
     if(!err && dev_handle->rst_pin > 0) {
@@ -741,9 +751,11 @@ SX1276_DEV sx1276_init(sx1276_init_t *init) {
     }
     else {
         ESP_LOGI(LORA_TAG, "Failed to intialise SX1276 Device! :( [%u]", err);
+#ifdef CONFIG_DRIVERS_USE_HEAP
         if(dev_handle != NULL) {
             heap_caps_free(dev_handle);
         }
+#endif
     }
 
     return dev_handle;

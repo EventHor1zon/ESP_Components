@@ -543,11 +543,15 @@ screen_handle_t *init_screen(st7735_init_t *init)
     }
 
 
-    if(err && screen != NULL) {
-        heap_caps_free(screen);
+    if(err) {
+#ifdef CONFIG_DRIVERS_USE_HEAP
+        if(screen != NULL) {
+            heap_caps_free(screen);
+        }
+#endif
         ESP_LOGE(SCRN_TAG, "Error starting ST7735 Driver :(");
     }
-    else if (!err) {
+    else {
         ESP_LOGI(SCRN_TAG, "Succesfully started ST7735 Driver :)");
     }
 
