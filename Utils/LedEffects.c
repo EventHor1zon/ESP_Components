@@ -1,11 +1,23 @@
 /***************************************
 * \file     LedEffects.c
+* \date     August 2020
+* \author   RJAM
 * \brief    Initialises the led effect structure and 
 *           houses various LED effects. As many as I can 
 *           be arsed writing/stealing
+*           TODO: Refactor
+*               -These utility functions should ONLY 
+*                   - modify led memory
+*                   - alert tasks that updates are complete
+*               - Use a led_settings_t to determine how to handle
+*                   different led types
+*               - accept pointer to led mem and led_effect_data_t
+*               - use semaphores on led mem as it's shared
+*               - fresh vs stale data - flag?
+*               - remove led-fx init, we don't need a dedicated driver
+*                 for this. Use the led strand drivers, these are translation 
+*                 functions
 *
-* \date     August 2020
-* \author   RJAM
 ****************************************/
 
 /********* Includes *******************/

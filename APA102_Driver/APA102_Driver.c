@@ -25,6 +25,19 @@
 #include "freertos/semphr.h"
 #include "freertos/FreeRTOSConfig.h"
 
+/****** Function Prototypes ***********/
+
+static esp_err_t send_frame_dma_polling(StrandData_t *strand);
+
+static int send_frame_polling(StrandData_t *strand);
+
+static void apa102_driver_task(void *args);
+
+
+/****** Global Data *******************/
+
+const char *APA_TAG = "APA102 Driver";
+
 #ifdef CONFIG_USE_PERIPH_MANAGER
 const parameter_t apa_param_map[apa_param_len] = {
     {"NumLeds", 1, &apa_getNumleds, NULL, NULL, DATATYPE_UINT32, 0, (GET_FLAG) },
@@ -43,19 +56,26 @@ const peripheral_t apa_periph_template = {
 };
 #endif
 
-/****** Function Prototypes ***********/
-
-static esp_err_t send_frame_dma_polling(StrandData_t *strand);
-
-static int send_frame_polling(StrandData_t *strand);
-
-static void apaControlTask(void *args);
-
-
-/****** Global Data *******************/
-
-
-const char *APA_TAG = "APA102 Driver";
+#ifdef DEBUG
+const uint32_t init_frame[16] = {
+    0x000000ff,
+    0x0000ff00,
+    0x00ff0000,
+    0x0000ff00,
+    0x000000ff,
+    0x00ff00ff,
+    0x0000ffff,
+    0x00ffff00,
+    0x00111111,
+    0x00f0f0f0,
+    0x000010ff,
+    0x001000ff,
+    0x0000ff10,
+    0x00ff1000,
+    0x0010ff00,
+    0x00000000,
+};
+#endif
 
 // static esp_err_t send_32bit_frame(spi_device_handle_t spi, uint32_t *data);
 /************ ISR *********************/
@@ -80,24 +100,6 @@ void timerExpiredCallback(TimerHandle_t timer)
 }
 /****** Private Data ******************/
 
-uint32_t init_frame[16] = {
-    0x000000ff,
-    0x0000ff00,
-    0x00ff0000,
-    0x0000ff00,
-    0x000000ff,
-    0x00ff00ff,
-    0x0000ffff,
-    0x00ffff00,
-    0x00111111,
-    0x00f0f0f0,
-    0x000010ff,
-    0x001000ff,
-    0x0000ff10,
-    0x00ff1000,
-    0x0010ff00,
-    0x00000000,
-};
 /****** Private Functions *************/
 
 
@@ -184,7 +186,7 @@ static esp_err_t send_frame_polling(StrandData_t *strand)
 
 
 /** Control task **/
-static void apaControlTask(void *args) {
+static void apa102_driver_task(void *args) {
 
 
     StrandData_t *strand = (StrandData_t *)args;
@@ -451,7 +453,7 @@ StrandData_t *APA102_init(StrandData_t *handle, apa102_init_t *init_data)
 
     if(init_status == ESP_OK) {
         ESP_LOGI(APA_TAG, "Starting the control task");
-        if(xTaskCreate(apaControlTask, "apaControlTask", 2048, (void *)strand, 3, &thandle) != pdTRUE) {
+        if(xTaskCreate(apa102_driver_task, "apa102_driver_task", 2048, (void *)strand, 3, &thandle) != pdTRUE) {
             ESP_LOGE(APA_TAG, "Error creating task");
             init_status = ESP_ERR_NO_MEM;
         }

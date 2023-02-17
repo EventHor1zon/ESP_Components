@@ -62,7 +62,7 @@ Some of these drivers built with inspiration or borrowed sections from other's c
 
 - Driver handles are chunky and drivers are often disorganised and bloated. Slim them down!
 - Refactor drivers with simplicity in mind. Event/Interrupt based task actions. Let users implement polling if neccesary.
-- Replace all driver heap allocation with stack where possible. Also consider enabling heap with preprocessor config
+- Replace all driver heap allocation with stack where possible. Also consider enabling heap with preprocessor config _DONE_
 - Any number of driver instances will use a single task so remember to keep tasks state-agnostic and rely on the handle
 - Also remember that the task only needs to be initialised ONCE. Check for running task?
 - TaskHandle_t task can be static to the driver file
