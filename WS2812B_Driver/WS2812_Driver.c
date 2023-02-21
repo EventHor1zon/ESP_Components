@@ -41,7 +41,7 @@ static void WS2812_driverTask(void *args);
 
 static uint8_t numstrands = 0;
 
-static StrandData_t *allStrands[WS2812_MAX_STRANDS] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+static LedStrand_t *allStrands[WS2812_MAX_STRANDS] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
 static ws2812Ctrl_t ledControl = {0};
 
 /****** Global Data *******************/
@@ -151,12 +151,12 @@ static void IRAM_ATTR ws2812_TranslateDataToRMT(const void *src, rmt_item32_t *d
 **/
 void fxCallbackFunction(TimerHandle_t timer)
 {
-    StrandData_t *strand = NULL;
+    LedStrand_t *strand = NULL;
 
     /** find the right strand from the timerHandle **/
     for (uint8_t i = 0; i < ledControl.numStrands; i++)
     {
-        if (timer == allStrands[i]->refreshTimer)
+        if (timer == allStrands[i]->led_timer)
         {
             strand = allStrands[i];
         }
@@ -174,7 +174,7 @@ void fxCallbackFunction(TimerHandle_t timer)
 /**
  * Write data from led mem to the RMT data output
  **/
-static esp_err_t WS2812_transmitLedData(StrandData_t *ledStrand)
+static esp_err_t WS2812_transmitLedData(LedStrand_t *ledStrand)
 {
     esp_err_t transmitStatus;
     transmitStatus = rmt_write_sample(ledStrand->dataChannel, (uint8_t *)ledStrand->strandMem, ledStrand->strandMemLength, true);
@@ -186,7 +186,7 @@ static esp_err_t WS2812_transmitLedData(StrandData_t *ledStrand)
 /** 
  *  make a simple test frame, write b,g,r looping to the LED memory
  **/
-static esp_err_t WS2812_loadTestImage(StrandData_t *strand)
+static esp_err_t WS2812_loadTestImage(LedStrand_t *strand)
 {
     uint16_t i = 0, pixelIndex = 0;
     uint8_t testPixelsLen = sizeof(testFrame) / WS2812_BYTES_PER_PIXEL;
@@ -198,7 +198,7 @@ static esp_err_t WS2812_loadTestImage(StrandData_t *strand)
         return ESP_ERR_INVALID_ARG;
     }
 
-    for (i = 0; i < strand->numLeds; i++)
+    for (i = 0; i < strand->num_leds; i++)
     {
         pixelAddr = (uint8_t *)strand->strandMem + (i * WS2812_BYTES_PER_PIXEL);
         pixelIndex = i % testPixelsLen;
@@ -236,7 +236,7 @@ static void WS2812_driverTask(void *args)
         {
             if (allStrands[i] != NULL)
             {
-                StrandData_t *strand = allStrands[i];
+                LedStrand_t *strand = allStrands[i];
 
                 /*  for each strand, if there's an animation to run, take the semaphore and run it.
                 *   reset the timer to the next animation refresh    
@@ -245,7 +245,7 @@ static void WS2812_driverTask(void *args)
                 /* if the leds require updating, take the semaphore and write new data */
                 if (strand->updateLeds)
                 {
-                    if (xSemaphoreTake(strand->memSemphr, pdMS_TO_TICKS(WS2812_SEMAPHORE_TIMEOUT)) == 0)
+                    if (xSemaphoreTake(strand->strand_sem, pdMS_TO_TICKS(WS2812_SEMAPHORE_TIMEOUT)) == 0)
                     {
                         ESP_LOGE(WS2812_TAG, "Semaphore request timed out");
                     }
@@ -253,7 +253,7 @@ static void WS2812_driverTask(void *args)
                     {
                         WS2812_transmitLedData(strand);
                         strand->updateLeds = 0;
-                        xSemaphoreGive(strand->memSemphr);
+                        xSemaphoreGive(strand->strand_sem);
                     }
                 }
             }
@@ -272,7 +272,7 @@ static void WS2812_driverTask(void *args)
  *  TODO: Init_data_t!
  * 
  **/
-StrandData_t *WS2812_init(ws2812_initdata_t *initdata)
+LedStrand_t *WS2812_init(ws2812_initdata_t *initdata)
 {
 
     uint16_t totalLeds = 0;
@@ -293,7 +293,7 @@ StrandData_t *WS2812_init(ws2812_initdata_t *initdata)
 
 
     /* assign memory and add the pointer to allStrands */
-    StrandData_t *strand = heap_caps_calloc(1, sizeof(StrandData_t), MALLOC_CAP_8BIT);
+    LedStrand_t *strand = heap_caps_calloc(1, sizeof(LedStrand_t), MALLOC_CAP_8BIT);
     if (strand != NULL)
     {
         strand->strandIndex = numstrands;
@@ -308,26 +308,26 @@ StrandData_t *WS2812_init(ws2812_initdata_t *initdata)
 
     /* Error check */
     if(initStatus == ESP_OK) {
-        if (initdata->numLeds == 0 || initdata->numLeds > WS2812_MAX_STRAND_LEDS)
+        if (initdata->num_leds == 0 || initdata->num_leds > WS2812_MAX_STRAND_LEDS)
         {
-            ESP_LOGE(WS2812_TAG, "Error - invalid LED count (min = 1, max = %u, requested = %u)", WS2812_MAX_STRAND_LEDS, initdata->numLeds);
+            ESP_LOGE(WS2812_TAG, "Error - invalid LED count (min = 1, max = %u, requested = %u)", WS2812_MAX_STRAND_LEDS, initdata->num_leds);
             initStatus = ESP_ERR_INVALID_ARG;
         }
         else
         {
-            strand->numLeds = initdata->numLeds;
-            totalLeds += initdata->numLeds;
+            strand->num_leds = initdata->num_leds;
+            totalLeds += initdata->num_leds;
         }
     }
 
     if(initStatus == ESP_OK) {
     /* Init Function - assign LED memory */
-        uint16_t spaceRequired = (WS2812_BYTES_PER_PIXEL * initdata->numLeds);
-        uint8_t *ledMem = heap_caps_calloc(1, spaceRequired, MALLOC_CAP_8BIT);
+        uint16_t spaceRequired = (WS2812_BYTES_PER_PIXEL * initdata->num_leds);
+        uint8_t *strand_mem = heap_caps_calloc(1, spaceRequired, MALLOC_CAP_8BIT);
 
-        if (ledMem != NULL)
+        if (strand_mem != NULL)
         {
-            strand->strandMem = ledMem;
+            strand->strandMem = strand_mem;
             strand->strandMemLength = spaceRequired;
         }
         else
@@ -354,17 +354,17 @@ StrandData_t *WS2812_init(ws2812_initdata_t *initdata)
         }
         else
         {
-            strand->refreshTimer = fxTimer;
-            strand->fxData = ledFxData;
+            strand->led_timer = fxTimer;
+            strand->effects = ledFxData;
         }
     }
 
     if(initStatus == ESP_OK) {
     /* Init Function - create Strand Semaphore */
-        SemaphoreHandle_t memSemphr = xSemaphoreCreateMutex();
-        if (memSemphr != NULL)
+        SemaphoreHandle_t strand_sem = xSemaphoreCreateMutex();
+        if (strand_sem != NULL)
         {
-            strand->memSemphr = memSemphr;
+            strand->strand_sem = strand_sem;
         }
         else
         {
@@ -411,8 +411,8 @@ StrandData_t *WS2812_init(ws2812_initdata_t *initdata)
             if(strand->strandMem != NULL) {
                 heap_caps_free(strand->strandMem);
             }
-            if(strand->fxData != NULL) {
-                heap_caps_free(strand->fxData);
+            if(strand->effects != NULL) {
+                heap_caps_free(strand->effects);
             }
             heap_caps_free(strand);
         }
@@ -433,17 +433,17 @@ esp_err_t WS2812_deinit()
 
     for (currentStrand = 0; currentStrand < ledControl.numStrands; currentStrand++)
     {
-        xSemaphoreTake(allStrands[currentStrand]->memSemphr, portMAX_DELAY);
-        if (allStrands[currentStrand]->fxData != NULL)
+        xSemaphoreTake(allStrands[currentStrand]->strand_sem, portMAX_DELAY);
+        if (allStrands[currentStrand]->effects != NULL)
         {
-            free((void *)(allStrands[currentStrand]->fxData));
+            free((void *)(allStrands[currentStrand]->effects));
         }
         if (allStrands[currentStrand]->strandMem != NULL)
         {
             free((void *)(allStrands[currentStrand]->strandMem));
         }
         /* TODO: error check this */
-        vSemaphoreDelete(allStrands[currentStrand]->memSemphr);
+        vSemaphoreDelete(allStrands[currentStrand]->strand_sem);
     }
 
 
@@ -465,7 +465,7 @@ esp_err_t WS2812_deinit()
 }
 
 
-esp_err_t WS2812_ledsOff(StrandData_t *strand)
+esp_err_t WS2812_ledsOff(LedStrand_t *strand)
 {
     esp_err_t status = ESP_OK;
 
@@ -475,41 +475,41 @@ esp_err_t WS2812_ledsOff(StrandData_t *strand)
         status = WS2812_transmitLedData(strand); /* write the strand data */
     }
 
-    xSemaphoreGive(strand->memSemphr);
+    xSemaphoreGive(strand->strand_sem);
 
     return status;
 }
 
 
-esp_err_t ws2812_get_numleds(StrandData_t *strand, uint8_t *data) {
+esp_err_t ws2812_get_numleds(LedStrand_t *strand, uint8_t *data) {
     esp_err_t status = ESP_OK;
-    *data = strand->numLeds;
+    *data = strand->num_leds;
     return status;
 }
 
 
-esp_err_t ws2812_get_mode(StrandData_t *strand, uint8_t *data){
+esp_err_t ws2812_get_mode(LedStrand_t *strand, uint8_t *data){
     esp_err_t status = ESP_OK;
-    *data = strand->fxData->effect;
+    *data = strand->effects.effect;
     return status;
 }
 
 
-esp_err_t ws2812_get_colour(StrandData_t *strand, uint32_t *data){
+esp_err_t ws2812_get_colour(LedStrand_t *strand, uint32_t *data){
 
     esp_err_t status = ESP_OK;
-    *data = strand->fxData->colour;
+    *data = strand->effects.colour;
     return status;
 }
 
 
-esp_err_t ws2812_get_brightness(StrandData_t *strand, uint8_t *data){
+esp_err_t ws2812_get_brightness(LedStrand_t *strand, uint8_t *data){
     esp_err_t status = ESP_OK;
-    *data = strand->fxData->brightness;
+    *data = strand->effects.brightness;
     return status;
 }
 
-esp_err_t ws2812_set_mode(StrandData_t *strand, uint8_t *data) {
+esp_err_t ws2812_set_mode(LedStrand_t *strand, uint8_t *data) {
     esp_err_t status;
 
     if(*data > LEDFX_NUM_EFFECTS) {
@@ -518,28 +518,28 @@ esp_err_t ws2812_set_mode(StrandData_t *strand, uint8_t *data) {
     } else {
         ESP_LOGI(WS2812_TAG, "setting Mode %u", *data);
 
-        strand->fxData->effect = *data;
-        ledFx_updateMode(strand);
+        strand->effects.effect = *data;
+        ledfx_set_mode(strand);
     }
     return status;
 }
 
-esp_err_t ws2812_set_colour(StrandData_t *strand, uint32_t *data){
+esp_err_t ws2812_set_colour(LedStrand_t *strand, uint32_t *data){
     esp_err_t status = ESP_OK;
     ESP_LOGI(WS2812_TAG, "Setting colour to %06x", *data);
-    strand->fxData->colour = *data;
+    strand->effects.colour = *data;
     strand->updateLeds = true;
     return status;
 }
 
 
-esp_err_t ws2812_set_brightness(StrandData_t *strand, uint8_t *data){
+esp_err_t ws2812_set_brightness(LedStrand_t *strand, uint8_t *data){
     esp_err_t status = ESP_OK;
 
     if(*data > WS2812_MAX_BR) {
         status = ESP_ERR_INVALID_ARG;
     } else {
-        strand->fxData->brightness = *data;
+        strand->effects.brightness = *data;
     }
     return status;
 }

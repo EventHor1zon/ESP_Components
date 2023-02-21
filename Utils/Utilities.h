@@ -10,12 +10,14 @@
 
 /********* Includes ********************/
 #include "esp_types.h"
+#include "math.h"
 /********* Definitions *****************/
 
 #define INCREMENT_TO_MAX(i, max) ((i == max) ? (max) : (i + 1))
 #define DECREMENT_TO_MIN(i, min) ((i == min) ? (min) : (i - 1))
 #define BYTE_SET_BITS(i, set) (i |= set)
 #define BYTE_UNSET_BITS(i, unset) (i &= ~(unset))
+#define MAX_VAL_FROM_BITS(bits) ((1 << (bits+1))-1)
 
 /********** Types **********************/
 

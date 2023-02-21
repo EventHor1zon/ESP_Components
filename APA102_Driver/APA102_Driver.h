@@ -13,7 +13,7 @@
 
 /********* Includes ********************/
 
-#include "./LedEffects.h"
+#include "../Utils/LedEffects.h"
 #include "freertos/semphr.h"
 #include "freertos/timers.h"
 #include "sdkconfig.h"
@@ -25,17 +25,21 @@
  *  @{
  **/ 
 
-#define APA102_CLK_SPD 200000
-#define APA_BYTES_PER_PIXEL 4
-#define APA_TIMER_ID 0
-#define APA_CTRL_MAX_BR 31
-#define APA_CTRL_BRT_MASK 0b11100000
-#define APA_ZERO_FRAME_SIZE_BYTES 4
-#define APA_MAX_NUM_LEDS 200
-#define APA_DMA_CHANNEL 1
 
-#define APA_ZERO_FRAME_SIZE 4 
-#define APA_MAX_TRANSFER_SIZE (APA_MAX_NUM_LEDS * APA_BYTES_PER_PIXEL) + APA_ZERO_FRAME_SIZE + APA_MAX_NUM_LEDS + 32 
+#define APA_CONFIG_MAX_DEVICES          8
+#define APA_CONFIG_CMD_QUEUE_LEN        4
+#define APA_CONFIG_SPI_CLK_HZ           200000
+#define APA_CONFIG_MAX_LEDMEM_BYTES     2048
+
+#define APA_BYTES_PER_PIXEL             4
+
+#define APA_CTRL_MAX_BR                 31
+#define APA_CTRL_BRT_MASK               0b11100000
+#define APA_DMA_CHANNEL 1
+#define APA_FRAME_LEN 4
+
+#define APA_START_FRAME_SZ  APA_FRAME_LEN
+#define APA_END_FRAME_SZ    APA_FRAME_LEN
 
 #define APA_SEMTAKE_TIMEOUT 500
 
@@ -47,12 +51,24 @@
 const char *APA_TAG;
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
+/** Config use periph manager includes/defines **/
 #include "CommandAPI.h"
 #define apa_param_len 5
 const parameter_t apa_param_map[apa_param_len];
 const peripheral_t apa_periph_template;
 
 #endif 
+
+
+typedef LedStrand_t * APA_HANDLE_t;
+
+typedef enum {
+    APA_CMD_OFF,
+    APA_CMD_UPDATE_FRAME,
+    APA_CMD_UPDATE_LEDS,
+    APA_CMD_NEW_MODE,
+    APA_CMD_MAX,
+} APA_CMD_t;
 
 /** @struct apa102_init_t
  *  @brief Contains the information used to intialise the driver
@@ -62,10 +78,24 @@ typedef struct apa102_init
     uint8_t numleds;                /*!< number of leds in strand **/
     uint16_t clock_pin;             /*!< SPI clock pin **/
     uint16_t data_pin;              /*!< SPI data pin **/
-    uint8_t spi_bus;                /*!< SPI bus number **/
+    uint8_t channel;                /*!< SPI bus number **/
     bool init_spi;                  /*!< driver should initialise the spi bus **/
     bool use_dma;                   /*!< SPI should use DMA interface **/
 } apa102_init_t;
+
+
+/** @struct apa102_cmd_t
+ *  @brief structure of a command to send to the 
+ *          driver task
+ */
+
+typedef struct apa102_cmd_t
+{
+    /* data */
+    APA_HANDLE_t strand;
+    APA_CMD_t cmd;
+} apa_msg_t;
+
 
 /** @} APA102_definitions */
 
@@ -82,9 +112,9 @@ typedef struct apa102_init
  * @return  Device handle or NULL on error
  */
 #ifdef CONFIG_DRIVERS_USE_HEAP
-StrandData_t *APA102_init(apa102_init_t *init_data);
+APA_HANDLE_t APA102_init(apa102_init_t *init_data);
 #else
-StrandData_t *APA102_init(StrandData_t *handle, apa102_init_t *init_data);
+APA_HANDLE_t APA102_init(APA_HANDLE_t strand, apa102_init_t *init_data);
 #endif
 /**
  * @brief Get the number of leds in the strand
@@ -93,7 +123,7 @@ StrandData_t *APA102_init(StrandData_t *handle, apa102_init_t *init_data);
  * @param   var - pointer to value storage
  * @return  ESP_OK or Error
  */
-esp_err_t apa_getNumleds(StrandData_t *strand, uint32_t *var);
+esp_err_t apa_getNumleds(APA_HANDLE_t strand, uint32_t *var);
 
 /**
  * @brief Get the current LED animation mode
@@ -102,7 +132,7 @@ esp_err_t apa_getNumleds(StrandData_t *strand, uint32_t *var);
  * @param   steps - pointer to value storage
  * @return  ESP_OK or Error
  */
-esp_err_t apa_getMode(StrandData_t *strand, uint32_t *var);
+esp_err_t apa_getMode(APA_HANDLE_t strand, uint32_t *var);
 
 /**
  * @brief Set the current LED animation mode - see
@@ -112,7 +142,7 @@ esp_err_t apa_getMode(StrandData_t *strand, uint32_t *var);
  * @param   var - pointer to value 
  * @return  ESP_OK or Error
  */
-esp_err_t apa_setMode(StrandData_t *strand, uint8_t *var);
+esp_err_t apa_setMode(APA_HANDLE_t strand, uint8_t *var);
 
 /**
  * @brief Get the current LED colour - a 32-bit value 
@@ -122,7 +152,7 @@ esp_err_t apa_setMode(StrandData_t *strand, uint8_t *var);
  * @param   var - pointer to value storage
  * @return  ESP_OK or Error
  */
-esp_err_t apa_getColour(StrandData_t *strand, uint32_t *var);
+esp_err_t apa_getColour(APA_HANDLE_t strand, uint32_t *var);
 
 /**
  * @brief Set the current LED colour - a 32-bit value 
@@ -132,7 +162,7 @@ esp_err_t apa_getColour(StrandData_t *strand, uint32_t *var);
  * @param   var - pointer to value 
  * @return  ESP_OK or Error
  */
-esp_err_t apa_setColour(StrandData_t *strand, uint32_t *var);
+esp_err_t apa_setColour(APA_HANDLE_t strand, uint32_t *var);
 
 /**
  * @brief Get the current LED brightness
@@ -141,7 +171,7 @@ esp_err_t apa_setColour(StrandData_t *strand, uint32_t *var);
  * @param   var - pointer to value storage
  * @return  ESP_OK or Error
  */
-esp_err_t apa_getBrightness(StrandData_t *strand, uint8_t *var);
+esp_err_t apa_getBrightness(APA_HANDLE_t strand, uint8_t *var);
 
 /**
  * @brief Set the current LED brightness
@@ -150,7 +180,7 @@ esp_err_t apa_getBrightness(StrandData_t *strand, uint8_t *var);
  * @param   var - pointer to value storage
  * @return  ESP_OK or Error
  */
-esp_err_t apa_setBrightness(StrandData_t *strand, uint8_t *var);
+esp_err_t apa_setBrightness(APA_HANDLE_t strand, uint8_t *var);
 
 /** @} APA102_functions **/
 

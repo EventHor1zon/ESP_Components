@@ -17,7 +17,7 @@
 #include "freertos/queue.h"
 #include "freertos/timers.h"
 #include "freertos/task.h"
-#include "LedEffects.h"
+#include "Utils/LedEffects.h"
 
 #define WS2812_PERIPH_TYPE PTYPE_ADDR_LEDS
 
@@ -74,7 +74,7 @@ typedef struct ws2812Control
 
 
 typedef struct ws2812_initdata {
-    uint16_t numLeds;
+    uint16_t num_leds;
     gpio_num_t dataPin;
 } ws2812_initdata_t;
 
@@ -103,16 +103,16 @@ static uint8_t testFrame[3][3] = {
  *               LED strand data. 
  * 
  * \param numStrands - number of strands being initialised  
- * \param numLeds    - pointer to array/variable of uint16_t number(s) of leds per strip
+ * \param num_leds    - pointer to array/variable of uint16_t number(s) of leds per strip
  * \param dataPins   - pointer to array/variable of GPIO(s) data pin(s)
  *
- * \warning            The numLeds and dataPins must point to an array of at least
+ * \warning            The num_leds and dataPins must point to an array of at least
  *                      numStrands in length. If numStrands = 1, a pointer to a single variable
  *                     works. Although checks are made, reading from unintended memory is never 
  *                      desireable.
  * \return ESP_OK or Error Code
  **/
-StrandData_t *WS2812_init(ws2812_initdata_t *initdata);
+LedStrand_t *WS2812_init(ws2812_initdata_t *initdata);
 
 /**
  * \brief ws2812_deinit() - deinint the driver
@@ -138,18 +138,18 @@ esp_err_t WS2812_deinit(void);
  * 
  *  \return esp_ok or error 
  **/
-//esp_err_t WS2812_setAllLedColour(StrandData_t *strand, uint32_t colour);
+//esp_err_t WS2812_setAllLedColour(LedStrand_t *strand, uint32_t colour);
 
 
 
 
 
-esp_err_t ws2812_get_numleds(StrandData_t *strand, uint8_t *data);
-esp_err_t ws2812_get_mode(StrandData_t *strand, uint8_t *data);
-esp_err_t ws2812_get_colour(StrandData_t *strand, uint32_t *data);
-esp_err_t ws2812_get_brightness(StrandData_t *strand, uint8_t *data);
-esp_err_t ws2812_set_colour(StrandData_t *strand, uint32_t *data);
-esp_err_t ws2812_set_brightness(StrandData_t *strand, uint8_t *data);
+esp_err_t ws2812_get_numleds(LedStrand_t *strand, uint8_t *data);
+esp_err_t ws2812_get_mode(LedStrand_t *strand, uint8_t *data);
+esp_err_t ws2812_get_colour(LedStrand_t *strand, uint32_t *data);
+esp_err_t ws2812_get_brightness(LedStrand_t *strand, uint8_t *data);
+esp_err_t ws2812_set_colour(LedStrand_t *strand, uint32_t *data);
+esp_err_t ws2812_set_brightness(LedStrand_t *strand, uint8_t *data);
 
 
 

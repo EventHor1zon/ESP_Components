@@ -3,6 +3,14 @@
 * \brief    Header File for the ledEffects lib
 * \date     August 2020
 * \author   RJAM
+*
+*
+*
+*
+*
+*
+*
+*
 ****************************************/
 
 #ifndef LEDEFFECTS_H
@@ -23,13 +31,38 @@
 #define LEDFX_MAX_TIMERS 12 
 #define LEDFX_NUM_EFFECTS 3
 
+#define LEDFX_RBG_COL_BLACK 0x00000000
+#define LEDFX_RGB_COL_RED   0x00FF0000
+#define LEDFX_RGB_COL_GREEN 0x0000FF00
+#define LEDFX_RGB_COL_BLUE  0x000000FF
+
+
 typedef void (*EffectFunction)(void *);
 
-// typedef struct ledFx
-// {
-//     StrandData_t *strand;
-//     TimerHandle_t timerHandle;
-// } ledFx_t;
+typedef struct 
+{
+    /* data */  
+    char *name;                 /** Name of led type - usused (remove maybe) **/
+    uint8_t pixel_bytes;        /** number of bytes per pixel **/
+    uint8_t pixel_index_red;    /** pixel red index **/
+    uint8_t pixel_index_green;  /** pixel green index **/
+    uint8_t pixel_index_blue;   /** pixel blue index **/
+    uint8_t pixel_index_brt;    /** pixel brightness index **/
+    uint8_t brt_bits;           /** number of bits used to define brightness
+                                    0 indicates no brightness byte
+                                     **/
+    uint8_t brt_base; 
+} pixel_t;
+
+
+const pixel_t pixel_types[2] = {
+    {.name="ws2812b", .pixel_bytes=3, .pixel_index_red=1, .pixel_index_blue=2, .pixel_index_green=0, .brt_bits=0, .pixel_index_brt=0, .brt_base=0},
+    {.name="apa102", .pixel_bytes=4, .pixel_index_red=3, .pixel_index_blue=1, .pixel_index_green=2, .brt_bits=5, .pixel_index_brt=0, .brt_base=0b11100000},
+};
+
+
+const uint8_t led_type_n = 2;
+
 
 /********** Types **********************/
 
@@ -51,11 +84,11 @@ typedef enum ledEffect
  * 
 */
 
-typedef enum ledType
+typedef enum led_t
 {
     LEDTYPE_WS2812B,
     LEDTYPE_APA102,
-    LEDTYPE_NONE = 0xFF
+    LEDTYPE_INVALID
 } ledType_t;
 
 /**
@@ -69,56 +102,52 @@ typedef struct ledEffectData
     ledEffect_t effect;       /** < the current effect in enumeration */
     EffectFunction func;      /** < a pointer to the LedEffects function */
     uint32_t colour;          /** < colour - colour */
-    uint16_t refresh_t;       /** < refresh time in ms - 0 for no refresh */
-    bool updateEffect;        /** < led effect has been changed - adjust parameters */
     uint8_t brightness;       /** < led brigthness  */
+    uint16_t refresh_t;       /** < refresh time in ms - 0 for no refresh */
     uint16_t var1;            /**< some variables for function use **/
     uint16_t var2;
     uint32_t var3;
-    uint32_t var4;
     bool var5;
+    bool write_new_frame;
+    bool render_new_frame;
 
 } ledEffectData_t;
 
 typedef struct StrandData
 {
-    ledType_t ledType;                /** < type of LED **/
-    uint8_t strandIndex;              /** < index of the current strand  */
-    uint8_t updateLeds;               /** < update flag - led mem has changed */
-    uint8_t bytes_per_pixel;          /** < bytes per pixel */  
-    uint16_t numLeds;                 /** < num leds in strand           */
-    uint16_t strandMemLength;         /** < length of memory    */
-    uint32_t *strandMem;              /** < pointer to LED data          */
-    uint32_t strandFrameLength;
-    uint32_t *strandFrameStart;  
+    ledType_t led_t;                /** < type of LED **/
+    uint16_t num_leds;                 /** < num leds in strand           */
+    SemaphoreHandle_t strand_sem;      /** < sempahore for led data access*/
+    uint32_t write_length;
+    ledEffectData_t effects;
+    void *data_address;
+    void *pixel_start;
+    void *pixel_end;
+    pixel_t *led_type;
+    uint8_t channel;                  /** < the channel of the SPI peripheral used **/
     bool use_dma;
-    ledEffectData_t *fxData;          /** < pointer to led effect data */
-    SemaphoreHandle_t memSemphr;      /** < sempahore for led data access*/
-    uint8_t spi_channel_no;           /** < the channel of the SPI peripheral used **/
-    TimerHandle_t refreshTimer;       /** < handle for the effect refresh timer **/
-    rmt_channel_t dataChannel;        /** < TODO: replace this & next with union/bitfield **/
-    spi_device_handle_t ledSPIHandle; /** < spi device handle **/
-    TaskHandle_t task_handle;
-} StrandData_t;
+    TimerHandle_t led_timer;       /** < handle for the effect refresh timer **/
+    spi_device_handle_t iface_handle; /** < spi device handle **/
+} LedStrand_t;
 
 /******** Function Definitions *********/
 
-ledEffectData_t *ledEffectInit(StrandData_t *strand);
+ledEffectData_t *ledEffectInit(LedStrand_t *strand);
 
 /**  \brief     A basic night-rider style effect with optional fade 
  *      
  *  \param      strand - a pointer to a led control strand
 */
-void ledEffects_nightrider(StrandData_t *strand);
+void ledEffects_nightrider(LedStrand_t *strand);
 
 /** \brief: set all leds to colour
  *  \param: strand pointer
  **/
-void all_single_colour(StrandData_t *strand);
+void all_single_colour(LedStrand_t *strand);
 
 
-void ledFx_updateMode(StrandData_t *strand);
+void led_set_effect(LedStrand_t *strand, ledEffect_t effect);
 
-void soft_glow(StrandData_t *strand);
+void soft_glow(LedStrand_t *strand);
 
 #endif /* LEDEFFECTS_H */

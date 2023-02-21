@@ -2,7 +2,7 @@ set(srcs
     "Utils/Utilities.c"
     # "LedEffects.c"
     # "SystemComponent.c"
-    # "APA102_Driver.c"
+    "APA102_Driver/APA102_Driver.c"
     # "APDS9960_Driver.c"
     # "BME280_Driver.c"
     # "CCS811_Driver.c"
@@ -18,7 +18,7 @@ set(srcs
     "SSD1306_Driver/SSD1306_Driver.c"
     # "ST7735_Screen.c"
     # "VL53L0X_Driver.c"
-    # "WS2812_Driver.c"
+    "WS2812B_Driver/WS2812_Driver.c"
     # "A4988_Driver.c"
     # "VEML6070_Driver.c"
     # "RGB_Driver/RGB_Driver.c"
@@ -26,11 +26,12 @@ set(srcs
     # "FutabaVFD_Driver.c"
     # "MFRC522_Driver/MFRC522_Driver.c"
      "TestComponent/TestComponent.c"
-    )
+     "Utils/LedEffects.c"
+     )
 
 set(includes "../main/inc"
              "/home/rich/Tools/ToolChains/ESP/esp-idf/components/esp_http_server/include"
-            "/home/rich/Tools/ToolChains/ESP/esp-idf/components/nghttp/port/include"
+             "/home/rich/Tools/ToolChains/ESP/esp-idf/components/nghttp/port/include"
 )
 
 idf_component_register(SRCS "${srcs}"
