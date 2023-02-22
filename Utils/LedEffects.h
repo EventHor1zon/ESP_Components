@@ -36,6 +36,10 @@
 #define LEDFX_RGB_COL_GREEN 0x0000FF00
 #define LEDFX_RGB_COL_BLUE  0x000000FF
 
+#define LEDFX_BRIGHTNESS_MAX    100
+#define LEDFX_BRIGHTNESS_MIN    1
+#define LEDFX_BRIGHTNESS_OFF    0
+
 
 typedef void (*EffectFunction)(void *);
 

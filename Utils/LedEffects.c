@@ -41,6 +41,7 @@
 #define PIXEL_BRT_INDEX(pixel_type) (pixel_type->pixel_index_brt)
 
 #define PIXEL_BYTES_FROM_TYPE(led_type) (led_type->pixel_bytes)
+#define PIXEL_FROM_INDEX(strand, index) (strand->pixel_start + (strand->led_type->pixel_bytes * index))
 
 /****** Function Prototypes ***********/
 
@@ -168,45 +169,21 @@ void ledEffects_nightrider(LedStrand_t *strand)
 {
 
     ledEffectData_t *fx = &strand->effects;
-    if(fx == NULL) {
-        return;
-    }
-    int fade_len = 2; //fx->var1;
+    int fade_len = 2; /** TODO: variablise **/
     bool direction = fx->var5;
-    uint32_t colour = fx->colour;
     int16_t led_pos = fx->var2;
-    uint16_t num_leds = strand->num_leds;
 
-    if (fade_len > num_leds)
+    if (fade_len >= strand->num_leds)
     {
         fade_len = 0;
     }
 
-    /** TODO: replace these with MACROS **/
-    uint16_t data_length = strand->write_length;
-    /** TODO: RGB ORDER! **/
-    uint8_t r = colour;
-    uint8_t g = ((colour) >> 8);
-    uint8_t b = ((colour) >> 16);
-    int pixel_offset = 0;
-
-    clear_mem(strand);
-
-    pixel_offset = led_pos * strand->bytes_per_pixel; 
-
-    /* write colour data to led_pos */
-    uint8_t *addr = (uint8_t *)strand->strandMem + pixel_offset;
-
-    if(strand->led_t == LEDTYPE_APA102) {
-        *addr = (APA_CTRL_BRT_MASK | fx->brightness);
-        addr++;
+    /** TODONE: So much easier with macros! **/
+    for(int i=0; i < strand->num_leds; i++) {
+        set_pixel_colour32(strand->led_type, strand->pixel_start, LEDFX_RBG_COL_BLACK);
     }
-    *addr = r;
-    addr++;
-    *addr = g;
-    addr++;
-    *addr = b;
 
+    set_pixel_brt_colour32(strand->led_type, PIXEL_FROM_INDEX(strand, led_pos), strand->effects.colour, LEDFX_BRIGHTNESS_MAX);
 
     if (direction)
     {
@@ -216,45 +193,26 @@ void ledEffects_nightrider(LedStrand_t *strand)
             /* as long as not mapping past number of posible leds & not longer than fade len */
             for (int i = 0; (i < fade_len) || (i < led_pos); i++)
             {
-                uint8_t *addr = (uint8_t *)strand->strandMem + pixel_offset - ((i + 1) * strand->bytes_per_pixel);
-                if(strand->led_t == LEDTYPE_APA102) {
-                    *addr = (APA_CTRL_BRT_MASK | fx->brightness);
-                    addr++;
-                }
-                *addr = fade_color(g, fade_len, i);
-                addr++;
-                *addr = fade_color(r, fade_len, i);
-                addr++;
-                *addr = fade_color(b, fade_len, i);
+                set_pixel_brt_colour32(strand->led_type, PIXEL_FROM_INDEX(strand, led_pos-i), strand->effects.colour, (int)(LEDFX_BRIGHTNESS_MAX / i+2));
             }
         }
     }
     else
     {
         /* write fading data */
-        if (fade_len && led_pos < num_leds)
+        if (fade_len && led_pos < strand->num_leds)
         {
             /* as long as not mapping past number of posible leds & not longer than fade len */
-            for (int i = 0; (i < fade_len) || (i < ((num_leds - 1) - led_pos)); i++)
+            for (int i = 0; (i < fade_len) || (i < ((strand->num_leds - 1) - led_pos)); i++)
             {
-                uint8_t *addr = (uint8_t *)strand->strandMem + pixel_offset + ((i + 1) * strand->bytes_per_pixel);
-                if(strand->led_t == LEDTYPE_APA102) {
-                    *addr = (APA_CTRL_BRT_MASK | fx->brightness);
-                    addr++;
-                }
-                *addr = fade_color(g, fade_len, i);
-                addr++;
-                *addr = fade_color(r, fade_len, i);
-                addr++;
-                *addr = fade_color(b, fade_len, i);
+                set_pixel_brt_colour32(strand->led_type, PIXEL_FROM_INDEX(strand, led_pos+i), strand->effects.colour, (int)(LEDFX_BRIGHTNESS_MAX / i+2));
             }
         }
     }
         /* Decrement the led_position */
-    led_pos = direction ? led_pos+1 : led_pos-1;
-    if (led_pos == 0 || led_pos > num_leds-1) 
+    led_pos = (direction ? led_pos+1 : led_pos-1);
+    if ((led_pos == 0 && !direction) || (led_pos == strand->num_leds-1 && direction)) 
     {
-        led_pos = direction ? num_leds : 0;
         /*if we've reached the end, change dir */
         direction = !direction;
     }
@@ -262,44 +220,21 @@ void ledEffects_nightrider(LedStrand_t *strand)
     /** save variables for next run */
     fx->var5 = direction;
     fx->var2 = led_pos;
-    strand->updateLeds = 1;
+    strand->effects.write_new_frame = 1;
 }
 
 
 void all_single_colour(LedStrand_t *strand) {
 
-    if(strand == NULL || strand->strandMem == NULL || strand->effects == NULL) {
-        return;
+    for(int i=0; i < strand->num_leds; i++) {
+        set_pixel_colour32(strand->led_type, strand->pixel_start, LEDFX_RBG_COL_BLACK);
     }
 
-    uint8_t r, g, b;
-    uint8_t *ptr = (uint8_t *)strand->strandMem;
-
-    r = (uint8_t)strand->effects.colour;
-    g = (uint8_t)(strand->effects.colour >> 8);
-    b = (uint8_t)(strand->effects.colour >> 16);
-
-    for (uint8_t offset = 0; offset < (strand->strandMemLength / strand->bytes_per_pixel); offset++)
-    {
-        if(strand->led_t == LEDTYPE_APA102) {
-            *ptr = (APA_CTRL_BRT_MASK | strand->effects.brightness);
-            ptr++;
-        }
-        *ptr = r;
-        ptr++;
-        *ptr = g;
-        ptr++;
-        *ptr = b;
-        ptr++;
-    }
-
-    strand->updateLeds = 1;
+    strand->effects.write_new_frame = 1;
 }
 
 
 void rainbow(LedStrand_t *strand) {
-
-    ledEffectData_t *data = strand->effects;
 
     return;
 }
@@ -307,46 +242,25 @@ void rainbow(LedStrand_t *strand) {
 
 void soft_glow(LedStrand_t *strand) {
 
-    uint16_t numleds = strand->num_leds;
-
-
-    if(strand == NULL || strand->strandMem == NULL || strand->effects) {
-        return;
-    }
-
     uint8_t r, g, b;
-    uint8_t *ptr = (uint8_t *)strand->strandMem;
     uint16_t br_mod = strand->effects.var1;
     bool direction = strand->effects.var5;
-    if(br_mod == 0) {
+    if(br_mod == 0 || br_mod > 10) {
         br_mod = 5;
     };
 
-    r = (uint8_t)strand->effects.colour;
-    g = (uint8_t)(strand->effects.colour >> 8);
-    b = (uint8_t)(strand->effects.colour >> 16);
-
-    for (uint8_t offset = 0; offset < (strand->strandMemLength / strand->bytes_per_pixel); offset++)
+    for (uint8_t offset = 0; offset < strand->num_leds; offset++)
     {
-        if(strand->led_t == LEDTYPE_APA102) {
-            *ptr = (APA_CTRL_BRT_MASK | strand->effects.brightness);
-            ptr++;
-        }
-        *ptr = fade_color(r, br_mod, (offset % br_mod));
-        ptr++;
-        *ptr = fade_color(g, br_mod, (offset % br_mod));
-        ptr++;
-        *ptr = fade_color(b, br_mod, (offset % br_mod));
-        ptr++;
+        set_pixel_brt_colour32(strand->led_type, PIXEL_FROM_INDEX(strand, offset), strand->effects.colour, br_mod*10);
     }
 
     strand->effects.var5 = direction;
 
-    if(br_mod == 1 || br_mod > 7) {
+    if(br_mod == 1 || br_mod > 9) {
         direction = !direction;
         strand->effects.var5 = direction;    
     }
     strand->effects.var1 = direction ? (br_mod - 1) : (br_mod + 1); 
-    strand->updateLeds = 1;
+    strand->effects.write_new_frame = true;
     return;
 }
