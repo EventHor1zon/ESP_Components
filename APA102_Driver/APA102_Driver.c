@@ -132,7 +132,7 @@ void timerExpiredCallback(TimerHandle_t timer)
 
 
 static esp_err_t send_frame_dma_polling(APA_HANDLE_t strand) {
-
+    /** TODO: No point in polling DMA... Do this properly! **/
     esp_err_t txStatus = ESP_OK;
 
     spi_transaction_t trx = {0};
@@ -209,12 +209,12 @@ static void apa102_driver_task(void *args) {
                 ESP_LOGI(APA_TAG, "Updating mode timer and animation");
 #endif
                 strand->effects.render_new_frame = true;
-                if(xTimerGetPeriod(strand->led_timer) != strand->refresh_t) {
+                if(xTimerGetPeriod(strand->led_timer) != strand->effects.refresh_t) {
                     /** stop running timer,  **/
                     if(xTimerStop(strand->led_timer, pdMS_TO_TICKS(100)) != pdPASS) {
                         ESP_LOGE(APA_TAG, "Error, failed to stop running timer");                        
                     }
-                    else if(xTimerChangePeriod(strand->led_timer, strand->refresh_t, pdMS_TO_TICKS(100)) != pdPASS) {
+                    else if(xTimerChangePeriod(strand->led_timer, strand->effects.refresh_t, pdMS_TO_TICKS(100)) != pdPASS) {
                         ESP_LOGE(APA_TAG, "Error, failed to change timer period");
                     }
                     else if(xTimerReset(strand->led_timer, pdMS_TO_TICKS(100)) != pdPASS) {
