@@ -37,8 +37,8 @@
 #include "driver/spi_common.h"
 #include "driver/spi_master.h"
 #include "APA102_Driver.h"
-#include "LedEffects.h"
-#include "Utilities.h"
+#include "../Utils/LedEffects.h"
+#include "../Utils/Utilities.h"
 #include "esp_err.h"
 #include "esp_log.h"
 
@@ -46,6 +46,8 @@
 #include "freertos/timers.h"
 #include "freertos/semphr.h"
 #include "freertos/FreeRTOSConfig.h"
+
+#define DEBUG_MODE 1
 
 /****** Function Prototypes ***********/
 
@@ -67,6 +69,9 @@ static QueueHandle_t driver_task_queue = NULL;
 const char *APA_TAG = "APA102 Driver";
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
+
+#include "CommandAPI.h"
+
 const parameter_t apa_param_map[apa_param_len] = {
     {"NumLeds", 1, &apa_getNumleds, NULL, NULL, DATATYPE_UINT32, 0, (GET_FLAG) },
     {"Mode", 2, &apa_getMode, &apa_setMode, NULL, DATATYPE_UINT8, LEDFX_NUM_EFFECTS, (GET_FLAG | SET_FLAG) },
@@ -75,7 +80,7 @@ const parameter_t apa_param_map[apa_param_len] = {
 };
 
 const peripheral_t apa_periph_template = {
-    .strand = NULL,
+    .handle = NULL,
     .param_len = apa_param_len,
     .params = apa_param_map,
     .peripheral_name = "APA102",
@@ -84,7 +89,7 @@ const peripheral_t apa_periph_template = {
 };
 #endif
 
-#ifdef DEBUG
+#ifdef DEBUG_MODE
 const uint32_t init_frame[16] = {
     0x000000ff,
     0x0000ff00,
@@ -143,7 +148,7 @@ static esp_err_t send_frame_dma_polling(APA_HANDLE_t strand) {
     trx.tx_buffer = strand->data_address;
 
 #ifdef DEBUG_MODE
-    showmem(strand->strandFrameStart, strand->strandFrameLength);
+    // showmem(strand->strandFrameStart, strand->strandFrameLength);
 #endif
 
     txStatus = spi_device_polling_transmit(strand->iface_handle, &trx);
@@ -160,22 +165,21 @@ static esp_err_t send_frame_polling(APA_HANDLE_t strand)
     esp_err_t txStatus = ESP_OK;
 
     spi_transaction_t tx = {0};
-    uint16_t length = (sizeof(uint32_t) * 8);
+    tx.length = (4 * 8);
+    tx.rx_buffer = NULL;
+    tx.rxlength = 0;
     bool got_sem = false;
 
-    /** sending 4 bytes (32 bits) **/
-    tx.length = 32;
-    tx.flags = 0;
-    for (int i = 0; i <= strand->write_length; i+=4)
-    {
-        tx.tx_buffer = (void *)strand->data_address+i;
+    for(uint32_t i=0; i < strand->write_length; i++) {
+        tx.tx_buffer = strand->data_address + (i * 4);
         txStatus = spi_device_polling_transmit(strand->iface_handle, &tx);
-        if (txStatus != ESP_OK)
-        {
-            ESP_LOGE("SPI_TX", "Error in sending data frame number %d [%u]", i, txStatus);
-        }
     }
 
+    if (txStatus != ESP_OK)
+    {
+        ESP_LOGE("SPI_TX", "Error in sending %u bytes [%u]", strand->write_length, txStatus);
+    }
+    
     return txStatus;
 }
 
@@ -187,87 +191,88 @@ static void apa102_driver_task(void *args) {
     apa_msg_t rx_cmd = {0};
     BaseType_t rx_success;
 
-    do {
+    while(driver_task_queue == NULL) {
         /** Do not start the task proper whilst the queue is
          *  uninitialised
          **/
         vTaskDelay(pdMS_TO_TICKS(100));
     }
-    while(driver_task_queue == NULL);
 
     while(1) {
 
-        /** Wait forever for command **/
-        rx_success = xQueueReceive(driver_task_queue, &rx_cmd, portMAX_DELAY);
+//         /** Wait forever for command **/
+//         rx_success = xQueueReceive(driver_task_queue, &rx_cmd, portMAX_DELAY);
 
-        if(rx_success == pdTRUE) {
+//         ESP_LOGI(APA_TAG, "Command Received: %02x", rx_cmd.cmd);
+
+//         if(rx_success == pdTRUE) {
             
-            strand = rx_cmd.strand;
+//             strand = rx_cmd.strand;
+//             ESP_LOGI(APA_TAG, "Command Received: %02x", rx_cmd.cmd);
+//             if(rx_cmd.cmd == APA_CMD_NEW_MODE) {
+// #ifdef DEBUG_MODE
+//                 ESP_LOGI(APA_TAG, "Updating mode timer and animation");
+// #endif
+//                 strand->effects.render_new_frame = true;
+//                 if(xTimerGetPeriod(strand->led_timer) != strand->effects.refresh_t) {
+//                     /** stop running timer,  **/
+//                     if(xTimerStop(strand->led_timer, pdMS_TO_TICKS(100)) != pdPASS) {
+//                         ESP_LOGE(APA_TAG, "Error, failed to stop running timer");                        
+//                     }
+//                     else if(xTimerChangePeriod(strand->led_timer, strand->effects.refresh_t, pdMS_TO_TICKS(100)) != pdPASS) {
+//                         ESP_LOGE(APA_TAG, "Error, failed to change timer period");
+//                     }
+//                     else if(xTimerReset(strand->led_timer, pdMS_TO_TICKS(100)) != pdPASS) {
+//                         ESP_LOGE(APA_TAG, "Error, failed to reset timer");
+//                     }
+//                     else if (xTimerStart(strand->led_timer, pdMS_TO_TICKS(100)) != pdPASS){
+//                         ESP_LOGE(APA_TAG, "Error, failed to reset timer");
+//                     }
+//                 }
+//             }
 
-            if(rx_cmd.cmd == APA_CMD_NEW_MODE) {
-#ifdef DEBUG_MODE
-                ESP_LOGI(APA_TAG, "Updating mode timer and animation");
-#endif
-                strand->effects.render_new_frame = true;
-                if(xTimerGetPeriod(strand->led_timer) != strand->effects.refresh_t) {
-                    /** stop running timer,  **/
-                    if(xTimerStop(strand->led_timer, pdMS_TO_TICKS(100)) != pdPASS) {
-                        ESP_LOGE(APA_TAG, "Error, failed to stop running timer");                        
-                    }
-                    else if(xTimerChangePeriod(strand->led_timer, strand->effects.refresh_t, pdMS_TO_TICKS(100)) != pdPASS) {
-                        ESP_LOGE(APA_TAG, "Error, failed to change timer period");
-                    }
-                    else if(xTimerReset(strand->led_timer, pdMS_TO_TICKS(100)) != pdPASS) {
-                        ESP_LOGE(APA_TAG, "Error, failed to reset timer");
-                    }
-                    else if (xTimerStart(strand->led_timer, pdMS_TO_TICKS(100)) != pdPASS){
-                        ESP_LOGE(APA_TAG, "Error, failed to reset timer");
-                    }
-                }
-            }
-
-            if(rx_cmd.cmd == APA_CMD_UPDATE_FRAME || strand->effects.render_new_frame) {
-#ifdef DEBUG_MODE
-                ESP_LOGI(APA_TAG, "Calling animation");
-#endif
-                if(xSemaphoreTake(strand->strand_sem, pdMS_TO_TICKS(100)) != pdTRUE) {
-                    ESP_LOGE(APA_TAG, "Failed to get mem semaphore");
-                }
-                else
-                {
-                    strand->effects.func((void *)strand);
-                    xSemaphoreGive(strand->strand_sem);
-                }
-            }
-        
-            /** Check for command or flag set from animation function called above **/
-            if(rx_cmd.cmd == APA_CMD_UPDATE_LEDS || strand->effects.write_new_frame) {
-#ifdef DEBUG_MODE
-                ESP_LOGI(APA_TAG, "Writing frame");
-#endif
-                if(xSemaphoreTake(strand->strand_sem, APA_SEMTAKE_TIMEOUT) != pdTRUE) {
-                    ESP_LOGE(APA_TAG, "Failed to get LED semaphore");
-                } 
-                else {
-                    if(strand->use_dma) {
-                        if(send_frame_dma_polling(strand) != ESP_OK) {
-                            ESP_LOGE(APA_TAG, "Failed to write to leds");                
-                        }
-                    }
-                    else {
-                        if(send_frame_polling(strand) != ESP_OK) {
-                            ESP_LOGE(APA_TAG, "Failed to write to leds");       
-                        }
-                        else {
-                            strand->effects.write_new_frame = false; 
-                        }
-                    }
-                    if( xSemaphoreGive(strand->strand_sem) != pdTRUE) {
-                        ESP_LOGE(APA_TAG, "error giving sem");
-                    }
-                }
-            }
-        }
+//             if(rx_cmd.cmd == APA_CMD_UPDATE_FRAME || strand->effects.render_new_frame) {
+// #ifdef DEBUG_MODE
+//                 ESP_LOGI(APA_TAG, "Calling animation");
+// #endif
+//                 if(xSemaphoreTake(strand->strand_sem, pdMS_TO_TICKS(100)) != pdTRUE) {
+//                     ESP_LOGE(APA_TAG, "Failed to get mem semaphore");
+//                 }
+//                 else
+//                 {
+//                     strand->effects.func((void *)strand);
+//                     xSemaphoreGive(strand->strand_sem);
+//                 }
+//             }
+//         }
+//             /** Check for command or flag set from animation function called above **/
+//             if(rx_cmd.cmd == APA_CMD_UPDATE_LEDS || strand->effects.write_new_frame) {
+// #ifdef DEBUG_MODE
+//                 ESP_LOGI(APA_TAG, "Writing frame");
+// #endif
+//                 if(xSemaphoreTake(strand->strand_sem, APA_SEMTAKE_TIMEOUT) != pdTRUE) {
+//                     ESP_LOGE(APA_TAG, "Failed to get LED semaphore");
+//                 } 
+//                 else {
+//                     if(strand->use_dma) {
+//                         if(send_frame_dma_polling(strand) != ESP_OK) {
+//                             ESP_LOGE(APA_TAG, "Failed to write to leds");                
+//                         }
+//                     }
+//                     else {
+//                         if(send_frame_polling(strand) != ESP_OK) {
+//                             ESP_LOGE(APA_TAG, "Failed to write to leds");       
+//                         }
+//                         else {
+//                             strand->effects.write_new_frame = false; 
+//                         }
+//                     }
+//                     if( xSemaphoreGive(strand->strand_sem) != pdTRUE) {
+//                         ESP_LOGE(APA_TAG, "error giving sem");
+//                     }
+//                 }
+//             }
+        // }
 #ifdef DEBUG
         else {
             ESP_LOGE(APA_TASK, "Error, queue wait expired without success :(");
@@ -326,6 +331,7 @@ esp_err_t apa_setColour(APA_HANDLE_t strand, uint32_t *var) {
     esp_err_t status = ESP_OK;
     uint32_t c = *var;
     strand->effects.colour = c;
+
     apa_msg_t msg = {
         .strand = strand,
         .cmd = APA_CMD_UPDATE_FRAME
@@ -447,7 +453,7 @@ APA_HANDLE_t APA102_init(APA_HANDLE_t strand, apa102_init_t *init)
          *  **/
         led_mem_sz = (strand->num_leds * APA_BYTES_PER_PIXEL) + ((uint8_t)(strand->num_leds / 2) * APA_END_FRAME_SZ) + APA_START_FRAME_SZ;
 
-#ifdef DEBUG
+#ifdef DEBUG_MODE
         ESP_LOGI(APA_TAG, "Assigning %u bytes for %u led strand", led_mem_sz, strand->num_leds);
 #endif
 
@@ -459,7 +465,7 @@ APA_HANDLE_t APA102_init(APA_HANDLE_t strand, apa102_init_t *init)
 
         ledmem_caps = (init->use_dma == true ? (MALLOC_CAP_32BIT | MALLOC_CAP_DMA) : (MALLOC_CAP_32BIT));
 
-        void *strand_mem = heap_caps_calloc(1, led_mem_sz, ledmem_caps);
+        void *strand_mem = heap_caps_malloc(led_mem_sz, ledmem_caps);
 
         if(strand_mem == NULL) {
             ESP_LOGE(APA_TAG, "Error assigning strand heap memory");
@@ -470,7 +476,11 @@ APA_HANDLE_t APA102_init(APA_HANDLE_t strand, apa102_init_t *init)
             strand->pixel_start = strand_mem + APA_START_FRAME_SZ;
             strand->pixel_end = strand->pixel_start + (APA_BYTES_PER_PIXEL * strand->num_leds);
             strand->write_length = led_mem_sz;
-            memset(strand->data_address, 0xFF, sizeof(uint32_t));
+            memset(strand->data_address, 0x00, sizeof(uint8_t) * led_mem_sz);
+            memset(strand->data_address, 0xFFFFFFFF, sizeof(uint32_t));
+#ifdef DEBUG_MODE
+        ESP_LOGI(APA_TAG, "Led strand memory at address %08x", (uint32_t )strand->data_address);
+#endif
         }
     }
 
@@ -492,9 +502,10 @@ APA_HANDLE_t APA102_init(APA_HANDLE_t strand, apa102_init_t *init)
     if (err == ESP_OK)
     {
         //test_frame_polling(strand);
-        memcpy(strand->strandMem, init_frame, (sizeof(uint32_t) * strand->num_leds));
+        memcpy(strand->pixel_start, init_frame, (sizeof(uint32_t) * strand->num_leds));
+        showmem(strand->data_address, strand->write_length);
         xTimerStart(strand->led_timer, pdMS_TO_TICKS(5));
-        send_frame_dma_polling(strand);
+        send_frame_polling(strand);
     }
 #endif
     

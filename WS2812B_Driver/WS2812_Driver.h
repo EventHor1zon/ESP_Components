@@ -17,7 +17,7 @@
 #include "freertos/queue.h"
 #include "freertos/timers.h"
 #include "freertos/task.h"
-#include "Utils/LedEffects.h"
+#include "../Utils/LedEffects.h"
 
 #define WS2812_PERIPH_TYPE PTYPE_ADDR_LEDS
 

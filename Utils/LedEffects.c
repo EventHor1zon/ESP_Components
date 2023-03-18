@@ -47,6 +47,14 @@
 
 static uint8_t fade_color(uint8_t colour, uint8_t steps, uint8_t step_no);
 
+const pixel_t pixel_types[2] = {
+    {.name="ws2812b", .pixel_bytes=3, .pixel_index_red=1, .pixel_index_blue=2, .pixel_index_green=0, .brt_bits=0, .pixel_index_brt=0, .brt_base=0},
+    {.name="apa102", .pixel_bytes=4, .pixel_index_red=3, .pixel_index_blue=1, .pixel_index_green=2, .brt_bits=5, .pixel_index_brt=0, .brt_base=0b11100000},
+};
+
+const uint8_t led_type_n = 2;
+
+
 /****** Global Data *******************/
 
 /************ ISR *********************/
@@ -87,6 +95,7 @@ static void set_pixel_brt_colour32(pixel_t *p_type, void *pixel, uint32_t colour
 
     set_pixel_colour32(p_type, pixel, colour);
     /** TODO: Pixel brightness **/
+    set_pixel_brightness(p_type, pixel, brightness);
 }
 
 
@@ -96,7 +105,7 @@ static void set_pixel_brt_colour32(pixel_t *p_type, void *pixel, uint32_t colour
 static void clear_mem(LedStrand_t *strand) {
     /** obvs be careful with this **/
     for(uint16_t i=0; i<strand->num_leds; i++) {
-        set_pixel_colour32(strand->led_t, (strand->pixel_start + (i * PIXEL_BYTES_FROM_TYPE(strand->led_type)), LEDFX_RBG_COL_BLACK);
+        set_pixel_colour32(strand->led_type, (strand->pixel_start + (i * PIXEL_BYTES_FROM_TYPE(strand->led_type))), LEDFX_RBG_COL_BLACK);
     }
 }
 
@@ -130,7 +139,7 @@ static uint8_t fade_color(uint8_t colour, uint8_t steps, uint8_t step_no)
  *  update led funciton pointer
  *  TODO: make esp_err_t type
  */
-void led_set_effect(LedStrand_t *strand, ledEffect_t effect) {
+void ledfx_set_mode(LedStrand_t *strand, ledEffect_t effect) {
 
     ESP_LOGI("FX", "Updating function %u", effect);
 

@@ -18,7 +18,7 @@ set(srcs
     "SSD1306_Driver/SSD1306_Driver.c"
     # "ST7735_Screen.c"
     # "VL53L0X_Driver.c"
-    "WS2812B_Driver/WS2812_Driver.c"
+    # "WS2812B_Driver/WS2812_Driver.c"
     # "A4988_Driver.c"
     # "VEML6070_Driver.c"
     # "RGB_Driver/RGB_Driver.c"

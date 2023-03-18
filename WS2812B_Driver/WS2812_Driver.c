@@ -177,7 +177,7 @@ void fxCallbackFunction(TimerHandle_t timer)
 static esp_err_t WS2812_transmitLedData(LedStrand_t *ledStrand)
 {
     esp_err_t transmitStatus;
-    transmitStatus = rmt_write_sample(ledStrand->dataChannel, (uint8_t *)ledStrand->strandMem, ledStrand->strandMemLength, true);
+    transmitStatus = rmt_write_sample(ledStrand->channel, (uint8_t *)ledStrand->strandMem, ledStrand->strandMemLength, true);
     return transmitStatus;
 }
 

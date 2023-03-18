@@ -59,13 +59,10 @@ typedef struct
 } pixel_t;
 
 
-const pixel_t pixel_types[2] = {
-    {.name="ws2812b", .pixel_bytes=3, .pixel_index_red=1, .pixel_index_blue=2, .pixel_index_green=0, .brt_bits=0, .pixel_index_brt=0, .brt_base=0},
-    {.name="apa102", .pixel_bytes=4, .pixel_index_red=3, .pixel_index_blue=1, .pixel_index_green=2, .brt_bits=5, .pixel_index_brt=0, .brt_base=0b11100000},
-};
+const pixel_t pixel_types[2];
 
 
-const uint8_t led_type_n = 2;
+const uint8_t led_type_n;
 
 
 /********** Types **********************/
@@ -150,7 +147,7 @@ void ledEffects_nightrider(LedStrand_t *strand);
 void all_single_colour(LedStrand_t *strand);
 
 
-void led_set_effect(LedStrand_t *strand, ledEffect_t effect);
+void ledfx_set_mode(LedStrand_t *strand, ledEffect_t effect);
 
 void soft_glow(LedStrand_t *strand);
 
