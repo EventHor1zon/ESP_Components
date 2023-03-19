@@ -9,6 +9,8 @@
 /********* Includes *******************/
 
 #include "esp_err_t"
+#include "esp_heap_caps.h"
+#include "string.h"
 
 #include "freertos/task.h"
 #include "freertos/queue.h"
@@ -23,6 +25,7 @@
 static TaskHandle_t ledstrip_taskhandle;
 static QueueHandle_t command_queue;
 static bool is_initialised = false;
+static uint8_t num_strips = 0;
 
 const static char * LS_TAG = "LedStrip Driver";
 
@@ -47,6 +50,25 @@ static void ledstrip_driver_task(void *args);
 
 
 /************ ISR *********************/
+
+/**
+*   fxCallbackFunction
+*   
+*       Callback function for the timer expiry
+*       set flag for Led Control task to deal with
+*       Don't call the led effects functions here
+**/
+void led_timer_callback(TimerHandle_t timer)
+{
+    /** unblock the task to run the next animation **/
+    APA_HANDLE_t strand = (APA_HANDLE_t ) pvTimerGetTimerID(timer);
+#ifdef DEBUG_MODE
+    ESP_LOGI(APA_TAG, "Timer Callback");
+#endif
+    xTaskNotify(driver_task_handle, APA_NOTIFY_BUILD_FRAME, eSetBits);
+    xTimerReset(timer, APA_SEMTAKE_TIMEOUT);
+    return;
+}
 
 /******** Private Functions ***********/
 
@@ -150,11 +172,154 @@ esp_err_t ledstrip_driver_init() {
         err = ESP_ERR_INVALID_STATE;
     }
 
-    command_queue = xQueueCreate(LEDSTRIP_CONFIG_QUEUE_LEN, sizeof(ledstrip_cmd_t)))
+    if(!err) {
+        command_queue = xQueueCreate(LEDSTRIP_CONFIG_QUEUE_LEN, sizeof(ledstrip_cmd_t));
 
-    if(command_queue == NULL) {
-        ESP_LOGE(LS_TAG, "Unable to create command queue");
-        err = ESP_ERR_NO_MEM;
+        if(command_queue == NULL) {
+            ESP_LOGE(LS_TAG, "Unable to create command queue");
+            err = ESP_ERR_NO_MEM;
+        }
     }
 
+    if(!err) {
+        if(xTaskCreate(ledstrip_driver_task, "ledstrip_driver_task", LEDSTRIP_CONFIG_TASK_STACK, NULL, LEDSTRIP_CONFIG_TASK_PRIO, &ledstrip_taskhandle) != pdTRUE) {
+            ESP_LOGE(LS_TAG, "Unable to create driver task");
+            err = ESP_ERR_NO_MEM;
+        }
+    }
+
+    if(!err) {
+        ESP_LOGI(LS_TAG, "LedStrip driver started");
+        is_initialised = true;
+    }
+    else {
+        ESP_LOGE(LS_TAG, "Error starting LedStrip driver");
+    }
+
+    return err;
+}
+
+
+esp_err_t ledstrip_add_strip(LEDSTRIP_h strip, ledstrip_init_t *init) {
+
+    esp_err_t err = ESP_OK;
+    void *strip_ptr;
+    uint32_t strip_mem_len;
+    uint32_t offset;
+    uint8_t mem_flags;
+    ledtype_t *type;
+    TimerHandle_t timer;
+    SemaphoreHandle_t sem;
+    char name_buffer[32];
+
+    if(is_initialised == false) {
+        ESP_LOGE(LS_TAG, "Driver has not been initialised");
+        err = ESP_ERR_INVALID_STATE;
+    }
+
+    if(!err && num_strips >= LEDSTRIP_CONFIG_MAX_STRIPS) {
+        ESP_LOGE(LS_TAG, "Max supported strips reached");
+        err = ESP_ERR_INVALID_STATE;
+    }
+
+    if(!err && init->num_leds > LEDSTRIP_CONFIG_MAX_LEDS) {
+        ESP_LOGE(LS_TAG, "Number of leds exceeds maximum");
+        err = ESP_ERR_INVALID_STATE;
+    }
+
+    if(!err && init->led_type >= LED_TYPE_INVALID) {
+        ESP_LOGE(LS_TAG, "Invalid led type");
+        err = ESP_ERR_INVALID_ARG;
+    }
+
+    if(!err) {
+        memset(name_buffer, 0, sizeof(uint8_t ) * 32);
+        sprintf(name_buffer, "ls_tmr_%u", num_strips);
+        timer = xTimerCreate(name_buffer, portMAX_DELAY, pdTRUE, strip, led_timer_callback);
+        
+        if(timer == NULL) {
+            ESP_LOGE(LS_TAG, "Unable to create led timer");
+            err = ESP_ERR_NO_MEM;
+        }
+    }
+
+    if(!err) {
+        sem = xSemaphoreCreateMutex();
+        
+        if(sem == NULL) {
+            ESP_LOGE(LS_TAG, "Unable to create led memory semaphore");
+            err = ESP_ERR_NO_MEM;
+        }
+    }
+
+    if(!err) {
+        /** get the led type, sum up bytes required for full frame
+         *  buffer to 32-bit aligned if required
+         */
+        type = &led_types[init->led_type];
+        strip_mem_len = (type->pixel_bytes * init->num_leds);
+        strip_mem_len += (type->start_len);
+        strip_mem_len += (type->end_len);
+    
+#ifdef DEBUG_MODE
+        ESP_LOGI("Assigning %u heap bytes for strand memory", strip_mem_len);
+#endif
+        mem_flags = 0;
+
+        if(type->pixel_bytes == 4) {
+            mem_flags |= (MALLOC_CAP_32BIT); 
+        } 
+        else {
+            mem_flags |= (MALLOC_CAP_8BIT);
+        }
+
+        strip_ptr = heap_caps_malloc((strip_mem_len + (strip_mem_len % 4)), (MALLOC_CAP_8BIT | MALLOC_CAP_DMA));
+        
+        if(strip_ptr == NULL) {
+            ESP_LOGE(LS_TAG, "Unable to assign heap memory for led frame");
+            err = ESP_ERR_NO_MEM;
+        }
+        else {
+            memset(strip_ptr, 0, sizeof(uint8_t) * strip_mem_len);
+
+            if(type->start_len > 0) {
+                memset(strip_ptr, type->start_byte, sizeof(uint8_t)*type->start_len);
+            }
+        
+            /** only write the end bytes if they're not zero **/
+            if(type->end_len > 0 && type->end_byte != 0) {
+                offset = (type->pixel_bytes * init->num_leds) + type->start_len;
+                memset(strip_ptr+offset, type->end_byte, sizeof(uint8_t) * type->end_len);
+            }
+        }
+    }
+
+    if(!err) {
+        /** clear and populate the handle **/
+        memset(strip, 0, sizeof(ledstrip_t));
+        strip->channel = init->channel;
+        strip->num_leds = init->num_leds;
+        strip->led_type = &led_types[init->led_type];
+        strip->write_length = strip_mem_len;
+        strip->strand_mem_start = strip_ptr;
+        strip->pixel_start = strip_ptr + type->start_len;
+        strip->led_type = type;
+        strip->timer = timer;
+        strip->sem = sem;
+    }
+
+    return err;
+}
+
+
+esp_err_t ledstrip_get_numleds(LEDSTRIP_h strip, uint8_t *num) {
+    esp_err_t status = ESP_OK;
+    *num = strip->num_leds;
+    return status;
+}
+
+esp_err_t ledstrip_get_mode(LEDSTRIP_h strip, uint8_t *mode) {
+   esp_err_t status = ESP_OK;
+   
+   return status;
 }

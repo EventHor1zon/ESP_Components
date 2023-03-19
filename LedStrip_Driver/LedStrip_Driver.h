@@ -23,9 +23,11 @@
 
 
 /** Driver settings **/
-#define LEDSTRIP_CONFIG_QUEUE_LEN   4
-#define LEDSTRIP_CONFIG_TASK_PRIO   5
-#define LEDSTRIP_CONFIG_TASK_STACK  5012
+#define LEDSTRIP_CONFIG_QUEUE_LEN   4       /** length of the pending command queue **/
+#define LEDSTRIP_CONFIG_TASK_PRIO   5       /** task priority        **/
+#define LEDSTRIP_CONFIG_TASK_STACK  5012    /** task stack size      **/
+#define LEDSTRIP_CONFIG_MAX_STRIPS  8       /** max supported strips **/
+#define LEDSTRIP_CONFIG_MAX_LEDS    120     /** max leds per strip   **/
 
 typedef esp_err_t (*write_fn)(void *, void *);
 
@@ -36,6 +38,18 @@ typedef esp_err_t (*write_fn)(void *, void *);
  *              LedStrip driver
  *  @{ 
  */
+
+/** @enum   led_type_e
+ *  @brief  Selector for initialisation 
+ *          Should correspond to the index of the led type in
+ *          the ledtype_t array.
+ */
+typedef enum {
+    LED_TYPE_WS2812,
+    LED_TYPE_APA102,
+    /** @todo Add more led types here */
+    LED_TYPE_INVALID,
+} led_type_e;
 
 /** @struct ledtype_t 
  *  @brief  description of the led 
@@ -56,6 +70,10 @@ typedef struct {
                                     0 indicates no brightness byte.
                                 **/
     uint8_t brt_base;           /** base value of the brightness byte **/
+    uint8_t start_byte;         /** value of start frame **/
+    uint8_t start_len;
+    uint8_t end_byte;
+    uint8_t end_len;
     write_fn write;             /** function to write frame data **/
 } ledtype_t;
 
@@ -67,7 +85,7 @@ typedef struct {
 typedef struct {
     uint8_t channel;            /** the RMT or SPI channel (depending on led type)  **/
     uint8_t num_leds;           /** number of leds in the strip                     **/
-    ledtype_t led_type;         /** the type of leds in the strip **/
+    led_type_e led_type;        /** the type of leds in the strip **/
 } ledstrip_init_t;
 
 
@@ -81,7 +99,7 @@ typedef struct {
     uint8_t channel;            /** the RMT or SPI channel (depending on led type)  **/
     uint8_t num_leds;           /** number of leds in the strip                     **/
 
-    ledtype_t led_type;         /** the type of leds in the strip **/
+    ledtype_t *led_type;         /** the type of leds in the strip **/
     void *strand_mem_start;     /** start of the strand memory  - currently just heap mem **/
     void *pixel_start;          /** start of the led pixel memory **/
     uint32_t write_length;      /** length of the full strand memory **/
@@ -91,7 +109,7 @@ typedef struct {
 
 } ledstrip_t;
 
-
+/** @name **/
 typedef ledstrip_t * LEDSTRIP_h;    /** ledstrip handle pointer **/
 
 /** @} LedStrip_Structures */
@@ -128,8 +146,11 @@ typedef struct apa102_cmd_t
 /** @} Driver_Structures */
 
 
-/** @ **/
-const ledtype_t pixel_types[2];
+/** @name   led_types
+ *  @brief  array holding the configuration info for 
+ *          supported led types
+ */
+const ledtype_t led_types[2];
 const uint8_t led_type_n;
 
 
@@ -145,7 +166,8 @@ const uint8_t led_type_n;
 esp_err_t ledstrip_driver_init();
 
 
-esp_err_t ledstrip_add(ledstrip_init_t *init);
+esp_err_t ledstrip_add_strip(LEDSTRIP_h strip, ledstrip_init_t *init);
+
 
 
 
