@@ -10,6 +10,11 @@
 
 #include "esp_err_t"
 #include "esp_heap_caps.h"
+
+#include "driver/rmt.h"
+#include "driver/spi_common.h"
+#include "driver/spi_master.h"
+
 #include "string.h"
 
 #include "freertos/task.h"
@@ -48,6 +53,18 @@ const uint8_t led_type_n = 2;
  **/
 static void ledstrip_driver_task(void *args);
 
+/** @name   ledstrip_spi_write
+ *  @brief  abstract spi write function
+ *          for dual signal addressable leds
+ */
+static esp_err_t ledstrip_spi_write();
+
+/** @name   ledstrip_rmt_write
+ *  @brief  abstract remote control transceiver
+ *          write function for single signal 
+ *          addressable leds 
+ */
+static esp_err_t ledstrip_rmt_write();
 
 /************ ISR *********************/
 
@@ -61,17 +78,109 @@ static void ledstrip_driver_task(void *args);
 void led_timer_callback(TimerHandle_t timer)
 {
     /** unblock the task to run the next animation **/
-    APA_HANDLE_t strand = (APA_HANDLE_t ) pvTimerGetTimerID(timer);
+    LEDSTRIP_h strip = (LEDSTRIP_h ) pvTimerGetTimerID(timer);
 #ifdef DEBUG_MODE
     ESP_LOGI(APA_TAG, "Timer Callback");
 #endif
-    xTaskNotify(driver_task_handle, APA_NOTIFY_BUILD_FRAME, eSetBits);
-    xTimerReset(timer, APA_SEMTAKE_TIMEOUT);
-    return;
+
+}
+
+
+static void IRAM_ATTR ws2812_TranslateDataToRMT(const void *src, rmt_item32_t *dest, size_t src_size,
+                                                size_t wanted_num, size_t *translated_size, size_t *item_num)
+{
+    if (src == NULL || dest == NULL)
+    {
+        *translated_size = 0;
+        *item_num = 0;
+        return;
+    }
+
+    uint32_t duration0_0 = (ws2812Timings.T0H / (WS2812_RMT_DURATION_NS * WS2812_RMT_CLK_DIVIDER));
+    uint32_t duration1_0 = (ws2812Timings.T0L / (WS2812_RMT_DURATION_NS * WS2812_RMT_CLK_DIVIDER));
+    uint32_t duration0_1 = (ws2812Timings.T1H / (WS2812_RMT_DURATION_NS * WS2812_RMT_CLK_DIVIDER));
+    uint32_t duration1_1 = (ws2812Timings.T1L / (WS2812_RMT_DURATION_NS * WS2812_RMT_CLK_DIVIDER));
+
+    /* rmt_item structs - contain the logic order & timings to write 0 or 1 to ws2812 */
+
+    const rmt_item32_t bit_0 = {
+        /* logic 0 */
+        .level0 = 1, /* the 1st level - for ws2812 this is high */
+        .duration0 = duration0_0,
+        .level1 = 0, /* 2nd level - for ws2812 it's low */
+        .duration1 = duration1_0,
+    };
+
+    const rmt_item32_t bit_1 = {
+        /* logic 1 */
+        .level0 = 1,
+        .duration0 = duration0_1,
+        .level1 = 0,
+        .duration1 = duration1_1,
+    };
+
+    size_t currentSize = 0;
+    size_t num = 0;
+    uint8_t *psrc = (uint8_t *)src;
+    rmt_item32_t *pdest = dest;
+    while (currentSize < src_size && num < wanted_num)
+    {
+        for (int i = 0; i < 8; i++)
+        {
+            if (*psrc & (0x1 << i))
+            {
+                pdest->val = bit_1.val;
+            }
+            else
+            {
+                pdest->val = bit_0.val;
+            }
+            num++;
+            pdest++;
+        }
+        currentSize++;
+        psrc++;
+    }
+    *translated_size = currentSize;
+    *item_num = num;
 }
 
 /******** Private Functions ***********/
 
+
+static esp_err_t ledstrip_rmt_write(LEDSTRIP_h strip)
+{
+    esp_err_t transmitStatus;
+    transmitStatus = rmt_write_sample(strip->channel, (uint8_t *)strip->strand_mem_start, strip->write_length, false);
+    return transmitStatus;
+}
+
+
+/** send a polling transaction **/
+static esp_err_t ledstrip_spi_write(LEDSTRIP_h strip)
+{
+
+    esp_err_t txStatus = ESP_OK;
+
+    spi_transaction_t tx = {0};
+    tx.length = (32 * 8);
+    tx.rx_buffer = NULL;
+    tx.rxlength = 0;
+    bool got_sem = false;
+
+    for(uint32_t i=0; i < (strip->write_length % 32); i++) {
+        tx.tx_buffer = strip->strand_mem_start + (i * 32);
+        txStatus = spi_device_polling_transmit(strip->interface_handle, &tx);
+
+        if (txStatus != ESP_OK)
+        {
+            ESP_LOGE("SPI_TX", "Error in sending %u bytes [%u]", strip->write_length, txStatus);
+        }
+    }
+
+    
+    return txStatus;
+}
 
 /**
  * 
@@ -255,6 +364,7 @@ esp_err_t ledstrip_add_strip(LEDSTRIP_h strip, ledstrip_init_t *init) {
     if(!err) {
         /** get the led type, sum up bytes required for full frame
          *  buffer to 32-bit aligned if required
+         * TODO: when is it required? 32-bit dma trx
          */
         type = &led_types[init->led_type];
         strip_mem_len = (type->pixel_bytes * init->num_leds);
@@ -272,8 +382,8 @@ esp_err_t ledstrip_add_strip(LEDSTRIP_h strip, ledstrip_init_t *init) {
         else {
             mem_flags |= (MALLOC_CAP_8BIT);
         }
-
-        strip_ptr = heap_caps_malloc((strip_mem_len + (strip_mem_len % 4)), (MALLOC_CAP_8BIT | MALLOC_CAP_DMA));
+        /** TODO: Think about mem caps **/
+        strip_ptr = heap_caps_malloc((strip_mem_len + (strip_mem_len % 4)), mem_flags);
         
         if(strip_ptr == NULL) {
             ESP_LOGE(LS_TAG, "Unable to assign heap memory for led frame");
@@ -306,6 +416,9 @@ esp_err_t ledstrip_add_strip(LEDSTRIP_h strip, ledstrip_init_t *init) {
         strip->led_type = type;
         strip->timer = timer;
         strip->sem = sem;
+#ifdef DEBUG_MODE
+#else
+#endif /** DEBUG_MODE **/
     }
 
     return err;

@@ -16,6 +16,7 @@
 #define LEDSTRIP_DRIVER_H
 
 #include "esp_err.h"
+#include "./LedEffects.h"
 
 /********* Includes ********************/
 
@@ -30,7 +31,8 @@
 #define LEDSTRIP_CONFIG_MAX_LEDS    120     /** max leds per strip   **/
 
 typedef esp_err_t (*write_fn)(void *, void *);
-
+typedef esp_err_t (*init_fn)(void *);
+typedef void (*effect_fn)(void *);
 /********** Types **********************/
 
 /** @defgroup   LedStrip_Structures 
@@ -71,10 +73,11 @@ typedef struct {
                                 **/
     uint8_t brt_base;           /** base value of the brightness byte **/
     uint8_t start_byte;         /** value of start frame **/
-    uint8_t start_len;
-    uint8_t end_byte;
-    uint8_t end_len;
+    uint8_t start_len;          /** number of start bytes to write **/
+    uint8_t end_byte;           /** value of the end frame **/
+    uint8_t end_len;            /** number of end bytes to write **/
     write_fn write;             /** function to write frame data **/
+    init_fn init;               /** function to initialise the peripheral **/
 } ledtype_t;
 
 
@@ -99,17 +102,24 @@ typedef struct {
     uint8_t channel;            /** the RMT or SPI channel (depending on led type)  **/
     uint8_t num_leds;           /** number of leds in the strip                     **/
 
-    ledtype_t *led_type;         /** the type of leds in the strip **/
+    ledtype_t *led_type;         /** pointer to the ledtype_t descriptor **/
     void *strand_mem_start;     /** start of the strand memory  - currently just heap mem **/
     void *pixel_start;          /** start of the led pixel memory **/
     uint32_t write_length;      /** length of the full strand memory **/
+
+    fxdata_t fx;                /** led effect data struct **/
+
+    void *interface_handle;     /** handle for SPI/RMT/other interface **/
 
     SemaphoreHandle_t sem;      /** Semaphore for strand memory **/
     TimerHandle_t timer;        /** timer used for led effect refresh **/
 
 } ledstrip_t;
 
-/** @name **/
+/** @name LEDSTRIP_h
+ *  @brief type name for pointer to handle struct,
+ *          expected as argument for all object functions
+ * **/
 typedef ledstrip_t * LEDSTRIP_h;    /** ledstrip handle pointer **/
 
 /** @} LedStrip_Structures */
