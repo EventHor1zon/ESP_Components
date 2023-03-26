@@ -44,6 +44,23 @@ const ledtype_t ledstrip_types[2] = {
 
 const uint8_t led_type_n = 2;
 
+struct ws2812b_timing_t
+{
+    uint32_t T0H;
+    uint32_t T1H;
+    uint32_t T0L;
+    uint32_t T1L;
+    uint32_t TRS;
+};
+
+const struct ws2812b_timing_t wsT = {
+    400,
+    800,
+    550,
+    850,
+    450,
+};
+
 /****** Function Prototypes ***********/
 
 /** @name ledstrip_driver_task
@@ -80,7 +97,7 @@ void led_timer_callback(TimerHandle_t timer)
     /** unblock the task to run the next animation **/
     LEDSTRIP_h strip = (LEDSTRIP_h ) pvTimerGetTimerID(timer);
 #ifdef DEBUG_MODE
-    ESP_LOGI(APA_TAG, "Timer Callback");
+    ESP_LOGI(LS_TAG, "Timer Callback");
 #endif
 
 }
@@ -96,10 +113,10 @@ static void IRAM_ATTR ws2812_TranslateDataToRMT(const void *src, rmt_item32_t *d
         return;
     }
 
-    uint32_t duration0_0 = (ws2812Timings.T0H / (WS2812_RMT_DURATION_NS * WS2812_RMT_CLK_DIVIDER));
-    uint32_t duration1_0 = (ws2812Timings.T0L / (WS2812_RMT_DURATION_NS * WS2812_RMT_CLK_DIVIDER));
-    uint32_t duration0_1 = (ws2812Timings.T1H / (WS2812_RMT_DURATION_NS * WS2812_RMT_CLK_DIVIDER));
-    uint32_t duration1_1 = (ws2812Timings.T1L / (WS2812_RMT_DURATION_NS * WS2812_RMT_CLK_DIVIDER));
+    uint32_t duration0_0 = (wsT.T0H / LEDSTRIP_CONFIG_RMT_CLK_T_MS);
+    uint32_t duration1_0 = (wsT.T0L / LEDSTRIP_CONFIG_RMT_CLK_T_MS);
+    uint32_t duration0_1 = (wsT.T1H / LEDSTRIP_CONFIG_RMT_CLK_T_MS);
+    uint32_t duration1_1 = (wsT.T1L / LEDSTRIP_CONFIG_RMT_CLK_T_MS);
 
     /* rmt_item structs - contain the logic order & timings to write 0 or 1 to ws2812 */
 
@@ -182,90 +199,93 @@ static esp_err_t ledstrip_spi_write(LEDSTRIP_h strip)
     return txStatus;
 }
 
-/**
- * 
- * 
- **/
+
 static void ledstrip_driver_task(void *args) {
 
     BaseType_t rx_success;
+    esp_err_t err;
+
+    LEDSTRIP_h strip;
+    ls_cmd_t rx_cmd;
 
     while(1) {
 
-//         /** Wait forever for command **/
-//         rx_success = xQueueReceive(driver_task_queue, &rx_cmd, portMAX_DELAY);
+        /** Wait forever for command **/
+        rx_success = xQueueReceive(command_queue, &rx_cmd, portMAX_DELAY);
 
-//         ESP_LOGI(APA_TAG, "Command Received: %02x", rx_cmd.cmd);
+        ESP_LOGI(LS_TAG, "Command Received: %02x", rx_cmd.cmd);
 
-//         if(rx_success == pdTRUE) {
+        if(rx_success == pdTRUE) {
             
-//             strand = rx_cmd.strand;
-//             ESP_LOGI(APA_TAG, "Command Received: %02x", rx_cmd.cmd);
-//             if(rx_cmd.cmd == APA_CMD_NEW_MODE) {
-// #ifdef DEBUG_MODE
-//                 ESP_LOGI(APA_TAG, "Updating mode timer and animation");
-// #endif
-//                 strand->effects.render_new_frame = true;
-//                 if(xTimerGetPeriod(strand->led_timer) != strand->effects.refresh_t) {
-//                     /** stop running timer,  **/
-//                     if(xTimerStop(strand->led_timer, pdMS_TO_TICKS(100)) != pdPASS) {
-//                         ESP_LOGE(APA_TAG, "Error, failed to stop running timer");                        
-//                     }
-//                     else if(xTimerChangePeriod(strand->led_timer, strand->effects.refresh_t, pdMS_TO_TICKS(100)) != pdPASS) {
-//                         ESP_LOGE(APA_TAG, "Error, failed to change timer period");
-//                     }
-//                     else if(xTimerReset(strand->led_timer, pdMS_TO_TICKS(100)) != pdPASS) {
-//                         ESP_LOGE(APA_TAG, "Error, failed to reset timer");
-//                     }
-//                     else if (xTimerStart(strand->led_timer, pdMS_TO_TICKS(100)) != pdPASS){
-//                         ESP_LOGE(APA_TAG, "Error, failed to reset timer");
-//                     }
-//                 }
-//             }
+            strip = rx_cmd.strip;
+            ESP_LOGI(LS_TAG, "Command Received: %02x", rx_cmd.cmd);
+            if(rx_cmd.cmd == LS_CMD_NEW_MODE) {
+#ifdef DEBUG_MODE
+                ESP_LOGI(LS_TAG, "Updating mode timer and animation");
+#endif
+                strip->render_frame = true;
+                if(xTimerGetPeriod(strip->timer) != strip->fx.frame_time) {
+                    /** stop running timer,  **/
+                    if(xTimerStop(strip->timer, pdMS_TO_TICKS(100)) != pdTRUE) {
+                        ESP_LOGE(LS_TAG, "Error, failed to stop running timer");                        
+                    }
+                    else if(xTimerChangePeriod(strip->timer, strip->fx.frame_time, pdMS_TO_TICKS(100)) != pdTRUE) {
+                        ESP_LOGE(LS_TAG, "Error, failed to change timer period");
+                    }
+                    else if(xTimerReset(strip->timer, pdMS_TO_TICKS(100)) != pdTRUE) {
+                        ESP_LOGE(LS_TAG, "Error, failed to reset timer");
+                    }
+                    else if (xTimerStart(strip->timer, pdMS_TO_TICKS(100)) != pdTRUE){
+                        ESP_LOGE(LS_TAG, "Error, failed to reset timer");
+                    }
+                }
+            }
 
-//             if(rx_cmd.cmd == APA_CMD_UPDATE_FRAME || strand->effects.render_new_frame) {
-// #ifdef DEBUG_MODE
-//                 ESP_LOGI(APA_TAG, "Calling animation");
-// #endif
-//                 if(xSemaphoreTake(strand->strand_sem, pdMS_TO_TICKS(100)) != pdTRUE) {
-//                     ESP_LOGE(APA_TAG, "Failed to get mem semaphore");
-//                 }
-//                 else
-//                 {
-//                     strand->effects.func((void *)strand);
-//                     xSemaphoreGive(strand->strand_sem);
-//                 }
-//             }
-//         }
-//             /** Check for command or flag set from animation function called above **/
-//             if(rx_cmd.cmd == APA_CMD_UPDATE_LEDS || strand->effects.write_new_frame) {
-// #ifdef DEBUG_MODE
-//                 ESP_LOGI(APA_TAG, "Writing frame");
-// #endif
-//                 if(xSemaphoreTake(strand->strand_sem, APA_SEMTAKE_TIMEOUT) != pdTRUE) {
-//                     ESP_LOGE(APA_TAG, "Failed to get LED semaphore");
-//                 } 
-//                 else {
-//                     if(strand->use_dma) {
-//                         if(send_frame_dma_polling(strand) != ESP_OK) {
-//                             ESP_LOGE(APA_TAG, "Failed to write to leds");                
-//                         }
-//                     }
-//                     else {
-//                         if(send_frame_polling(strand) != ESP_OK) {
-//                             ESP_LOGE(APA_TAG, "Failed to write to leds");       
-//                         }
-//                         else {
-//                             strand->effects.write_new_frame = false; 
-//                         }
-//                     }
-//                     if( xSemaphoreGive(strand->strand_sem) != pdTRUE) {
-//                         ESP_LOGE(APA_TAG, "error giving sem");
-//                     }
-//                 }
-//             }
-        // }
+            /** Call the animation update function **/
+            if(rx_cmd.cmd == LS_CMD_UPDATE_FRAME || strip->render_frame) {
+#ifdef DEBUG_MODE
+                ESP_LOGI(LS_TAG, "Calling animation function");
+#endif
+                if(xSemaphoreTake(strip->sem, pdMS_TO_TICKS(100)) != pdTRUE) {
+                    ESP_LOGE(LS_TAG, "Failed to get mem semaphore");
+                }
+                else
+                {
+                    strip->fx.func((void *)strip);
+                    xSemaphoreGive(strip->sem);
+                    strip->render_frame = false;
+                }
+            }
+
+            /** Check for command or flag set from animation function called above **/
+            if(rx_cmd.cmd == LS_CMD_UPDATE_LEDS || strip->write_frame) {
+#ifdef DEBUG_MODE
+                ESP_LOGI(LS_TAG, "Writing frame");
+#endif
+                if(xSemaphoreTake(strip->sem, APA_SEMTAKE_TIMEOUT) != pdTRUE) {
+                    ESP_LOGE(LS_TAG, "Failed to get LED semaphore");
+                } 
+                else {
+                    
+                    err = strip->led_type->write(strip);
+
+                    if(err) {
+                        ESP_LOGE(LS_TAG, "Error in write function [%u]", err);
+                    }
+
+                    xSemaphoreGive(strip->sem);
+                    strip->write_frame = false;
+                }
+            }
+        }
+        /** Nothing received from queue **/
+        else {
+            ESP_LOGI(LS_TAG, "Nothing receiving command from queue [%u]", rx_success);
+        }
+
     }
+
+    /** Here be dragons **/
 }
 
 
@@ -367,12 +387,17 @@ esp_err_t ledstrip_add_strip(LEDSTRIP_h strip, ledstrip_init_t *init) {
          * TODO: when is it required? 32-bit dma trx
          */
         type = &led_types[init->led_type];
+
+        err = type->init(strip, init);
+    }
+
+    if(!err) {
         strip_mem_len = (type->pixel_bytes * init->num_leds);
         strip_mem_len += (type->start_len);
         strip_mem_len += (type->end_len);
     
 #ifdef DEBUG_MODE
-        ESP_LOGI("Assigning %u heap bytes for strand memory", strip_mem_len);
+        ESP_LOGI("Assigning %u heap bytes for strip memory", strip_mem_len);
 #endif
         mem_flags = 0;
 
@@ -417,13 +442,78 @@ esp_err_t ledstrip_add_strip(LEDSTRIP_h strip, ledstrip_init_t *init) {
         strip->timer = timer;
         strip->sem = sem;
 #ifdef DEBUG_MODE
+        
 #else
+        ledfx_set_mode(strip, LED_EFFECT_OFF);
 #endif /** DEBUG_MODE **/
     }
 
     return err;
 }
 
+
+esp_err_t ledstrip_init_ws2812b(void *strip, void *init) {
+    esp_err_t err = ESP_OK;
+    ledstrip_init_t *init_data = init;
+
+    rmt_config_t rmt_cfg = {
+        .channel = init_data->channel,
+        .rmt_mode = RMT_MODE_TX,
+        .clk_div = 4,
+        .mem_block_num = 1,
+        .gpio_num = init_data->data_pin,
+        .tx_config.loop_en = false,
+        .tx_config.carrier_en = false,
+        .tx_config.idle_output_en = true,
+        .tx_config.idle_level = RMT_IDLE_LEVEL_LOW,
+        .tx_config.carrier_level = RMT_CARRIER_LEVEL_LOW,
+    };
+
+
+    err = rmt_config(&rmt_cfg);
+
+    if(err) {
+        ESP_LOGE(LS_TAG, "Error configuring RMT [%u]", err);
+    }
+    else {
+        err = rmt_driver_install((rmt_channel_t)init_data->channel, 0, 0);
+    }
+
+    if(err) {
+        ESP_LOGE(LS_TAG, "Error installing RMT driver [%u]", err);
+    }
+    else {
+        err = rmt_translator_init((rmt_channel_t)init_data->channel, ws2812_TranslateDataToRMT);
+    }
+
+    if(err) {
+        ESP_LOGE(LS_TAG, "Error installing RMT translator function [%u]", err);
+    }
+
+    return err;
+}
+
+
+esp_err_t ledstrip_init_apa102(void *strip, void *init) {
+    esp_err_t err = ESP_OK;
+    ledstrip_init_t *init_data = init;
+    LEDSTRIP_h str = strip;
+
+    spi_device_interface_config_t leds = {0};
+    leds.mode = 1;
+    leds.duty_cycle_pos = 128;
+    leds.spics_io_num = -1;
+    leds.queue_size = 16;
+    leds.clock_speed_hz = LEDSTRIP_CONFIG_SPI_FREQ; // APA claim to have refresh rate of 4KHz, start low.
+
+
+    err = spi_bus_add_device(init_data->channel, &leds, str->interface_handle);
+    if(err) {
+        ESP_LOGE(LS_TAG, "Error adding SPI device! {%u}", err);
+    }
+
+    return err;
+}
 
 esp_err_t ledstrip_get_numleds(LEDSTRIP_h strip, uint8_t *num) {
     esp_err_t status = ESP_OK;
@@ -433,6 +523,67 @@ esp_err_t ledstrip_get_numleds(LEDSTRIP_h strip, uint8_t *num) {
 
 esp_err_t ledstrip_get_mode(LEDSTRIP_h strip, uint8_t *mode) {
    esp_err_t status = ESP_OK;
-   
+   *mode = strip->fx.effect;
    return status;
 }
+
+esp_err_t ledstrip_set_mode(LEDSTRIP_h strip, uint8_t *mode) {
+    esp_err_t err = ESP_OK;
+    uint8_t m = *mode;
+
+    if(m >= LED_EFFECT_INVALID) {
+        err = ESP_ERR_INVALID_ARG;
+    }
+    else {
+        ledfx_set_mode(strip, m);
+    }
+    return err;
+}
+
+esp_err_t ledstrip_get_colour(LEDSTRIP_h strip, uint32_t *colour) {
+    esp_err_t err = ESP_OK;
+
+    return err;
+}
+
+esp_err_t ledstrip_set_colour(LEDSTRIP_h strip, uint32_t *colour) {
+    esp_err_t err = ESP_OK;
+
+    return err;
+}
+
+esp_err_t ledstrip_set_brightness(LEDSTRIP_h strip, uint8_t *brightness) {
+    esp_err_t err = ESP_OK;
+    uint8_t b = *brightness;
+    ls_cmd_t cmd;
+
+    if(strip->led_type->brt_bits == 0) {
+        err = ESP_ERR_INVALID_STATE;
+        ESP_LOGE(LS_TAG, "Led type does not have configurable brightness [%u]", err);        
+    }
+    else if(b >= (1 << strip->led_type->brt_bits)) {
+        err = ESP_ERR_INVALID_STATE;
+        ESP_LOGE(LS_TAG, "Invalid led brightness (max: %u) [%u]", ((1 << strip->led_type->brt_bits)-1), err);        
+    }
+    else {
+        strip->fx.brightness = b;
+        
+        cmd.cmd = LS_CMD_UPDATE_FRAME;
+        cmd.strip = strip;
+        if(xQueueSendToBack(command_queue, &cmd, pdMS_TO_TICKS(100)) != pdTRUE) {
+            err = ESP_ERR_TIMEOUT;
+            ESP_LOGE(LS_TAG, "Error adding command to queue [%u]", err);            
+        }
+    }
+
+    return err;
+}
+
+esp_err_t ledstrip_get_brightness(LEDSTRIP_h strip, uint8_t *brightness) {
+    esp_err_t err = ESP_OK;
+    *brightness = strip->fx.brightness;
+    return err;
+}
+
+
+

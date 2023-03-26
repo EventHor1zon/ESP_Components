@@ -25,8 +25,8 @@
 
 /********* Definitions *****************/
 
-#define LEDFX_MAX_TIMERS 12 
-#define LEDFX_NUM_EFFECTS 3
+
+#define LEDFX_CONFIG_MIN_FRAME_T 50     /** minimum frame refresh time in ms **/
 
 #define LEDFX_RBG_COL_BLACK 0x00000000
 #define LEDFX_RGB_COL_RED   0x00FF0000
@@ -36,6 +36,7 @@
 #define LEDFX_BRIGHTNESS_MAX    100
 #define LEDFX_BRIGHTNESS_MIN    1
 #define LEDFX_BRIGHTNESS_OFF    0
+
 
 
 typedef void (*EffectFunction)(void *);
@@ -49,10 +50,10 @@ typedef enum ledEffect
     LED_EFFECT_SINGLE_COLOUR,
     LED_EFFECT_NIGHTRIDER,
     LED_EFFECT_SLOW_FADE,
-    // LED_EFFECT_RAINBOW,
-    // LED_EFFECT_COLOUR_FADE,
-
-    LED_EFFECT_NO_EFFECT = 0xFF
+    LED_EFFECT_RAINBOW,
+    LED_EFFECT_COLOUR_FADE,
+    
+    LED_EFFECT_INVALID,
 } ledEffect_t;
 
 

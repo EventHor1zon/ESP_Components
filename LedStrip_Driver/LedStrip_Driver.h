@@ -23,16 +23,24 @@
 /********* Definitions *****************/
 
 
-/** Driver settings **/
-#define LEDSTRIP_CONFIG_QUEUE_LEN   4       /** length of the pending command queue **/
-#define LEDSTRIP_CONFIG_TASK_PRIO   5       /** task priority        **/
-#define LEDSTRIP_CONFIG_TASK_STACK  5012    /** task stack size      **/
-#define LEDSTRIP_CONFIG_MAX_STRIPS  8       /** max supported strips **/
-#define LEDSTRIP_CONFIG_MAX_LEDS    120     /** max leds per strip   **/
+/** Driver configurations settings **/
+#define LEDSTRIP_CONFIG_QUEUE_LEN           4       /** length of the pending command queue **/
+#define LEDSTRIP_CONFIG_TASK_PRIO           5       /** task priority        **/
+#define LEDSTRIP_CONFIG_TASK_STACK          5012    /** task stack size      **/
+#define LEDSTRIP_CONFIG_MAX_STRIPS          8       /** max supported strips **/
+#define LEDSTRIP_CONFIG_MAX_LEDS            120     /** max leds per strip   **/
 
-typedef esp_err_t (*write_fn)(void *, void *);
-typedef esp_err_t (*init_fn)(void *);
+#define LEDSTRIP_CONFIG_SPI_FREQ            200000  /** clock speed for SPI peripherals **/
+#define LEDSTRIP_CONFIG_RMT_CLK_T_MS        50      /** clock period for RMT peripherals **/
+
+#define LEDSTRIP_CONFIG_GENERIC_TIMEOUT     pdMS_TO_TICKS(100)  /** generic timeout **/
+
+/** Function Definitions **/
+typedef esp_err_t (*write_fn)(void *);
+typedef esp_err_t (*init_fn)(void *, void *);
 typedef void (*effect_fn)(void *);
+
+
 /********** Types **********************/
 
 /** @defgroup   LedStrip_Structures 
@@ -52,6 +60,18 @@ typedef enum {
     /** @todo Add more led types here */
     LED_TYPE_INVALID,
 } led_type_e;
+
+/** @enum LS_CMD_e 
+ *  @brief Command enumeration for the
+ *         ledstrip driver task 
+ */
+typedef enum {
+    LS_CMD_OFF,
+    LS_CMD_UPDATE_FRAME,
+    LS_CMD_UPDATE_LEDS,
+    LS_CMD_NEW_MODE,
+    LS_CMD_MAX,
+} LS_CMD_e;
 
 /** @struct ledtype_t 
  *  @brief  description of the led 
@@ -89,6 +109,8 @@ typedef struct {
     uint8_t channel;            /** the RMT or SPI channel (depending on led type)  **/
     uint8_t num_leds;           /** number of leds in the strip                     **/
     led_type_e led_type;        /** the type of leds in the strip **/
+    gpio_num_t data_pin;        /** the led data pin **/
+    gpio_num_t clock_pin;       /** the led clock pin set to 0 if unused **/
 } ledstrip_init_t;
 
 
@@ -114,6 +136,9 @@ typedef struct {
     SemaphoreHandle_t sem;      /** Semaphore for strand memory **/
     TimerHandle_t timer;        /** timer used for led effect refresh **/
 
+    bool render_frame;          /** Flag to render new effect frame **/
+    bool write_frame;           /** Flag to write new effect frame  **/
+
 } ledstrip_t;
 
 /** @name LEDSTRIP_h
@@ -121,6 +146,19 @@ typedef struct {
  *          expected as argument for all object functions
  * **/
 typedef ledstrip_t * LEDSTRIP_h;    /** ledstrip handle pointer **/
+
+
+/** @struct ls_cmd_t
+ *  @brief structure of a command to send to the 
+ *          driver task
+ */
+
+typedef struct 
+{
+    /* data */
+    LEDSTRIP_h strip;
+    LS_CMD_e cmd;
+} ls_cmd_t;
 
 /** @} LedStrip_Structures */
 
@@ -177,6 +215,21 @@ esp_err_t ledstrip_driver_init();
 
 
 esp_err_t ledstrip_add_strip(LEDSTRIP_h strip, ledstrip_init_t *init);
+
+esp_err_t ledstrip_get_numleds(LEDSTRIP_h strip, uint8_t *num);
+
+esp_err_t ledstrip_get_mode(LEDSTRIP_h strip, uint8_t *mode);
+
+esp_err_t ledstrip_set_mode(LEDSTRIP_h strip, uint8_t *mode);
+
+esp_err_t ledstrip_get_colour(LEDSTRIP_h strip, uint32_t *colour);
+
+esp_err_t ledstrip_set_colour(LEDSTRIP_h strip, uint32_t *colour);
+
+esp_err_t ledstrip_set_brightness(LEDSTRIP_h strip, uint8_t *brightness);
+
+esp_err_t ledstrip_get_brightness(LEDSTRIP_h strip, uint8_t *brightness);
+
 
 
 

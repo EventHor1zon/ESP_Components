@@ -144,30 +144,30 @@ void ledfx_set_mode(LedStrand_t *strand, ledEffect_t effect) {
     ESP_LOGI("FX", "Updating function %u", effect);
 
     if(effect == LED_EFFECT_OFF) {
-        strand->effects.colour = 0x00000000;
-        strand->effects.func = &all_single_colour;
+        strand->fx.colour = 0x00000000;
+        strand->fx.func = &all_single_colour;
     }
     else if (effect == LED_EFFECT_SINGLE_COLOUR) {
         ESP_LOGI("FX", "Got sc req");
-        strand->effects.func = &all_single_colour;
-        strand->effects.refresh_t = 1000;
+        strand->fx.func = &all_single_colour;
+        strand->fx.refresh_t = 1000;
     }
     else if (effect == LED_EFFECT_NIGHTRIDER) {
         ESP_LOGI("FX", "Got nr req");
-        strand->effects.func = &ledEffects_nightrider;
-        strand->effects.refresh_t = 500;
+        strand->fx.func = &ledEffects_nightrider;
+        strand->fx.refresh_t = 500;
 
     } else if (effect == LED_EFFECT_SLOW_FADE) {
         ESP_LOGI("FX", "Got sf req");
-        strand->effects.func = &soft_glow;
-        strand->effects.refresh_t = 50;
+        strand->fx.func = &soft_glow;
+        strand->fx.refresh_t = 50;
     }
     else {
         ESP_LOGE("LFX", "Unknown mode");
     }
 
-    strand->effects.render_new_frame = true;
-    strand->effects.effect = effect;
+    strand->fx.render_new_frame = true;
+    strand->fx.effect = effect;
     return;
 }
 
@@ -177,7 +177,7 @@ void ledfx_set_mode(LedStrand_t *strand, ledEffect_t effect) {
 void ledEffects_nightrider(LedStrand_t *strand)
 {
 
-    ledEffectData_t *fx = &strand->effects;
+    ledEffectData_t *fx = &strand->fx;
     int fade_len = 2; /** TODO: variablise **/
     bool direction = fx->var5;
     int16_t led_pos = fx->var2;
@@ -192,7 +192,7 @@ void ledEffects_nightrider(LedStrand_t *strand)
         set_pixel_colour32(strand->led_type, strand->pixel_start, LEDFX_RBG_COL_BLACK);
     }
 
-    set_pixel_brt_colour32(strand->led_type, PIXEL_FROM_INDEX(strand, led_pos), strand->effects.colour, LEDFX_BRIGHTNESS_MAX);
+    set_pixel_brt_colour32(strand->led_type, PIXEL_FROM_INDEX(strand, led_pos), strand->fx.colour, LEDFX_BRIGHTNESS_MAX);
 
     if (direction)
     {
@@ -202,7 +202,7 @@ void ledEffects_nightrider(LedStrand_t *strand)
             /* as long as not mapping past number of posible leds & not longer than fade len */
             for (int i = 0; (i < fade_len) || (i < led_pos); i++)
             {
-                set_pixel_brt_colour32(strand->led_type, PIXEL_FROM_INDEX(strand, led_pos-i), strand->effects.colour, (int)(LEDFX_BRIGHTNESS_MAX / i+2));
+                set_pixel_brt_colour32(strand->led_type, PIXEL_FROM_INDEX(strand, led_pos-i), strand->fx.colour, (int)(LEDFX_BRIGHTNESS_MAX / i+2));
             }
         }
     }
@@ -214,7 +214,7 @@ void ledEffects_nightrider(LedStrand_t *strand)
             /* as long as not mapping past number of posible leds & not longer than fade len */
             for (int i = 0; (i < fade_len) || (i < ((strand->num_leds - 1) - led_pos)); i++)
             {
-                set_pixel_brt_colour32(strand->led_type, PIXEL_FROM_INDEX(strand, led_pos+i), strand->effects.colour, (int)(LEDFX_BRIGHTNESS_MAX / i+2));
+                set_pixel_brt_colour32(strand->led_type, PIXEL_FROM_INDEX(strand, led_pos+i), strand->fx.colour, (int)(LEDFX_BRIGHTNESS_MAX / i+2));
             }
         }
     }
@@ -229,7 +229,7 @@ void ledEffects_nightrider(LedStrand_t *strand)
     /** save variables for next run */
     fx->var5 = direction;
     fx->var2 = led_pos;
-    strand->effects.write_new_frame = 1;
+    strand->fx.write_new_frame = 1;
 }
 
 
@@ -239,7 +239,7 @@ void all_single_colour(LedStrand_t *strand) {
         set_pixel_colour32(strand->led_type, strand->pixel_start, LEDFX_RBG_COL_BLACK);
     }
 
-    strand->effects.write_new_frame = 1;
+    strand->fx.write_new_frame = 1;
 }
 
 
@@ -252,24 +252,24 @@ void rainbow(LedStrand_t *strand) {
 void soft_glow(LedStrand_t *strand) {
 
     uint8_t r, g, b;
-    uint16_t br_mod = strand->effects.var1;
-    bool direction = strand->effects.var5;
+    uint16_t br_mod = strand->fx.var1;
+    bool direction = strand->fx.var5;
     if(br_mod == 0 || br_mod > 10) {
         br_mod = 5;
     };
 
     for (uint8_t offset = 0; offset < strand->num_leds; offset++)
     {
-        set_pixel_brt_colour32(strand->led_type, PIXEL_FROM_INDEX(strand, offset), strand->effects.colour, br_mod*10);
+        set_pixel_brt_colour32(strand->led_type, PIXEL_FROM_INDEX(strand, offset), strand->fx.colour, br_mod*10);
     }
 
-    strand->effects.var5 = direction;
+    strand->fx.var5 = direction;
 
     if(br_mod == 1 || br_mod > 9) {
         direction = !direction;
-        strand->effects.var5 = direction;    
+        strand->fx.var5 = direction;    
     }
-    strand->effects.var1 = direction ? (br_mod - 1) : (br_mod + 1); 
-    strand->effects.write_new_frame = true;
+    strand->fx.var1 = direction ? (br_mod - 1) : (br_mod + 1); 
+    strand->fx.write_new_frame = true;
     return;
 }
