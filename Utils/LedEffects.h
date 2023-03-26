@@ -112,7 +112,7 @@ typedef struct ledEffectData
     bool write_new_frame;
     bool render_new_frame;
 
-} ledEffectData_t;
+} fxdata_t;
 
 typedef struct StrandData
 {
@@ -120,7 +120,7 @@ typedef struct StrandData
     uint16_t num_leds;                 /** < num leds in strand           */
     SemaphoreHandle_t strand_sem;      /** < sempahore for led data access*/
     uint32_t write_length;
-    ledEffectData_t effects;
+    fxdata_t effects;
     void *data_address;
     void *pixel_start;
     void *pixel_end;
@@ -133,7 +133,7 @@ typedef struct StrandData
 
 /******** Function Definitions *********/
 
-ledEffectData_t *ledEffectInit(LedStrand_t *strand);
+fxdata_t *ledEffectInit(LedStrand_t *strand);
 
 /**  \brief     A basic night-rider style effect with optional fade 
  *      
@@ -147,7 +147,7 @@ void ledEffects_nightrider(LedStrand_t *strand);
 void all_single_colour(LedStrand_t *strand);
 
 
-void ledfx_set_mode(LedStrand_t *strand, ledEffect_t effect);
+void lfx_set_mode(LedStrand_t *strand, ledEffect_t effect);
 
 void soft_glow(LedStrand_t *strand);
 

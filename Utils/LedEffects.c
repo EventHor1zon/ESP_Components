@@ -139,7 +139,7 @@ static uint8_t fade_color(uint8_t colour, uint8_t steps, uint8_t step_no)
  *  update led funciton pointer
  *  TODO: make esp_err_t type
  */
-void ledfx_set_mode(LedStrand_t *strand, ledEffect_t effect) {
+void lfx_set_mode(LedStrand_t *strand, ledEffect_t effect) {
 
     ESP_LOGI("FX", "Updating function %u", effect);
 
@@ -177,7 +177,7 @@ void ledfx_set_mode(LedStrand_t *strand, ledEffect_t effect) {
 void ledEffects_nightrider(LedStrand_t *strand)
 {
 
-    ledEffectData_t *fx = &strand->fx;
+    fxdata_t *fx = &strand->fx;
     int fade_len = 2; /** TODO: variablise **/
     bool direction = fx->var5;
     int16_t led_pos = fx->var2;

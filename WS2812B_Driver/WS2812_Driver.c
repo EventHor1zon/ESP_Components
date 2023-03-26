@@ -339,7 +339,7 @@ LedStrand_t *WS2812_init(ws2812_initdata_t *initdata)
     /* init Function - create Led Effects structure */
     if (initStatus == ESP_OK)
     {
-        ledEffectData_t *ledFxData = ledEffectInit(strand);
+        fxdata_t *ledFxData = ledEffectInit(strand);
         TimerHandle_t fxTimer = xTimerCreate("fxTimer", (TickType_t)UINT32_MAX, pdTRUE, NULL, fxCallbackFunction);
 
         if (ledFxData == NULL)
@@ -519,7 +519,7 @@ esp_err_t ws2812_set_mode(LedStrand_t *strand, uint8_t *data) {
         ESP_LOGI(WS2812_TAG, "setting Mode %u", *data);
 
         strand->effects.effect = *data;
-        ledfx_set_mode(strand);
+        lfx_set_mode(strand);
     }
     return status;
 }

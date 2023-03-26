@@ -8,7 +8,8 @@
 
 /********* Includes *******************/
 
-#include "esp_err_t"
+#include "esp_err.h"
+#include "esp_log.h"
 #include "esp_heap_caps.h"
 
 #include "driver/rmt.h"
@@ -23,6 +24,7 @@
 #include "freertos/semphr.h"
 #include "freertos/FreeRTOSConfig.h"
 
+#include "LedEffects.h"
 #include "LedStrip_Driver.h"
 
 /****** Private Data ******************/
@@ -226,16 +228,16 @@ static void ledstrip_driver_task(void *args) {
                 strip->render_frame = true;
                 if(xTimerGetPeriod(strip->timer) != strip->fx.frame_time) {
                     /** stop running timer,  **/
-                    if(xTimerStop(strip->timer, pdMS_TO_TICKS(100)) != pdTRUE) {
+                    if(xTimerStop(strip->timer, LEDSTRIP_CONFIG_GENERIC_TIMEOUT) != pdTRUE) {
                         ESP_LOGE(LS_TAG, "Error, failed to stop running timer");                        
                     }
-                    else if(xTimerChangePeriod(strip->timer, strip->fx.frame_time, pdMS_TO_TICKS(100)) != pdTRUE) {
+                    else if(xTimerChangePeriod(strip->timer, strip->fx.frame_time, LEDSTRIP_CONFIG_GENERIC_TIMEOUT) != pdTRUE) {
                         ESP_LOGE(LS_TAG, "Error, failed to change timer period");
                     }
-                    else if(xTimerReset(strip->timer, pdMS_TO_TICKS(100)) != pdTRUE) {
+                    else if(xTimerReset(strip->timer, LEDSTRIP_CONFIG_GENERIC_TIMEOUT) != pdTRUE) {
                         ESP_LOGE(LS_TAG, "Error, failed to reset timer");
                     }
-                    else if (xTimerStart(strip->timer, pdMS_TO_TICKS(100)) != pdTRUE){
+                    else if (xTimerStart(strip->timer, LEDSTRIP_CONFIG_GENERIC_TIMEOUT) != pdTRUE){
                         ESP_LOGE(LS_TAG, "Error, failed to reset timer");
                     }
                 }
@@ -246,7 +248,7 @@ static void ledstrip_driver_task(void *args) {
 #ifdef DEBUG_MODE
                 ESP_LOGI(LS_TAG, "Calling animation function");
 #endif
-                if(xSemaphoreTake(strip->sem, pdMS_TO_TICKS(100)) != pdTRUE) {
+                if(xSemaphoreTake(strip->sem, LEDSTRIP_CONFIG_GENERIC_TIMEOUT) != pdTRUE) {
                     ESP_LOGE(LS_TAG, "Failed to get mem semaphore");
                 }
                 else
@@ -262,7 +264,7 @@ static void ledstrip_driver_task(void *args) {
 #ifdef DEBUG_MODE
                 ESP_LOGI(LS_TAG, "Writing frame");
 #endif
-                if(xSemaphoreTake(strip->sem, APA_SEMTAKE_TIMEOUT) != pdTRUE) {
+                if(xSemaphoreTake(strip->sem, LEDSTRIP_CONFIG_GENERIC_TIMEOUT) != pdTRUE) {
                     ESP_LOGE(LS_TAG, "Failed to get LED semaphore");
                 } 
                 else {
@@ -302,7 +304,7 @@ esp_err_t ledstrip_driver_init() {
     }
 
     if(!err) {
-        command_queue = xQueueCreate(LEDSTRIP_CONFIG_QUEUE_LEN, sizeof(ledstrip_cmd_t));
+        command_queue = xQueueCreate(LEDSTRIP_CONFIG_QUEUE_LEN, sizeof(ls_cmd_t));
 
         if(command_queue == NULL) {
             ESP_LOGE(LS_TAG, "Unable to create command queue");
@@ -332,13 +334,13 @@ esp_err_t ledstrip_driver_init() {
 esp_err_t ledstrip_add_strip(LEDSTRIP_h strip, ledstrip_init_t *init) {
 
     esp_err_t err = ESP_OK;
-    void *strip_ptr;
-    uint32_t strip_mem_len;
+    void *strip_ptr=NULL;
+    uint32_t strip_mem_len=0;
     uint32_t offset;
     uint8_t mem_flags;
-    ledtype_t *type;
-    TimerHandle_t timer;
-    SemaphoreHandle_t sem;
+    ledtype_t *type=NULL;
+    TimerHandle_t timer=NULL;
+    SemaphoreHandle_t sem=NULL;
     char name_buffer[32];
 
     if(is_initialised == false) {
@@ -444,7 +446,7 @@ esp_err_t ledstrip_add_strip(LEDSTRIP_h strip, ledstrip_init_t *init) {
 #ifdef DEBUG_MODE
         
 #else
-        ledfx_set_mode(strip, LED_EFFECT_OFF);
+        lfx_set_mode(strip, LED_EFFECT_OFF);
 #endif /** DEBUG_MODE **/
     }
 
@@ -535,7 +537,7 @@ esp_err_t ledstrip_set_mode(LEDSTRIP_h strip, uint8_t *mode) {
         err = ESP_ERR_INVALID_ARG;
     }
     else {
-        ledfx_set_mode(strip, m);
+        lfx_set_mode(strip, m);
     }
     return err;
 }
@@ -570,7 +572,7 @@ esp_err_t ledstrip_set_brightness(LEDSTRIP_h strip, uint8_t *brightness) {
         
         cmd.cmd = LS_CMD_UPDATE_FRAME;
         cmd.strip = strip;
-        if(xQueueSendToBack(command_queue, &cmd, pdMS_TO_TICKS(100)) != pdTRUE) {
+        if(xQueueSendToBack(command_queue, &cmd, LEDSTRIP_CONFIG_GENERIC_TIMEOUT) != pdTRUE) {
             err = ESP_ERR_TIMEOUT;
             ESP_LOGE(LS_TAG, "Error adding command to queue [%u]", err);            
         }

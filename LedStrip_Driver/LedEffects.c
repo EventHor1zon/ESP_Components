@@ -36,6 +36,8 @@
 #define GREEN_FROM_COLOUR32(colour) ((uint8_t)((colour >> 8) & 0xFF))
 #define BLUE_FROM_COLOUR32(colour) ((uint8_t)(colour & 0xFF))
 
+#define MAX_VAL_FROM_BITS(bits) ((1 << bits)-1)
+
 #define PIXEL_RED_INDEX(pixel_type) (pixel_type->pixel_index_red)
 #define PIXEL_GREEN_INDEX(pixel_type) (pixel_type->pixel_index_green)
 #define PIXEL_BLUE_INDEX(pixel_type) (pixel_type->pixel_index_blue)
@@ -125,53 +127,16 @@ static uint8_t fade_color(uint8_t colour, uint8_t steps, uint8_t step_no)
 /****** Global Functions *************/
 
 
-
-/**
- *  update led funciton pointer
- *  TODO: make esp_err_t type
- */
-void ledfx_set_mode(LedStrand_t *strip, ledEffect_t effect) {
-
-    ESP_LOGI("FX", "Updating function %u", effect);
-
-    if(effect == LED_EFFECT_OFF) {
-        strip->effects.colour = 0x00000000;
-        strip->effects.func = &all_single_colour;
-    }
-    else if (effect == LED_EFFECT_SINGLE_COLOUR) {
-        ESP_LOGI("FX", "Got sc req");
-        strip->effects.func = &all_single_colour;
-        strip->effects.refresh_t = 1000;
-    }
-    else if (effect == LED_EFFECT_NIGHTRIDER) {
-        ESP_LOGI("FX", "Got nr req");
-        strip->effects.func = &ledEffects_nightrider;
-        strip->effects.refresh_t = 500;
-
-    } else if (effect == LED_EFFECT_SLOW_FADE) {
-        ESP_LOGI("FX", "Got sf req");
-        strip->effects.func = &soft_glow;
-        strip->effects.refresh_t = 50;
-    }
-    else {
-        ESP_LOGE("LFX", "Unknown mode");
-    }
-
-    strip->effects.render_new_frame = true;
-    strip->effects.effect = effect;
-    return;
-}
-
 /**  \brief     A basic night-rider style effect with optional fade    
  *   \param      strip - a pointer to a led control strip
 */
-void ledEffects_nightrider(LedStrand_t *strip)
+void lfx_nightrider(LEDSTRIP_h strip)
 {
 
-    ledEffectData_t *fx = &strip->effects;
+    fxdata_t *fx = &strip->fx;
     int fade_len = 2; /** TODO: variablise **/
-    bool direction = fx->var5;
-    int16_t led_pos = fx->var2;
+    bool direction = fx->u8bitfield;
+    int16_t led_pos = fx->u16storage_a;
 
     if (fade_len >= strip->num_leds)
     {
@@ -183,7 +148,7 @@ void ledEffects_nightrider(LedStrand_t *strip)
         set_pixel_colour32(strip->led_type, strip->pixel_start, LEDFX_RBG_COL_BLACK);
     }
 
-    set_pixel_brt_colour32(strip->led_type, PIXEL_FROM_INDEX(strip, led_pos), strip->effects.colour, LEDFX_BRIGHTNESS_MAX);
+    set_pixel_brt_colour32(strip->led_type, PIXEL_FROM_INDEX(strip, led_pos), strip->fx.colour, LEDFX_BRIGHTNESS_MAX);
 
     if (direction)
     {
@@ -193,7 +158,7 @@ void ledEffects_nightrider(LedStrand_t *strip)
             /* as long as not mapping past number of posible leds & not longer than fade len */
             for (int i = 0; (i < fade_len) || (i < led_pos); i++)
             {
-                set_pixel_brt_colour32(strip->led_type, PIXEL_FROM_INDEX(strip, led_pos-i), strip->effects.colour, (int)(LEDFX_BRIGHTNESS_MAX / i+2));
+                set_pixel_brt_colour32(strip->led_type, PIXEL_FROM_INDEX(strip, led_pos-i), strip->fx.colour, (int)(LEDFX_BRIGHTNESS_MAX / i+2));
             }
         }
     }
@@ -205,7 +170,7 @@ void ledEffects_nightrider(LedStrand_t *strip)
             /* as long as not mapping past number of posible leds & not longer than fade len */
             for (int i = 0; (i < fade_len) || (i < ((strip->num_leds - 1) - led_pos)); i++)
             {
-                set_pixel_brt_colour32(strip->led_type, PIXEL_FROM_INDEX(strip, led_pos+i), strip->effects.colour, (int)(LEDFX_BRIGHTNESS_MAX / i+2));
+                set_pixel_brt_colour32(strip->led_type, PIXEL_FROM_INDEX(strip, led_pos+i), strip->fx.colour, (int)(LEDFX_BRIGHTNESS_MAX / i+2));
             }
         }
     }
@@ -218,49 +183,95 @@ void ledEffects_nightrider(LedStrand_t *strip)
     }
 
     /** save variables for next run */
-    fx->var5 = direction;
-    fx->var2 = led_pos;
-    strip->effects.write_new_frame = 1;
+    fx->u8bitfield = direction;
+    fx->u16storage_a = led_pos;
+    strip->write_frame = 1;
 }
 
 
-void all_single_colour(LedStrand_t *strip) {
+void lfx_single_colour(LEDSTRIP_h strip) {
 
     for(int i=0; i < strip->num_leds; i++) {
         set_pixel_colour32(strip->led_type, strip->pixel_start, LEDFX_RBG_COL_BLACK);
     }
 
-    strip->effects.write_new_frame = 1;
+    strip->write_frame = 1;
 }
 
 
-void rainbow(LedStrand_t *strip) {
+void rainbow(LEDSTRIP_h strip) {
 
     return;
 }
 
 
-void soft_glow(LedStrand_t *strip) {
+void lfx_soft_glow(LEDSTRIP_h strip) {
 
     uint8_t r, g, b;
-    uint16_t br_mod = strip->effects.var1;
-    bool direction = strip->effects.var5;
+    uint16_t br_mod = strip->fx.u16storage_a;
+    bool direction = strip->fx.u8bitfield;
     if(br_mod == 0 || br_mod > 10) {
         br_mod = 5;
     };
 
     for (uint8_t offset = 0; offset < strip->num_leds; offset++)
     {
-        set_pixel_brt_colour32(strip->led_type, PIXEL_FROM_INDEX(strip, offset), strip->effects.colour, br_mod*10);
+        set_pixel_brt_colour32(strip->led_type, PIXEL_FROM_INDEX(strip, offset), strip->fx.colour, br_mod*10);
     }
 
-    strip->effects.var5 = direction;
+    strip->fx.u8bitfield = direction;
 
     if(br_mod == 1 || br_mod > 9) {
         direction = !direction;
-        strip->effects.var5 = direction;    
+        strip->fx.u8bitfield = direction;    
     }
-    strip->effects.var1 = direction ? (br_mod - 1) : (br_mod + 1); 
-    strip->effects.write_new_frame = true;
+    strip->fx.u16storage_a = direction ? (br_mod - 1) : (br_mod + 1); 
+    strip->write_frame = true;
     return;
 }
+
+
+/**
+ *  update led funciton pointer
+ *  TODO: make esp_err_t type
+ */
+esp_err_t lfx_set_mode(LEDSTRIP_h strip, ledEffect_t effect) {
+    
+    esp_err_t err = ESP_OK;
+
+#ifdef DEBUG_MODE
+    ESP_LOGI("FX", "Updating function %u", effect);
+#endif
+
+    if(effect == LED_EFFECT_OFF) {
+        strip->fx.colour = 0x00000000;
+        strip->fx.func = &lfx_single_colour;
+    }
+    else if (effect == LED_EFFECT_SINGLE_COLOUR) {
+        ESP_LOGI("FX", "Got sc req");
+        strip->fx.func = &lfx_single_colour;
+        strip->fx.frame_time = 1000;
+    }
+    else if (effect == LED_EFFECT_NIGHTRIDER) {
+        ESP_LOGI("FX", "Got nr req");
+        strip->fx.func = &lfx_nightrider;
+        strip->fx.frame_time = 500;
+
+    } else if (effect == LED_EFFECT_SLOW_FADE) {
+        ESP_LOGI("FX", "Got sf req");
+        strip->fx.func = &lfx_soft_glow;
+        strip->fx.frame_time = 50;
+    }
+    else {
+        err = ESP_ERR_INVALID_ARG;
+        ESP_LOGE("LFX", "Unknown mode");
+    }
+
+    if(!err) {
+        strip->render_frame = true;
+        strip->fx.effect = effect;
+    }
+
+    return err;
+}
+

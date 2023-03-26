@@ -16,7 +16,10 @@
 #define LEDSTRIP_DRIVER_H
 
 #include "esp_err.h"
-#include "./LedEffects.h"
+#include "driver/gpio.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/timers.h"
+#include "freertos/semphr.h"
 
 /********* Includes ********************/
 
@@ -35,6 +38,23 @@
 
 #define LEDSTRIP_CONFIG_GENERIC_TIMEOUT     pdMS_TO_TICKS(100)  /** generic timeout **/
 
+
+
+#define LEDFX_CONFIG_MIN_FRAME_T 50     /** minimum frame refresh time in ms **/
+
+#define LEDFX_RBG_COL_BLACK 0x00000000
+#define LEDFX_RGB_COL_RED   0x00FF0000
+#define LEDFX_RGB_COL_GREEN 0x0000FF00
+#define LEDFX_RGB_COL_BLUE  0x000000FF
+
+#define LEDFX_BRIGHTNESS_MAX    100
+#define LEDFX_BRIGHTNESS_MIN    1
+#define LEDFX_BRIGHTNESS_OFF    0
+
+
+
+typedef void (*effect_fn)(void *);
+
 /** Function Definitions **/
 typedef esp_err_t (*write_fn)(void *);
 typedef esp_err_t (*init_fn)(void *, void *);
@@ -42,6 +62,49 @@ typedef void (*effect_fn)(void *);
 
 
 /********** Types **********************/
+
+/** @defgroup   LedFx_Structures
+ *  @brief      Structures used internally by the ledfx functions
+ *              Some used in handle, circular includes not a good thing
+ *              though so defined in this header.
+ * @{
+ */
+
+
+typedef enum ledEffect
+{
+    LED_EFFECT_OFF,
+    LED_EFFECT_SINGLE_COLOUR,
+    LED_EFFECT_NIGHTRIDER,
+    LED_EFFECT_SLOW_FADE,
+    LED_EFFECT_RAINBOW,
+    LED_EFFECT_COLOUR_FADE,
+    
+    LED_EFFECT_INVALID,
+} ledEffect_t;
+
+
+/** @struct fxdata_t
+ *  @brief  Led effect struct
+ *          Used for tracking persistent LED effect variables?
+ *          Try to build all effects to use the same type of data struct 
+ *          TODO: better variable names, use unions or bitfields?
+*/
+typedef struct 
+{
+    ledEffect_t effect;         /** the current effect in enumeration */
+    effect_fn func;             /** a pointer to the LedEffects function */
+    uint32_t colour;            /** colour - rgb colour 0xXXRRGGBB format   */
+    uint8_t brightness;         /** led brigthness  */
+    uint16_t frame_time;        /** refresh time in ms - 0 for no refresh   **/
+    uint8_t u8bitfield;         /** Bitfield storage for effect functions   **/
+    uint16_t u16storage_a;      /** Value storage for effect functions      **/
+    uint16_t u16storage_b;      /** Value storage for effect functions      **/
+    uint32_t u32storage_a;      /** Value storage for effect functions      **/
+    uint32_t u32storage_b;      /** Value storage for effect functions      **/
+} fxdata_t;
+
+/** @} LedFx_Structures */
 
 /** @defgroup   LedStrip_Structures 
  *  @brief      Core structures for initialising and using the 
@@ -61,17 +124,6 @@ typedef enum {
     LED_TYPE_INVALID,
 } led_type_e;
 
-/** @enum LS_CMD_e 
- *  @brief Command enumeration for the
- *         ledstrip driver task 
- */
-typedef enum {
-    LS_CMD_OFF,
-    LS_CMD_UPDATE_FRAME,
-    LS_CMD_UPDATE_LEDS,
-    LS_CMD_NEW_MODE,
-    LS_CMD_MAX,
-} LS_CMD_e;
 
 /** @struct ledtype_t 
  *  @brief  description of the led 
@@ -148,17 +200,6 @@ typedef struct {
 typedef ledstrip_t * LEDSTRIP_h;    /** ledstrip handle pointer **/
 
 
-/** @struct ls_cmd_t
- *  @brief structure of a command to send to the 
- *          driver task
- */
-
-typedef struct 
-{
-    /* data */
-    LEDSTRIP_h strip;
-    LS_CMD_e cmd;
-} ls_cmd_t;
 
 /** @} LedStrip_Structures */
 
@@ -178,18 +219,21 @@ typedef enum {
     LS_CMD_UPDATE_LEDS,
     LS_CMD_NEW_MODE,
     LS_CMD_MAX,
-} led_cmd_t;
+} LS_CMD_e;
 
 
-/** @struct ledstrip_cmd_t 
- *  @brief  used internally to send commands 
- *          to the driver task
+/** @struct ls_cmd_t
+ *  @brief structure of a command to send to the 
+ *          driver task
  */
-typedef struct apa102_cmd_t
+
+typedef struct 
 {
+    /* data */
     LEDSTRIP_h strip;
-    led_cmd_t cmd;
-} ledstrip_cmd_t;
+    LS_CMD_e cmd;
+} ls_cmd_t;
+
 
 /** @} Driver_Structures */
 

@@ -309,7 +309,7 @@ esp_err_t apa_setMode(APA_HANDLE_t strand, uint8_t  *mode) {
     if(m > LEDFX_NUM_EFFECTS) {
         status = ESP_ERR_INVALID_ARG;
     } else {
-        ledfx_set_mode(strand, m);
+        lfx_set_mode(strand, m);
         cmd.cmd = APA_CMD_NEW_MODE;
         cmd.strand = strand;
         if(xQueueSend(driver_task_queue, &cmd, pdMS_TO_TICKS(100)) != pdTRUE) {
