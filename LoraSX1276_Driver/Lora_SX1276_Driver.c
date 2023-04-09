@@ -186,7 +186,6 @@ const Lora_Register_Map_t resetDefaults = {
     .regAgcThresh2.regByte = 0x5B,
     .regAgcThresh3.regByte = 0xDB,
     .regPll = 0xD0,
-
 };
 
 

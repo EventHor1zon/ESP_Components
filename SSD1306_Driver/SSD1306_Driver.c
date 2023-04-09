@@ -14,6 +14,7 @@
 #include "esp_log.h"
 #include "esp_heap_caps.h"
 #include "genericCommsDriver.h"
+#include "driver/gpio.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -440,6 +441,29 @@ ssd1306_handle_t *ssd1306_init(ssd1306_handle_t *handle, ssd1306_init_t *init) {
     }
 
     if(err == ESP_OK) {
+        if(init->rst > 0) {
+            handle->rst = init->rst;
+
+            gpio_config_t rst_cfg = {
+                .intr_type = GPIO_INTR_DISABLE,
+                .mode = GPIO_MODE_OUTPUT,
+                .pin_bit_mask = (1 << handle->rst),
+                .pull_down_en = 0,
+                .pull_up_en = 0
+            };
+
+            ESP_ERROR_CHECK(gpio_config(&rst_cfg));
+            
+            gpio_set_level(handle->rst, 1);
+
+            vTaskDelay(pdMS_TO_TICKS(10));
+
+            gpio_set_level(handle->rst, 0);
+
+        }
+    }
+
+    if(err == ESP_OK) {
         /** initialise the screen **/
         ESP_LOGI(SSD_TAG, "Writing Screen init commands to bus %u", handle->bus);
         err = gcd_i2c_write_address(handle->bus, handle->dev_addr, OLED_CONTROL_BYTE_CMD_STREAM, 5, screen_initconfig_cmds);
@@ -470,9 +494,11 @@ ssd1306_handle_t *ssd1306_init(ssd1306_handle_t *handle, ssd1306_init_t *init) {
         }
     }
 
+#ifdef CONFIG_DRIVERS_USE_HEAP
     if(err != ESP_OK && handle != NULL) {
         heap_caps_free(handle);
     }
+#endif
 
     if(err == ESP_OK) {
         ESP_LOGI(SSD_TAG, "Succesfully started SSD1306 Driver");

@@ -16,7 +16,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/timers.h"
 #include "freertos/task.h"
-
+#include "driver/gpio.h"
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
 
@@ -93,6 +93,7 @@ typedef struct ssd1306_init
     /* data */
     uint8_t i2c_bus;
     uint8_t i2c_addr;
+    gpio_num_t rst;
 } ssd1306_init_t;
 
 
@@ -112,6 +113,7 @@ typedef struct ssd1306_handle
     uint8_t scroll_speed;
     bool is_scrolling;
     uint8_t contrast;
+    gpio_num_t rst;
     TimerHandle_t timer;
     TaskHandle_t task_handle;
 } ssd1306_handle_t;
