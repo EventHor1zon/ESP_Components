@@ -21,6 +21,9 @@
 #include "freertos/timers.h"
 #include "freertos/semphr.h"
 
+#include "driver/spi_common.h"
+#include "driver/spi_master.h"
+
 /********* Includes ********************/
 
 /********* Definitions *****************/
@@ -57,7 +60,7 @@ typedef void (*effect_fn)(void *);
 
 /** Function Definitions **/
 typedef esp_err_t (*write_fn)(void *);
-typedef esp_err_t (*init_fn)(void *, void *);
+typedef esp_err_t (*init_fn)(void *);
 typedef void (*effect_fn)(void *);
 
 
@@ -180,10 +183,11 @@ typedef struct {
     void *strand_mem_start;     /** start of the strand memory  - currently just heap mem **/
     void *pixel_start;          /** start of the led pixel memory **/
     uint32_t write_length;      /** length of the full strand memory **/
+    gpio_num_t data_pin;        /** the led data pin **/
 
     fxdata_t fx;                /** led effect data struct **/
 
-    void *interface_handle;     /** handle for SPI/RMT/other interface **/
+    spi_device_handle_t interface_handle;     /** handle for SPI/RMT/other interface **/
 
     SemaphoreHandle_t sem;      /** Semaphore for strand memory **/
     TimerHandle_t timer;        /** timer used for led effect refresh **/
@@ -238,11 +242,11 @@ typedef struct
 /** @} Driver_Structures */
 
 
-/** @name   led_types
+/** @name   ledstrip_types
  *  @brief  array holding the configuration info for 
  *          supported led types
  */
-const ledtype_t led_types[2];
+const ledtype_t ledstrip_types[2];
 const uint8_t led_type_n;
 
 
@@ -257,6 +261,9 @@ const uint8_t led_type_n;
  **/
 esp_err_t ledstrip_driver_init();
 
+esp_err_t ledstrip_init_ws2812b(void *strip);
+
+esp_err_t ledstrip_init_apa102(void *strip);
 
 esp_err_t ledstrip_add_strip(LEDSTRIP_h strip, ledstrip_init_t *init);
 

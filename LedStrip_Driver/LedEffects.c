@@ -69,11 +69,10 @@ static esp_err_t set_pixel_brightness(ledtype_t *p_type, void *pixel, uint8_t br
     return ESP_OK;
 }
 
-static void set_pixel_colour32(ledtype_t *p_type, void *pixel, uint32_t colour) {
-    uint8_t *p_arr = pixel;
-    p_arr[PIXEL_RED_INDEX(p_type)] = RED_FROM_COLOUR32(colour);
-    p_arr[PIXEL_GREEN_INDEX(p_type)] = GREEN_FROM_COLOUR32(colour);
-    p_arr[PIXEL_BLUE_INDEX(p_type)] = BLUE_FROM_COLOUR32(colour);
+static void set_pixel_colour32(ledtype_t *p_type, uint8_t *pixel, uint32_t colour) {
+    pixel[p_type->pixel_index_red] = RED_FROM_COLOUR32(colour);
+    pixel[p_type->pixel_index_green] = GREEN_FROM_COLOUR32(colour);
+    pixel[p_type->pixel_index_blue] = BLUE_FROM_COLOUR32(colour);
 }
 
 
@@ -191,8 +190,10 @@ void lfx_nightrider(LEDSTRIP_h strip)
 
 void lfx_single_colour(LEDSTRIP_h strip) {
 
+    uint32_t offset = 0;
     for(int i=0; i < strip->num_leds; i++) {
-        set_pixel_colour32(strip->led_type, strip->pixel_start, LEDFX_RBG_COL_BLACK);
+        offset = (strip->led_type->pixel_bytes * i);
+        set_pixel_brt_colour32(strip->led_type, strip->pixel_start+offset, strip->fx.colour, strip->fx.brightness);
     }
 
     strip->write_frame = 1;

@@ -157,7 +157,6 @@ static float conversion_factor_gyro(LSM_DriverHandle_t *dev);
 void LSMDriverTask(void *args);
 
 
-
 /************ ISR *********************/
 
 IRAM_ATTR void ISR_int1(void *args)
@@ -170,6 +169,7 @@ IRAM_ATTR void ISR_int1(void *args)
     xTaskNotifyFromISR(dev->taskHandle, intr_val, eSetValueWithOverwrite, higherPrio);
     portYIELD_FROM_ISR();
 }
+
 
 IRAM_ATTR void ISR_int2(void *args)
 {
@@ -763,11 +763,7 @@ void LSMDriverTask(void *args)
 }
 
 
-
-
-
 /****** Global Functions *************/
-
 
 
 /**** MAIN CONFIG & ACTIONS *****/

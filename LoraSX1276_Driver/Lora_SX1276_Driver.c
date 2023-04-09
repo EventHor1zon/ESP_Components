@@ -54,17 +54,42 @@
 #include "Lora_SX1276_Driver.h"
 #include "Utilities.h"
 
+// #define SPI_DEBUG 1
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
 
-// #include "CommandAPI.h"
+#include "CommandAPI.h"
 
-// const parameter_t lora_parameter_map[LORA_PERIPH_LEN] = {
+const parameter_t lora_parameter_map[LORA_PERIPH_LEN] = {
 
-//     {"Operating Mode", 1, sx1276_get_opmode_LoRa, sx1276_set_opmode_LoRa, 
+    {"Device Mode", 1, sx_get_device_mode, sx_set_device_mode, NULL, DATATYPE_INT8, SX_DEVICE_LORA_MODE, (GET_FLAG | SET_FLAG)},
+    {"Device Version", 2, sx_get_version, NULL, NULL, DATATYPE_UINT8, 0, (GET_FLAG)},
+    {"TRX Mode", 3, sx_get_trx_mode, sx_set_trx_mode, NULL, DATATYPE_UINT8, SX1276_TRXMODE_CAD, (GET_FLAG | SET_FLAG)},
+    {"Frequency", 4, sx_get_frequency, sx_set_frequency, NULL, DATATYPE_UINT32, SX_LORA_MAX_FREQUENCY-1, (GET_FLAG | SET_FLAG)},
+    {"PowerAmp Selected", 5, sx_get_pa_sel, sx_set_pa_sel, NULL, DATATYPE_BOOL, 1, (GET_FLAG | SET_FLAG) },
+    {"LoRa Header mode", 6, sx_get_lora_headermode, sx_set_lora_headermode, DATATYPE_UINT8, 1, (GET_FLAG | SET_FLAG) },
+    {"O-CurrentProt En", 7, sx_get_ocp_en, sx_set_ocp_en, NULL, DATATYPE_BOOL, 1, (GET_FLAG | SET_FLAG)},
+    {"O-Current Trim", 8, sx_get_ocp_trim, sx_set_ocp_trim, NULL, DATATYPE_UINT8, 0x0F, (GET_FLAG | SET_FLAG)},
+    {"LNA Gain", 9, sx_get_lna_gain, sx_get_lna_gain, NULL, DATATYPE_UINT8, 6, (GET_FLAG | SET_FLAG)},
+    {"LNA HF Boost En", 10, sx_get_lna_boost_hf, sx_set_lna_boost_hf, DATATYPE_BOOL, 1, (GET_FLAG | SET_FLAG)},
+    {"LoRa Bandwidth", 11, sx_get_signal_bandwidth, sx_set_signal_bandwidth, NULL, DATATYPE_UINT8, SX1276_LORA_BW_500KHZ, (GET_FLAG | SET_FLAG)},
+    {"LoRa Spread Fc", 12, sx_get_lora_spreading_factor, sx_set_lora_spreading_factor, NULL, DATATYPE_UINT8, 12, (GET_FLAG | SET_FLAG)},
+    {"Rx CRC En", 13, sx_get_rx_payload_crc_en, sx_set_rx_payload_crc_en, NULL,  DATATYPE_BOOL, 1, (GET_FLAG | SET_FLAG)},
+    {"Low Rate Opt En", 14, sx_get_low_datarate_optimise, sx_set_low_datarate_optimise, NULL, DATATYPE_BOOL, 1, (GET_FLAG | SET_FLAG) },
+    {"AGC Auto En", 15, sx_get_agc_auto, sx_set_agc_auto, NULL,  DATATYPE_BOOL, 1, (GET_FLAG | SET_FLAG)},
+    {"Frequency Error", 16, sx_get_frequency_err, NULL, NULL, DATATYPE_UINT32, 0, (GET_FLAG )},
+    {"LoRa Sync Word", 17, sx_get_lora_syncword, sx_set_lora_syncword, NULL, DATATYPE_UINT8, UINT8_MAX, (GET_FLAG | SET_FLAG)},
+    {"Valid Hdrs Rx", 18, sx_get_valid_hdr_count, NULL, NULL, DATATYPE_UINT32, UINT32_MAX, (GET_FLAG)},
+    {"Valid Pkts Rx", 19, sx_get_valid_pkt_count, NULL, NULL, DATATYPE_UINT32, UINT32_MAX, (GET_FLAG)},
+    {"Last Rx Len", 20, sx_get_last_rx_len, NULL, NULL, DATATYPE_UINT32, UINT32_MAX, (GET_FLAG)},
+    {"Last Rx CR", 21, sx_get_last_rx_coding_rate, NULL, NULL, DATATYPE_UINT32, UINT32_MAX, (GET_FLAG)},
+    {"Last Rx SNR", 22, sx_get_last_pkt_snr, NULL, NULL, DATATYPE_UINT32, UINT32_MAX, (GET_FLAG)},
+    {"Last Rx RSSI", 23, sx_get_last_pkt_rssi, NULL, NULL, DATATYPE_UINT32, UINT32_MAX, (GET_FLAG)},
+    {"LoRa I/O 0 Fn", 24, sx_get_lora_dio0_func, sx_get_lora_dio0_func, NULL, DIO_FUNC_PAYLOAD_CRC_ERR, (GET_FLAG | SET_FLAG)},
+    {"FIFO Tx Start", 25, NULL, sx_lora_set_fifo_tx_start, NULL, UINT8_MAX, (SET_FLAG)},
+    {"FIFO Rx Start", 25, NULL, sx_lora_set_fifo_rx_start, NULL, UINT8_MAX, (SET_FLAG)},
 
-
-// };
+};
 // const peripheral_t lora_peripheral_template;
 
 
@@ -72,7 +97,6 @@
 
 
 #define SX_MODE_CHECK(dev, mode) (dev->device_mode == mode ? true : false )
-// #define SPI_DEBUG 1
 /****** Function Prototypes ***********/
 
 /************ ISR *********************/
@@ -469,8 +493,6 @@ static esp_err_t check_crc_on_payload(SX1276_DEV dev, bool *crc) {
 }
 
 
-
-
 static esp_err_t spreadingfactor_set(SX1276_DEV dev, uint8_t sf) {
    esp_err_t err = ESP_OK;
    if(sf >= SX1276_SPREADF_MAX || sf <= SX1276_SPREADF_MIN) {
@@ -540,15 +562,11 @@ static esp_err_t clear_interrupts(SX1276_DEV dev) {
     return err;
 }
 
+
 static esp_err_t read_interrupts(SX1276_DEV dev, uint8_t *intr) {
 
     return sx_read_address_byte(dev, SX1276_REGADDR_IRQ_FLAGS, intr);
 }
-
-
-
-
-
 
 
 static void wait_tx_done(SX1276_DEV dev) {
@@ -1158,11 +1176,18 @@ esp_err_t sx_set_lora_syncword(SX1276_DEV dev, uint8_t *val) {
    esp_err_t status = ESP_OK;
     uint8_t v = *val;
 
-    if(v == 0x12) {
-        ESP_LOGE(LORA_TAG, "This Sync Word is reserved for LoRaWAN Networks");
+    if(v == 0x34) {
+#ifdef SX_CONFIG_LORAWAN_EN
+        ESP_LOGI(LORA_TAG, "Sync Word 0x34 is reserved for LoRaWAN Networks");
+        status = sx_write_address_byte(dev, SX_LORA_REGADDR_MODEM_CONFIG1, v);
+#else
+        ESP_LOGE(LORA_TAG, "Sync Word 0x34 is reserved for LoRaWAN Networks");
+        status = ESP_ERR_INVALID_ARG;
+#endif
     }
-
-    status = sx_write_address_byte(dev, SX_LORA_REGADDR_MODEM_CONFIG1, v);
+    else {
+        status = sx_write_address_byte(dev, SX_LORA_REGADDR_MODEM_CONFIG1, v);
+    }
 
     if(status == ESP_OK) {
         dev->registers.lora_reg.regSyncWord = v;
@@ -1266,7 +1291,7 @@ esp_err_t sx_get_last_pkt_rssi(SX1276_DEV dev, uint16_t *rssi) {
 
     err = sx_read_address_byte(dev, SX_LORA_REGADDR_PKT_RSSI_VAL, &data);
 
-    /**< 
+    /**
      * RSSI[dBm] = -157 + Rssi (using HF output port, SNR >= 0)
      * or
      * RSSI[dBm] = -164 + Rssi (using LF output port, SNR >= 0)

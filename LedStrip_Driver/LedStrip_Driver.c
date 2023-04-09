@@ -26,6 +26,7 @@
 
 #include "LedEffects.h"
 #include "LedStrip_Driver.h"
+#include "../Utils/Utilities.h"
 
 /****** Private Data ******************/
 
@@ -36,32 +37,8 @@ static uint8_t num_strips = 0;
 
 const static char * LS_TAG = "LedStrip Driver";
 
+#define DEBUG_MODE 1
 
-/****** Global Data *******************/
-
-const ledtype_t ledstrip_types[2] = {
-    {.name="ws2812b", .pixel_bytes=3, .pixel_index_red=1, .pixel_index_blue=2, .pixel_index_green=0, .brt_bits=0, .pixel_index_brt=0, .brt_base=0},
-    {.name="apa102", .pixel_bytes=4, .pixel_index_red=3, .pixel_index_blue=1, .pixel_index_green=2, .brt_bits=5, .pixel_index_brt=0, .brt_base=0b11100000},
-};
-
-const uint8_t led_type_n = 2;
-
-struct ws2812b_timing_t
-{
-    uint32_t T0H;
-    uint32_t T1H;
-    uint32_t T0L;
-    uint32_t T1L;
-    uint32_t TRS;
-};
-
-const struct ws2812b_timing_t wsT = {
-    400,
-    800,
-    550,
-    850,
-    450,
-};
 
 /****** Function Prototypes ***********/
 
@@ -85,6 +62,63 @@ static esp_err_t ledstrip_spi_write();
  */
 static esp_err_t ledstrip_rmt_write();
 
+
+
+/****** Global Data *******************/
+
+const ledtype_t ledstrip_types[2] = {
+    {.name="ws2812b",
+     .pixel_bytes=3,
+     .pixel_index_red=1, 
+     .pixel_index_blue=2,
+     .pixel_index_green=0, 
+     .brt_bits=0, 
+     .pixel_index_brt=0, 
+     .brt_base=0,
+     .start_byte = 0,
+     .start_len = 0,
+     .end_byte = 0,
+     .end_len = 0,
+     .init = ledstrip_init_ws2812b,
+     .write = ledstrip_rmt_write,
+    },
+    {.name="apa102", 
+     .pixel_bytes=4, 
+     .pixel_index_red=3, 
+     .pixel_index_blue=1, 
+     .pixel_index_green=2, 
+     .brt_bits=5, 
+     .pixel_index_brt=0, 
+     .brt_base=0b11100000,
+     .start_byte = 0,
+     .start_len = 32,
+     .end_byte = 0xFF,
+     .end_len = 32,
+     .init = ledstrip_init_apa102,
+     .write = ledstrip_spi_write,
+    },
+};
+
+const uint8_t led_type_n = 2;
+
+struct ws2812b_timing_t
+{
+    uint32_t T0H;
+    uint32_t T1H;
+    uint32_t T0L;
+    uint32_t T1L;
+    uint32_t TRS;
+};
+
+const struct ws2812b_timing_t wsT = {
+    400,
+    800,
+    550,
+    850,
+    450,
+};
+
+
 /************ ISR *********************/
 
 /**
@@ -99,9 +133,18 @@ void led_timer_callback(TimerHandle_t timer)
     /** unblock the task to run the next animation **/
     LEDSTRIP_h strip = (LEDSTRIP_h ) pvTimerGetTimerID(timer);
 #ifdef DEBUG_MODE
-    ESP_LOGI(LS_TAG, "Timer Callback");
+    printf("Timer callback\n");
 #endif
+    BaseType_t hpWoken = pdFALSE;
 
+    ls_cmd_t cmd = {
+        .cmd = LS_CMD_UPDATE_FRAME,
+        .strip = strip,
+    };
+
+    xQueueSendFromISR(command_queue, &cmd, &hpWoken);
+
+    return;
 }
 
 
@@ -181,15 +224,18 @@ static esp_err_t ledstrip_spi_write(LEDSTRIP_h strip)
 
     esp_err_t txStatus = ESP_OK;
 
-    spi_transaction_t tx = {0};
-    tx.length = (32 * 8);
-    tx.rx_buffer = NULL;
-    tx.rxlength = 0;
-    bool got_sem = false;
+    spi_transaction_t trx = {0};
+    trx.length = 32;
+    trx.rx_buffer = NULL;
+    trx.rxlength = 0;
 
-    for(uint32_t i=0; i < (strip->write_length % 32); i++) {
-        tx.tx_buffer = strip->strand_mem_start + (i * 32);
-        txStatus = spi_device_polling_transmit(strip->interface_handle, &tx);
+    showmem(strip->strand_mem_start, strip->write_length);
+
+    for(uint32_t i=0; i < (strip->write_length / 32); i++) {
+
+        trx.tx_buffer = strip->strand_mem_start + (i * 32);
+        
+        txStatus = spi_device_polling_transmit(strip->interface_handle, &trx);
 
         if (txStatus != ESP_OK)
         {
@@ -197,7 +243,6 @@ static esp_err_t ledstrip_spi_write(LEDSTRIP_h strip)
         }
     }
 
-    
     return txStatus;
 }
 
@@ -210,6 +255,8 @@ static void ledstrip_driver_task(void *args) {
     LEDSTRIP_h strip;
     ls_cmd_t rx_cmd;
 
+    ESP_LOGI(LS_TAG, "First task instance running");
+
     while(1) {
 
         /** Wait forever for command **/
@@ -220,8 +267,10 @@ static void ledstrip_driver_task(void *args) {
         if(rx_success == pdTRUE) {
             
             strip = rx_cmd.strip;
+
             ESP_LOGI(LS_TAG, "Command Received: %02x", rx_cmd.cmd);
             if(rx_cmd.cmd == LS_CMD_NEW_MODE) {
+
 #ifdef DEBUG_MODE
                 ESP_LOGI(LS_TAG, "Updating mode timer and animation");
 #endif
@@ -253,9 +302,14 @@ static void ledstrip_driver_task(void *args) {
                 }
                 else
                 {
-                    strip->fx.func((void *)strip);
-                    xSemaphoreGive(strip->sem);
+                    if(strip->fx.func == NULL) {
+                        ESP_LOGE(LS_TAG, "Error, no function assigned yet");
+                    }
+                    else {
+                        strip->fx.func((void *)strip);
+                    }
                     strip->render_frame = false;
+                    xSemaphoreGive(strip->sem);
                 }
             }
 
@@ -342,6 +396,9 @@ esp_err_t ledstrip_add_strip(LEDSTRIP_h strip, ledstrip_init_t *init) {
     TimerHandle_t timer=NULL;
     SemaphoreHandle_t sem=NULL;
     char name_buffer[32];
+    uint8_t mode = 1;
+    uint8_t brightness = 1;
+
 
     if(is_initialised == false) {
         ESP_LOGE(LS_TAG, "Driver has not been initialised");
@@ -366,7 +423,7 @@ esp_err_t ledstrip_add_strip(LEDSTRIP_h strip, ledstrip_init_t *init) {
     if(!err) {
         memset(name_buffer, 0, sizeof(uint8_t ) * 32);
         sprintf(name_buffer, "ls_tmr_%u", num_strips);
-        timer = xTimerCreate(name_buffer, portMAX_DELAY, pdTRUE, strip, led_timer_callback);
+        timer = xTimerCreate(name_buffer, pdMS_TO_TICKS(100), pdTRUE, (void *)strip, (TimerCallbackFunction_t )led_timer_callback);
         
         if(timer == NULL) {
             ESP_LOGE(LS_TAG, "Unable to create led timer");
@@ -388,9 +445,11 @@ esp_err_t ledstrip_add_strip(LEDSTRIP_h strip, ledstrip_init_t *init) {
          *  buffer to 32-bit aligned if required
          * TODO: when is it required? 32-bit dma trx
          */
-        type = &led_types[init->led_type];
+        type = &ledstrip_types[init->led_type];
 
-        err = type->init(strip, init);
+#ifdef DEBUG_MODE
+        printf("Type: %s %u %u %u\n\n", type->name, type->pixel_bytes, type->brt_bits, (uint32_t)type->init);
+#endif
     }
 
     if(!err) {
@@ -399,7 +458,7 @@ esp_err_t ledstrip_add_strip(LEDSTRIP_h strip, ledstrip_init_t *init) {
         strip_mem_len += (type->end_len);
     
 #ifdef DEBUG_MODE
-        ESP_LOGI("Assigning %u heap bytes for strip memory", strip_mem_len);
+        ESP_LOGI(LS_TAG, "Assigning %u heap bytes for strip memory", strip_mem_len);
 #endif
         mem_flags = 0;
 
@@ -409,8 +468,13 @@ esp_err_t ledstrip_add_strip(LEDSTRIP_h strip, ledstrip_init_t *init) {
         else {
             mem_flags |= (MALLOC_CAP_8BIT);
         }
+
+        if(strip_mem_len > 2048) {
+            return ESP_ERR_NO_MEM;
+        }
+
         /** TODO: Think about mem caps **/
-        strip_ptr = heap_caps_malloc((strip_mem_len + (strip_mem_len % 4)), mem_flags);
+        strip_ptr = heap_caps_malloc(strip_mem_len, MALLOC_CAP_8BIT);
         
         if(strip_ptr == NULL) {
             ESP_LOGE(LS_TAG, "Unable to assign heap memory for led frame");
@@ -428,6 +492,9 @@ esp_err_t ledstrip_add_strip(LEDSTRIP_h strip, ledstrip_init_t *init) {
                 offset = (type->pixel_bytes * init->num_leds) + type->start_len;
                 memset(strip_ptr+offset, type->end_byte, sizeof(uint8_t) * type->end_len);
             }
+#ifdef DEBUG_MODE
+            // showmem(strip_ptr, strip_mem_len);
+#endif
         }
     }
 
@@ -436,34 +503,51 @@ esp_err_t ledstrip_add_strip(LEDSTRIP_h strip, ledstrip_init_t *init) {
         memset(strip, 0, sizeof(ledstrip_t));
         strip->channel = init->channel;
         strip->num_leds = init->num_leds;
-        strip->led_type = &led_types[init->led_type];
+        strip->led_type = &ledstrip_types[init->led_type];
         strip->write_length = strip_mem_len;
         strip->strand_mem_start = strip_ptr;
         strip->pixel_start = strip_ptr + type->start_len;
         strip->led_type = type;
         strip->timer = timer;
         strip->sem = sem;
+        strip->fx.colour = 0x00FF0000;
+    }
+
+    if(!err) {
+        err = strip->led_type->init(strip);
+    }
+
+    if(!err) {
+        ESP_LOGI(LS_TAG, "Added new led strip");
+
 #ifdef DEBUG_MODE
-        
-#else
-        lfx_set_mode(strip, LED_EFFECT_OFF);
-#endif /** DEBUG_MODE **/
+        lfx_set_mode(strip, mode);
+        ledstrip_set_brightness(strip, &brightness);
+#endif
+
+    }
+    else {
+        ESP_LOGE(LS_TAG, "Error adding led strip");
+        /** If strip memory has been assigned & init fails, free it */
+        if(strip_ptr != NULL) {
+            heap_caps_free(strip_ptr);
+        }
     }
 
     return err;
 }
 
 
-esp_err_t ledstrip_init_ws2812b(void *strip, void *init) {
+esp_err_t ledstrip_init_ws2812b(void *strip) {
     esp_err_t err = ESP_OK;
-    ledstrip_init_t *init_data = init;
+    LEDSTRIP_h sptr = (LEDSTRIP_h )strip;
 
     rmt_config_t rmt_cfg = {
-        .channel = init_data->channel,
+        .channel = sptr->channel,
         .rmt_mode = RMT_MODE_TX,
         .clk_div = 4,
         .mem_block_num = 1,
-        .gpio_num = init_data->data_pin,
+        .gpio_num = sptr->data_pin,
         .tx_config.loop_en = false,
         .tx_config.carrier_en = false,
         .tx_config.idle_output_en = true,
@@ -478,14 +562,14 @@ esp_err_t ledstrip_init_ws2812b(void *strip, void *init) {
         ESP_LOGE(LS_TAG, "Error configuring RMT [%u]", err);
     }
     else {
-        err = rmt_driver_install((rmt_channel_t)init_data->channel, 0, 0);
+        err = rmt_driver_install((rmt_channel_t)sptr->channel, 0, 0);
     }
 
     if(err) {
         ESP_LOGE(LS_TAG, "Error installing RMT driver [%u]", err);
     }
     else {
-        err = rmt_translator_init((rmt_channel_t)init_data->channel, ws2812_TranslateDataToRMT);
+        err = rmt_translator_init((rmt_channel_t)sptr->channel, ws2812_TranslateDataToRMT);
     }
 
     if(err) {
@@ -496,10 +580,10 @@ esp_err_t ledstrip_init_ws2812b(void *strip, void *init) {
 }
 
 
-esp_err_t ledstrip_init_apa102(void *strip, void *init) {
+esp_err_t ledstrip_init_apa102(void *strip) {
     esp_err_t err = ESP_OK;
-    ledstrip_init_t *init_data = init;
-    LEDSTRIP_h str = strip;
+    LEDSTRIP_h sptr = strip;
+    spi_device_handle_t handle;
 
     spi_device_interface_config_t leds = {0};
     leds.mode = 1;
@@ -508,12 +592,11 @@ esp_err_t ledstrip_init_apa102(void *strip, void *init) {
     leds.queue_size = 16;
     leds.clock_speed_hz = LEDSTRIP_CONFIG_SPI_FREQ; // APA claim to have refresh rate of 4KHz, start low.
 
-
-    err = spi_bus_add_device(init_data->channel, &leds, str->interface_handle);
+    err = spi_bus_add_device(sptr->channel, &leds, &sptr->interface_handle);
     if(err) {
         ESP_LOGE(LS_TAG, "Error adding SPI device! {%u}", err);
     }
-
+    
     return err;
 }
 
@@ -538,6 +621,13 @@ esp_err_t ledstrip_set_mode(LEDSTRIP_h strip, uint8_t *mode) {
     }
     else {
         lfx_set_mode(strip, m);
+
+        ls_cmd_t cmd = {
+            .cmd = LS_CMD_NEW_MODE,
+            .strip = strip,
+        };
+
+        xQueueSend(command_queue, &cmd, LEDSTRIP_CONFIG_GENERIC_TIMEOUT);
     }
     return err;
 }

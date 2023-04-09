@@ -664,22 +664,6 @@ SX1276_DEV sx1276_init(SX1276_DEV dev_handle, sx1276_init_t *init);
 #endif
 
 /**
- *  \brief Gets the device Version number
- *  \param dev device handle
- *  \param ver ptr to value storage
- *  \return ESP_OK or error code
- *  **/
-esp_err_t sx_get_version(SX1276_DEV dev, uint8_t *ver);
-
-/**
- *  \brief Sets the device transaction mode
- *  \param dev device handle
- *  \param mode ptr to value - one of sx_trxmode_t
- *  \return ESP_OK or error code
- *  **/
-esp_err_t sx_set_trx_mode(SX1276_DEV dev, sx_trxmode_t *mode);
-
-/**
  *  \brief Gets the device radio mode
  *  \param dev device handle
  *  \param mode ptr to value storage
@@ -694,6 +678,30 @@ esp_err_t sx_get_device_mode(SX1276_DEV dev, sx_device_mode_t *mode);
  *  \return ESP_OK or error code
  *  **/
 esp_err_t sx_set_device_mode(SX1276_DEV dev, sx_device_mode_t *mode);
+
+/**
+ *  \brief Gets the device Version number
+ *  \param dev device handle
+ *  \param ver ptr to value storage
+ *  \return ESP_OK or error code
+ *  **/
+esp_err_t sx_get_version(SX1276_DEV dev, uint8_t *ver);
+
+/**
+ *  \brief Gets the device transaction mode
+ *  \param dev device handle
+ *  \param mode ptr to value storage
+ *  \return ESP_OK or error code
+ *  **/
+esp_err_t sx_get_trx_mode(SX1276_DEV dev, uint8_t *mode);
+
+/**
+ *  \brief Sets the device transaction mode
+ *  \param dev device handle
+ *  \param mode ptr to value - one of sx_trxmode_t
+ *  \return ESP_OK or error code
+ *  **/
+esp_err_t sx_set_trx_mode(SX1276_DEV dev, sx_trxmode_t *mode);
 
 /**
  *  \brief Gets the device frequency (in Hertz)
@@ -840,6 +848,14 @@ esp_err_t sx_get_lna_boost_hf(SX1276_DEV dev, bool *io);
  * **/
 esp_err_t sx_set_lna_boost_hf(SX1276_DEV dev, bool *io);
 
+/**
+ *  \brief Gets the device lora bandwidth
+ *         
+ *  \param dev device handle
+ *  \param mode ptr to value storage
+ *  \return ESP_OK or error code
+ * **/
+esp_err_t sx_get_signal_bandwidth(SX1276_DEV dev, lora_bw_t *bw);
 
 /**
  *  \brief Sets the device lora bandwidth
@@ -858,10 +874,6 @@ esp_err_t sx_set_lora_spreading_factor(SX1276_DEV dev, uint8_t *val);
 esp_err_t sx_get_rx_payload_crc_en(SX1276_DEV dev,  bool *en);
 
 esp_err_t sx_set_rx_payload_crc_en(SX1276_DEV dev, bool *en);
-
-esp_err_t sx_get_lora_headermode(SX1276_DEV dev, uint8_t *val);
-
-esp_err_t sx_set_lora_headermode(SX1276_DEV dev, uint8_t *val);
 
 esp_err_t sx_get_low_datarate_optimise(SX1276_DEV dev,  bool *en);
 
@@ -889,30 +901,109 @@ esp_err_t sx_get_agc_auto(SX1276_DEV dev,  bool *io);
  * **/
 esp_err_t sx_set_agc_auto(SX1276_DEV dev, bool *io);
 
-
-
+/**
+ * @brief get the estimated frequency error of
+ *        the modem 
+ * 
+ * @param dev handle
+ * @param frq value storage
+ * @return esp_err_t 
+ */
 esp_err_t sx_get_frequency_err(SX1276_DEV dev, uint32_t *frq);
 
+/**
+ * @brief get the LoRa sync word
+ * 
+ * @param dev device handle
+ * @param val value storage
+ * @return esp_err_t 
+ */
 esp_err_t sx_get_lora_syncword(SX1276_DEV dev, uint8_t *val);
 
+/**
+ * @brief Set the LoRa sync word
+ * 
+ * @param dev device handle
+ * @param val value storage
+ * @return esp_err_t 
+ */
 esp_err_t sx_set_lora_syncword(SX1276_DEV dev, uint8_t *val);
 
+/** TODO: Add to parameter map later 
+ *  **/
 esp_err_t sx_set_tx_pwr(SX1276_DEV dev, uint16_t pwr);
 
+/**
+ * @brief Gets the valid header count
+ * 
+ * @param dev device handle
+ * @param cnt number of valid headers received
+ * @return ** esp_err_t 
+ */
 esp_err_t sx_get_valid_hdr_count(SX1276_DEV dev, uint32_t *cnt);
 
+/**
+ * @brief Get the valid packet count
+ * 
+ * @param dev device handle
+ * @param cnt valid packets received
+ * @return ** esp_err_t 
+ */
 esp_err_t sx_get_valid_pkt_count(SX1276_DEV dev, uint32_t *cnt);
 
+/**
+ * @brief get the length of last rx packet
+ * 
+ * @param dev device handle
+ * @param len last rx length in bytes
+ * @return ** esp_err_t 
+ */
 esp_err_t sx_get_last_rx_len(SX1276_DEV dev, uint8_t *len);
 
+
+/**
+ * @brief Get last received packet coding rate
+ * 
+ * @param dev device handle
+ * @param cr  coding rate
+ * @return esp_err_t 
+ */
 esp_err_t sx_get_last_rx_coding_rate(SX1276_DEV dev, uint8_t *cr);
 
+/**
+ * @brief Get last received packet signal-noise ratio
+ * 
+ * @param dev device handle
+ * @param snr signal-noise ratio
+ * @return esp_err_t 
+ */
 esp_err_t sx_get_last_pkt_snr(SX1276_DEV dev, int16_t *snr);
 
+/**
+ * @brief Get last packet RSSI
+ * 
+ * @param dev device handle
+ * @param rssi rssi
+ * @return esp_err_t 
+ */
 esp_err_t sx_get_last_pkt_rssi(SX1276_DEV dev, uint16_t *rssi);
 
+/**
+ * @brief get function assigned to the DI/O 0 pin
+ * 
+ * @param dev device handle
+ * @param val value storage
+ * @return esp_err_t 
+ */
 esp_err_t sx_get_lora_dio0_func(SX1276_DEV dev, sx_dio_func_t *val);
 
+/**
+ * @brief Set function assigned to the DI/O 0 pin
+ * 
+ * @param dev device handle
+ * @param val value, one of sx_dio_func_t
+ * @return esp_err_t 
+ */
 esp_err_t sx_set_lora_dio0_func(SX1276_DEV dev, sx_dio_func_t *val);
 
 esp_err_t sx_lora_transmit_data(SX1276_DEV dev, uint8_t *data, uint8_t len);
