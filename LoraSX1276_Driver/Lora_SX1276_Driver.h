@@ -342,7 +342,10 @@ const peripheral_t lora_peripheral_template;
 
 /********** Types **********************/
 
-
+/** @defgroup SX_TypeDefines
+ *  @brief    SX Driver type defines
+ *  @{
+ */
 
 typedef enum {
     SX_DEVICE_FSK_MODE,
@@ -650,7 +653,13 @@ typedef sx1276_driver_t * SX1276_DEV;  /** found this approach in the VL53L0X dr
                                         *  seems quite nice, less stars everywhere  
                                         **/
 
-/******** Function Definitions *********/
+/* @} SX_TypeDefines */
+
+
+/** @defgroup SXDriver_FunctionDefines 
+ *  @brief The driver functions
+ *  @{
+ */
 
 /**
  *  \brief Initialises the sx1276 device 
@@ -933,6 +942,7 @@ esp_err_t sx_set_lora_syncword(SX1276_DEV dev, uint8_t *val);
  *  **/
 esp_err_t sx_set_tx_pwr(SX1276_DEV dev, uint16_t pwr);
 
+
 /**
  * @brief Gets the valid header count
  * 
@@ -959,7 +969,6 @@ esp_err_t sx_get_valid_pkt_count(SX1276_DEV dev, uint32_t *cnt);
  * @return ** esp_err_t 
  */
 esp_err_t sx_get_last_rx_len(SX1276_DEV dev, uint8_t *len);
-
 
 /**
  * @brief Get last received packet coding rate
@@ -1006,6 +1015,14 @@ esp_err_t sx_get_lora_dio0_func(SX1276_DEV dev, sx_dio_func_t *val);
  */
 esp_err_t sx_set_lora_dio0_func(SX1276_DEV dev, sx_dio_func_t *val);
 
+/**
+ * @brief transmit some data over lora
+ * 
+ * @param dev device handle
+ * @param data data to send
+ * @param len  length of data to send
+ * @return esp_err_t 
+ */
 esp_err_t sx_lora_transmit_data(SX1276_DEV dev, uint8_t *data, uint8_t len);
 
 /**
@@ -1025,5 +1042,8 @@ esp_err_t sx_setup_lora(SX1276_DEV dev);
 esp_err_t sx_lora_set_fifo_tx_start(SX1276_DEV dev, uint8_t *val);
 
 esp_err_t sx_lora_set_fifo_rx_start(SX1276_DEV dev, uint8_t *val);
+
+
+/** @} SXDriver_FunctionDefines **/
 
 #endif /* LORA_SX1276_H */
