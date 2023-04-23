@@ -13,9 +13,6 @@
 *                        RegIrqFlagsMask set bits to 1 to DEACTIVATE the interrupt
 *                        RegIrqFlags bits set to 1 are triggered irq
 *
-*           Datasheet: https://microcontrollerslab.com/wp-content/uploads/2020/01/SX1278-Lora-Datasheet.pdf
-*           Now saved in the docs folder!
-*
 *        Static configuration registers can only be accessed in Sleep mode, Standby mode or FSTX mode.
 *        The LoRaTM FIFO can only be filled in Standby mode.
 *        Data transmission is initiated by sending TX mode request.
@@ -186,6 +183,7 @@ const Lora_Register_Map_t resetDefaults = {
     .regAgcThresh2.regByte = 0x5B,
     .regAgcThresh3.regByte = 0xDB,
     .regPll = 0xD0,
+
 };
 
 

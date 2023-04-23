@@ -94,10 +94,10 @@ typedef enum {
 } max31_mode_t;
 
 typedef enum {
-    MAX31_LED_PWM_69 = 0x0,
-    MAX31_LED_PWM_118 = 0x01,
-    MAX31_LED_PWM_215 = 0x02,
-    MAX31_LED_PWM_411 = 0x11
+    MAX31_LED_PWM_69 = 0b0,
+    MAX31_LED_PWM_118 = 0b01,
+    MAX31_LED_PWM_215 = 0b10,
+    MAX31_LED_PWM_411 = 0b11
 } max31_ledpwm_t;
 
 typedef enum {
@@ -132,9 +132,29 @@ typedef struct max31_initdata
     uint8_t i2c_bus;
     gpio_num_t intr_pin;
     bool use_cbuffer;
+#ifdef CONFIG_SUPPORT_CBUFF
     CBuff cbuffer;
+#endif
 } max31_initdata_t;
 
+
+typedef struct {
+
+    uint8_t ledIR_ampl;
+    uint8_t ledRed_ampl;
+    max31_mode_t device_mode;
+    max31_sampleavg_t smpavg;
+    max31_samplerate_t samplerate;
+    max31_ledpwm_t ledpwm;
+    max31_adcrange_t adcrange;
+
+} max31_settings_t;
+
+typedef struct {
+    bool use_fifo;
+    bool fifo_ovr;
+    uint8_t almostfull;
+} max31_fifosetting_t;
 
 typedef struct Max30102_Driver
 {
@@ -147,17 +167,11 @@ typedef struct Max30102_Driver
     gpio_num_t intr_pin;
     TaskHandle_t taskhandle;
     uint8_t intr_mask;
-    uint8_t ledIR_ampl;
-    uint8_t ledRed_ampl;
     bool shutdown;
-    bool use_fifo;
-    bool fifo_ovr;
-    max31_mode_t device_mode;
-    max31_sampleavg_t smpavg;
-    uint8_t almostfull;
-    max31_samplerate_t samplerate;
-    max31_ledpwm_t ledpwm;
-    max31_adcrange_t adcrange;
+
+    max31_settings_t dev_settings;
+    max31_fifosetting_t fifo_settings;
+
     uint8_t red_lvl;
     bool temp_sampling;
     uint8_t fifo_buffer[MAX31_FIFO_MAX_SIZE];
@@ -165,12 +179,12 @@ typedef struct Max30102_Driver
     float red_buffer[MAX31_FIFO_SAMPLES];
     float ir_buffer[MAX31_FIFO_SAMPLES];
     uint8_t pkts_in_fifo;
-    max31_drivermode_t drivermode;
     bool configured;
     float temperature;
     uint32_t ticks_since_temperature;
+#ifdef CONFIG_SUPPORT_CBUFF
     CBuff cbuff;
-
+#endif
 } max31_driver_t;
 
 
