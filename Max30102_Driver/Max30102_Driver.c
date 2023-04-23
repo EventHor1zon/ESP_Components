@@ -184,10 +184,10 @@ static void process_data(max31_driver_t *dev) {
             converted_data = ((float)data * conversion_factor);
             /** write converted data into register - alternate for dual sample **/
             if(red_channel) {
-                dev->red_buffer[(i / 3)] = converted_data; 
+                dev->red_buffer[(i % 3)] = converted_data; 
             }
             else {
-                dev->ir_buffer[(i / 3)] = converted_data;
+                dev->ir_buffer[(i % 3)] = converted_data;
             }
             red_channel = (dual_sample) ? !(red_channel) : red_channel;
         }
