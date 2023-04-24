@@ -22,7 +22,7 @@
 
 #include "../Utils/Utilities.h"
 
-#define DEBUG_MODE 1
+// #define DEBUG_MODE 1
 
 /****** Function Prototypes ***********/
 
@@ -85,6 +85,60 @@ static void clear_fifo_buffer(max31_driver_t *dev) {
 }
 
 
+static uint8_t adc_shift_from_pwm(max31_ledpwm_t pwm) {
+    uint8_t adc_shift = 0;
+
+    switch(pwm) {
+        case MAX31_LED_PWM_69:
+        /** adc resolution = 15 bits **/
+            adc_shift = 3;
+            break;
+        case MAX31_LED_PWM_118:
+        /** adc resolution 16 bits **/
+            adc_shift = 2;
+            break;
+        case MAX31_LED_PWM_215:
+        /** adc res 17 bits **/
+            adc_shift = 1;
+            break;
+        case MAX31_LED_PWM_411:
+        /** adc res 18 bits **/
+            break;
+        default:
+            ESP_LOGE(MX_TAG, "Error - invalid ledpwm set");
+            break;
+    }
+
+    return adc_shift;
+}
+
+static float conversion_factor_from_adcrange(max31_adcrange_t adc_range) {
+
+    float conversion_factor = 0;
+
+    switch (adc_range)
+    {
+        case MAX31_ADC_RNG_2048:
+            conversion_factor = 7.81;
+            break;
+        case MAX31_ADC_RNG_4096:
+            conversion_factor = 15.63;
+            break;
+        case MAX31_ADC_RNG_8192:
+            conversion_factor = 31.25;
+            break;
+        case MAX31_ADC_RNG_16384:
+            conversion_factor = 62.5;
+            break;
+        default:
+            ESP_LOGE(MX_TAG, "Error - invalid adcrange set");
+            break;
+    }
+
+    return conversion_factor;
+}
+
+
 static esp_err_t max31_reset_fifo(max31_driver_t *dev) {
     
     esp_err_t status = ESP_OK;
@@ -106,94 +160,60 @@ static uint8_t get_interrupt_source(max31_driver_t *dev) {
 }
 
 
-/** processes the raw data in the fifo_buffer into
- *  real samples 
- **/
-static void process_data(max31_driver_t *dev) {
+static void convert_fifo_data(max31_driver_t *dev) {
 
-    uint8_t adc_shift = 0;
-    uint32_t data = 0;
     bool dual_sample = false;
-    bool red_channel = true;    /** true = red data, false = ir data **/
-    float converted_data = 0;
-    float conversion_factor = 0;
+    uint16_t counter=0;
+    uint16_t increment=0;
+    float converted;
+    uint32_t raw;
+    uint32_t raw_shifted;
+    float factor;
+    uint8_t adc_shift;
+    
+    if(dev->bytes_read == 0) {
+        return;
+    }
 
+    adc_shift = adc_shift_from_pwm(dev->dev_settings.ledpwm);
+    factor = conversion_factor_from_adcrange(dev->dev_settings.adcrange);    
+
+    if(dev->dev_settings.device_mode == MAX31_MODE_SPO2_RED_IR || dev->dev_settings.device_mode == MAX31_MODE_MULTILED_RIR) {
+        dual_sample = true;
+    }
+
+    /** TODO: How to tell which sample comes first? We should always be reading the 
+     *  fifo with a read pointer of 0, which is IR data. Assume this for now.
+     **/
+    ESP_LOGI(MX_TAG, "Converting with adc shift= %u factor= %.3f", adc_shift, factor);
     memset(dev->red_buffer, 0, sizeof(float) * MAX31_FIFO_SAMPLES);
     memset(dev->ir_buffer, 0, sizeof(float) * MAX31_FIFO_SAMPLES);
 
-    if(dev->bytes_read > 0) {
+    for(counter=0; counter < dev->bytes_read; counter+=3) {
+#ifdef DEBUG_MODE
+        printf("Data Raw[0] %02x Raw[1] %02x Raw[2] %02x ", dev->fifo_buffer[counter], dev->fifo_buffer[counter+1], dev->fifo_buffer[counter+2]); 
+#endif
+        raw = ((dev->fifo_buffer[counter] << 16) | (dev->fifo_buffer[counter+1] << 8) | (dev->fifo_buffer[counter+2]));
+        raw_shifted = raw >> adc_shift;
+        converted = ((float)raw_shifted) * factor;
+
+#ifdef DEBUG_MODE
+        printf("Converged %u Shifted %u Converted %f\n",  raw, raw_shifted, converted);
+#endif
+
+        /** if we're expecting IR and fifo# is even, store IR **/
+        if(dual_sample && (counter % 2 == 0))  {
+            dev->ir_buffer[increment] = converted;
+        }
+        /** else we're not expecting IR or # is odd **/
+        else {
+            dev->red_buffer[increment] = converted;
+            printf("Red channel[%u] = %.3f (converted = %.3f)\n", increment, dev->red_buffer[increment], converted);
+            increment++; /** only increment this counter once per pair **/
         
-        if(dev->dev_settings.device_mode == MAX31_MODE_SPO2_RED_IR || dev->dev_settings.device_mode == MAX31_MODE_MULTILED_RIR) {
-            dual_sample = true;
-        }
-        /** there isnt an IR only mode without dual sampling, so don't
-         * need to check for it **/
-
-        switch(dev->dev_settings.ledpwm) {
-            case MAX31_LED_PWM_69:
-            /** adc resolution = 15 bits **/
-                adc_shift = 3;
-                break;
-            case MAX31_LED_PWM_118:
-            /** adc resolution 16 bits **/
-                adc_shift = 2;
-                break;
-            case MAX31_LED_PWM_215:
-            /** adc res 17 bits **/
-                adc_shift = 1;
-                break;
-            case MAX31_LED_PWM_411:
-            /** adc res 18 bits **/
-                break;
-            default:
-                ESP_LOGE(MX_TAG, "Error - invalid ledpwm set");
-                break;
-        }
-
-        switch (dev->dev_settings.adcrange)
-        {
-            case MAX31_ADC_RNG_2048:
-                /* code */
-                conversion_factor = 7.81;
-                break;
-            case MAX31_ADC_RNG_4096:
-                /* code */
-                conversion_factor = 15.63;
-                break;
-            case MAX31_ADC_RNG_8192:
-                /* code */
-                conversion_factor = 31.25;
-                break;
-            case MAX31_ADC_RNG_16384:
-                /* code */
-                conversion_factor = 62.5;
-                break;
-            default:
-                ESP_LOGE(MX_TAG, "Error - invalid adcrange set");
-                break;
-        }
-
-        /** convert the data **/
-        for(uint16_t i=0; i<dev->bytes_read; i+=3) {
-            /** data is msb first - first byte1 = data[23:16] byte2 = data[15:8] byte3 = data[7:0] 
-             *      data[23:18] are not used so mask the lowest 2 bits in the first byte
-             **/
-            data = (((dev->fifo_buffer[i] & 0b11) << 16) | (dev->fifo_buffer[i+1] | (dev->fifo_buffer[i+2])));            
-            /** data is left-justified, shift right **/
-            data = (data >> adc_shift);
-            converted_data = ((float)data * conversion_factor);
-            /** write converted data into register - alternate for dual sample **/
-            if(red_channel) {
-                dev->red_buffer[(i % 3)] = converted_data; 
-            }
-            else {
-                dev->ir_buffer[(i % 3)] = converted_data;
-            }
-            red_channel = (dual_sample) ? !(red_channel) : red_channel;
         }
     }
 
-    return;
 }
 
 
@@ -206,17 +226,6 @@ static esp_err_t test_mode(max31_driver_t *dev) {
     max31_reset_device(dev);
     esp_err_t status; // = max31_set_shutdown(dev, &val);
 
-    ESP_LOGI(MX_TAG, "Device reset complete, checking for power ready");
-    while(!v) {
-        val = get_interrupt_source(dev);
-
-        if(val & MAX31_INTR_PWRRDY) {
-            v = true;
-            val = 0;
-            ESP_LOGI(MX_TAG, "Power ready detected");
-        }
-    }
-
     ESP_LOGI(MX_TAG, "Setting the interrupt function to A_FULL_EN");
     val = (MAX31_INTR_TYPE_ALMFULL | MAX31_INTR_TYPE_AMBILITOVF | MAX31_INTR_TYPE_NEWSAMPLE);
     status = max31_set_interrupt_sources(dev, &val);
@@ -226,7 +235,7 @@ static esp_err_t test_mode(max31_driver_t *dev) {
     ESP_LOGI(MX_TAG, "rollover [%u]", status);
 
     status = max31_set_fifo_rollover(dev, &val);
-    val = 0x00;
+    val = 0x0F;
     ESP_LOGI(MX_TAG, "Setting the almost full value [%u]", status);
     status = max31_set_almost_full_val(dev, &val);
 
@@ -257,71 +266,8 @@ static esp_err_t test_mode(max31_driver_t *dev) {
 
 
     ESP_LOGI(MX_TAG, "done setting up [%u]", status);
-    vTaskDelay(pdMS_TO_TICKS(100));
+    vTaskDelay(pdMS_TO_TICKS(10));
 
-    gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_INTR_EN1, 1, &val);
-    ESP_LOGI(MX_TAG, "r 2 [%02x]", val);
-    vTaskDelay(pdMS_TO_TICKS(100));
-    gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_CONFIG, 1, &val);
-    ESP_LOGI(MX_TAG, "r 8 [%02x]", val);
-    vTaskDelay(pdMS_TO_TICKS(100));
-    gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_MODE_CONFIG, 1, &val);
-    ESP_LOGI(MX_TAG, "r 9 [%02x]", val);
-    vTaskDelay(pdMS_TO_TICKS(100));
-    gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_SP02_CONFIG, 1, &val);
-    ESP_LOGI(MX_TAG, "r a [%02x]", val);
-    vTaskDelay(pdMS_TO_TICKS(100));
-    gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_LED1PULSE_AMP, 1, &val);
-    ESP_LOGI(MX_TAG, "r c [%02x]", val);
-    vTaskDelay(pdMS_TO_TICKS(100));
-    gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_LED2PULSE_AMP, 1, &val);
-    ESP_LOGI(MX_TAG, "r d [%02x]", val);
-    vTaskDelay(pdMS_TO_TICKS(100));
-    gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_REV_ID, 1, &val);
-    ESP_LOGI(MX_TAG, "r fe [%02x]", val);    
-    vTaskDelay(pdMS_TO_TICKS(100));
-    gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_PART_ID, 1, &val);
-    ESP_LOGI(MX_TAG, "r ff [%02x]", val);
-    vTaskDelay(pdMS_TO_TICKS(100));
-
-
-    // vTaskDelay(pdMS_TO_TICKS(100));
-    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_OVRFLW_CNTR, 1, &val);
-    // ESP_LOGI(MX_TAG, "r 5 [%02x]", val);    
-    // vTaskDelay(pdMS_TO_TICKS(100));
-    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_RDPTR, 1, &val);
-    // ESP_LOGI(MX_TAG, "r 6 [%02x]", val);
-    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_DATA, 1, &val);
-    // vTaskDelay(pdMS_TO_TICKS(100));
-    // ESP_LOGI(MX_TAG, "r 7 [%02x]", val);    
-    // vTaskDelay(pdMS_TO_TICKS(100));
-    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_RDPTR, 1, &val);
-    // ESP_LOGI(MX_TAG, "r 5 [%02x]", val);    
-    // vTaskDelay(pdMS_TO_TICKS(100));
-    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_DATA, 1, &val);
-    // ESP_LOGI(MX_TAG, "r 7 [%02x]", val);
-    // vTaskDelay(pdMS_TO_TICKS(100));
-    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_RDPTR, 1, &val);
-    // ESP_LOGI(MX_TAG, "r 5 [%02x]", val);    
-    // vTaskDelay(pdMS_TO_TICKS(100));
-    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_DATA, 1, &val);
-    // ESP_LOGI(MX_TAG, "r 7 [%02x]", val); 
-    // vTaskDelay(pdMS_TO_TICKS(100));
-    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_RDPTR, 1, &val);
-    // ESP_LOGI(MX_TAG, "r 5 [%02x]", val);    
-    // vTaskDelay(pdMS_TO_TICKS(100));
-    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_DATA, 1, &val);
-    // ESP_LOGI(MX_TAG, "r 7 [%02x]", val); 
-    // vTaskDelay(pdMS_TO_TICKS(100));
-    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_RDPTR, 1, &val);
-    // ESP_LOGI(MX_TAG, "r 5 [%02x]", val);    
-    // vTaskDelay(pdMS_TO_TICKS(100));
-    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_DATA, 1, &val);
-    // ESP_LOGI(MX_TAG, "r 7 [%02x]", val);
-    // vTaskDelay(pdMS_TO_TICKS(100));
-    // gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_INTR_STATUS1, 1, &val);
-    // ESP_LOGI(MX_TAG, "r 0 [%02x]", val);
-    dev->configured = true;
     return status;
 }
 
@@ -333,6 +279,8 @@ static void max31_task(void *args) {
     uint8_t val = 0;
     esp_err_t status = ESP_OK;
     uint32_t notify;
+    uint8_t tmp;
+
 
     /** this driver task waits for an interrupt notification, then takes
      * required action - either reading fifo, sampling temperature or 
@@ -341,12 +289,12 @@ static void max31_task(void *args) {
 
     while(1) {
         if(dev->configured != true) {
-            vTaskDelay(1000); 
+            vTaskDelay(100); 
         } 
         else {
 
             ESP_LOGI(MX_TAG, "In task");
-            notify = ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(10000)); 
+            notify = ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(100)); 
             if(!notify) {
                 ESP_LOGE(MX_TAG, "Nothing occured timeout");
                 val = get_interrupt_source(dev);
@@ -360,22 +308,27 @@ static void max31_task(void *args) {
                     ESP_LOGI(MX_TAG, "Die temp ready interrupt");
                     status = max31_read_temperature(dev);
                 }
-                else if (val & MAX31_INTR_TYPE_NEWSAMPLE) {
+                if (val & MAX31_INTR_TYPE_NEWSAMPLE) {
                 /** if interrupting on single sample, read single fifo measurement **/
                     ESP_LOGI(MX_TAG, "New sample interrupt");
+                    max31_get_fifo_ovr(dev, &tmp);
+                    ESP_LOGI(MX_TAG, "Overflow = %u", tmp);
+                    if(tmp) {
+                        max31_read_fifo(dev);
+                    }
                 }
-                else if (val & MAX31_INTR_TYPE_AMBILITOVF) {
+                if (val & MAX31_INTR_TYPE_AMBILITOVF) {
                     ESP_LOGI(MX_TAG, "Ambient overflow interrupt");
                     if(dev->ambi_ovr_invalidates) {
                         dev->drop_next_fifo = true;
                         max31_read_fifo(dev);
                     }
                 }
-                else if (val & MAX31_INTR_TYPE_ALMFULL) {
+                if (val & MAX31_INTR_TYPE_ALMFULL) {
                     ESP_LOGI(MX_TAG, "Almost full interrupt");
                     status = max31_read_fifo(dev);
                     if(status == ESP_OK) {
-                        process_data(dev);
+                        convert_fifo_data(dev);
     #ifdef CONFIG_SUPPORT_CBUFF
                         if(dev->use_cbuff) {
                             cbuffer_write(dev->cbuff, dev->red_buffer, sizeof(float) * dev->pkts_in_fifo);
@@ -384,11 +337,9 @@ static void max31_task(void *args) {
                             }
                         }
     #endif
-    #ifdef DEBUG_MODE
                         for(uint8_t i=0;i<MAX31_FIFO_SAMPLES; i++) {
                             ESP_LOGI(MX_TAG, "[Red %u] %f", i, dev->red_buffer[i]);
                         }
-    #endif
                     }
                 }
                 else if (val & MAX31_INTR_TYPE_PWRRDY) {
@@ -485,6 +436,8 @@ max31_driver_t *max31_init(max31_initdata_t *init) {
 #ifdef DEBUG_MODE
             test_mode(handle);
 #endif
+            handle->configured = true;
+            max31_reset_fifo(handle);
         }
     }
 
@@ -894,7 +847,9 @@ esp_err_t max31_read_fifo(max31_driver_t *dev) {
                 ESP_LOGI(MX_TAG, "Not enough space for all fifo!");
             }
         }
+
         if(status == ESP_OK && avail_bytes) {
+            ESP_LOGI(MX_TAG, "Reading %u bytes from FIFO...", avail_bytes);
             memset(dev->fifo_buffer, 0, MAX31_FIFO_MAX_SIZE);
             dev->bytes_read = 0;
             /** read the data from fifo **/
@@ -902,9 +857,6 @@ esp_err_t max31_read_fifo(max31_driver_t *dev) {
 
             if(status) {
                 ESP_LOGE(MX_TAG, "Error reading %u bytes from fifo!", avail_bytes);
-#ifdef DEBUG_MODE
-                showmem(dev->fifo_buffer, 200);
-#endif
             }
             else {
                 dev->bytes_read = avail_bytes;
