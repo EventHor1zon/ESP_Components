@@ -580,7 +580,9 @@ esp_err_t max31_set_sample_average(max31_driver_t *dev, max31_sampleavg_t *val) 
         status = ESP_ERR_INVALID_ARG;
     } else {
         status = gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_FIFO_CONFIG, 1, &regval);
+        ESP_LOGI(MX_TAG, "Read FIFO CONFIG reg : Val: %02x", regval);
         regval |= ((v) << 5);
+        ESP_LOGI(MX_TAG, "Writing FIFO CONFIG reg : Val: %02x", regval);
         status = gcd_i2c_write_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_FIFO_CONFIG, 1, &regval);
         if(status == ESP_OK) {
             dev->dev_settings.smpavg = v;
@@ -606,7 +608,7 @@ esp_err_t max31_set_fifo_rollover(max31_driver_t *dev, uint8_t *val) {
     uint8_t regval = 0;
     uint8_t v = *val;
 
-    write = (1 << 5);
+    write = (1 << 4);
     status = gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_FIFO_CONFIG, 1, &regval);
     if(status == ESP_OK) {
         if(v) {
@@ -638,7 +640,7 @@ esp_err_t max31_set_almost_full_val(max31_driver_t *dev, uint8_t *val) {
         status = ESP_ERR_INVALID_ARG;
     } else {
         ESP_LOGI(MX_TAG, "Writing %u to the fifo config", v);
-        status = gcd_i2c_read_mod_write(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_CONFIG, v);
+        status = gcd_i2c_read_mod_write(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_FIFO_CONFIG, v, 0b1111);
     }
     if(status == ESP_OK) {
         dev->fifo_settings.almostfull = v;
@@ -751,7 +753,7 @@ esp_err_t max31_set_ledpwm(max31_driver_t *dev, uint8_t *val) {
     if(pwm > MAX31_LED_PWM_411) {
         status = ESP_ERR_INVALID_ARG;
     } else {
-        status = gcd_i2c_read_mod_write(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_SP02_CONFIG, pwm);
+        status = gcd_i2c_read_mod_write(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_SP02_CONFIG, pwm, 0b11);
     }
 
     if(status == ESP_OK) {
