@@ -88,9 +88,9 @@ typedef enum {
 
 typedef enum {
     MAX31_MODE_STARTUP = 0,
-    MAX31_MODE_HEARTRATE_RED = 0x02,
-    MAX31_MODE_SPO2_RED_IR = 0x03,
-    MAX31_MODE_MULTILED_RIR = 0x07,
+    MAX31_MODE_HEARTRATE_RED = 0x02, /** Red led only **/
+    MAX31_MODE_SPO2_RED_IR = 0x03,  /** Red and IR **/
+    MAX31_MODE_MULTILED_RIR = 0x07, /** Red and IR **/
 } max31_mode_t;
 
 typedef enum {
