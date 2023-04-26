@@ -1,0 +1,9 @@
+menu "ESP32 Component Configuration"
+
+    config ENABLE_MAX31_EVENTS
+        bool "Enable Max30102 events"
+        default FALSE
+        help
+            Enables the max31 events (requires a running event loop)
+
+endmenu

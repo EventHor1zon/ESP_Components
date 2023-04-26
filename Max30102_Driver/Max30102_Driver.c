@@ -327,16 +327,19 @@ static void max31_task(void *args) {
                 if (val & MAX31_INTR_TYPE_ALMFULL) {
                     ESP_LOGI(MX_TAG, "Almost full interrupt");
                     status = max31_read_fifo(dev);
+#ifdef CONFIG_ENABLE_MAX31_EVENTS
+    /** TODO: Events **/
+#endif
                     if(status == ESP_OK) {
                         convert_fifo_data(dev);
-    #ifdef CONFIG_SUPPORT_CBUFF
+#ifdef CONFIG_SUPPORT_CBUFF
                         if(dev->use_cbuff) {
                             cbuffer_write(dev->cbuff, dev->red_buffer, sizeof(float) * dev->pkts_in_fifo);
                             if(dev->device_mode == MAX31_MODE_MULTILED_RIR || dev->device_mode == MAX31_MODE_SPO2_RED_IR) {
                                 cbuffer_write(dev->cbuff, dev->ir_buffer, sizeof(float) * dev->pkts_in_fifo);
                             }
                         }
-    #endif
+#endif
                         for(uint8_t i=0;i<MAX31_FIFO_SAMPLES; i++) {
                             ESP_LOGI(MX_TAG, "[Red %u] %f", i, dev->red_buffer[i]);
                         }

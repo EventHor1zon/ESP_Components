@@ -16,6 +16,9 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
+#ifdef CONFIG_ENABLE_MAX31_EVENTS
+#include "esp_event.h"
+#endif
 /********* Definitions *****************/
 
 #define MAX31_REGADDR_INTR_STATUS1 0x00
@@ -58,6 +61,17 @@
 #define MAX31_INTR_TYPE_PWRRDY (1)
 
 #define MAX31_INTR_TYPE_DIETEMP_RDY (1 << 1)
+
+
+#ifdef CONFIG_ENABLE_MAX31_EVENTS
+
+#define MAX31_EVENT_DEVICE_READY        (1 << 0)
+#define MAX31_EVENT_FIFO_ALMOST_FULL    (1 << 1)
+#define MAX31_EVENT_FIFO_READ_COMPLETE  (1 << 2)
+#define MAX31_EVENT_NEW_RED_DATA        (1 << 3)
+#define MAX31_EVENT_NEW_IR_DATA         (1 << 4)
+
+#endif
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
 #include "CommandAPI.h"
@@ -133,7 +147,10 @@ typedef struct max31_initdata
     gpio_num_t intr_pin;
     bool use_cbuffer;
 #ifdef CONFIG_SUPPORT_CBUFF
-    CBuff cbuffer;
+    CBuff cbuff;
+#endif
+#ifdef CONFIG_ENABLE_MAX31_EVENTS
+    esp_event_loop_handle_t event_loop;
 #endif
 } max31_initdata_t;
 
@@ -184,6 +201,9 @@ typedef struct Max30102_Driver
     uint32_t ticks_since_temperature;
 #ifdef CONFIG_SUPPORT_CBUFF
     CBuff cbuff;
+#endif
+#ifdef CONFIG_ENABLE_MAX31_EVENTS
+    esp_event_loop_handle_t event_loop;
 #endif
 } max31_driver_t;
 
