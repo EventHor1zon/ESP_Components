@@ -58,18 +58,17 @@
 #define MAX31_INTR_TYPE_ALMFULL (1 << 7)
 #define MAX31_INTR_TYPE_NEWSAMPLE (1 << 6)
 #define MAX31_INTR_TYPE_AMBILITOVF (1 << 5)
-#define MAX31_INTR_TYPE_PWRRDY (1)
-
 #define MAX31_INTR_TYPE_DIETEMP_RDY (1 << 1)
+#define MAX31_INTR_TYPE_PWRRDY (1 << 0)
 
-
-#ifdef CONFIG_ENABLE_MAX31_EVENTS
+#ifdef CONFIG_SHORTWAIT_MS 100
 
 #define MAX31_EVENT_DEVICE_READY        (1 << 0)
 #define MAX31_EVENT_FIFO_ALMOST_FULL    (1 << 1)
 #define MAX31_EVENT_FIFO_READ_COMPLETE  (1 << 2)
 #define MAX31_EVENT_NEW_RED_DATA        (1 << 3)
 #define MAX31_EVENT_NEW_IR_DATA         (1 << 4)
+#define MAX31_EVENT_AMBI_OVR            (1 << 5)
 
 #endif
 
@@ -145,11 +144,12 @@ typedef struct max31_initdata
 {
     uint8_t i2c_bus;
     gpio_num_t intr_pin;
-    bool use_cbuffer;
 #ifdef CONFIG_SUPPORT_CBUFF
+    bool use_cbuffer;
     CBuff cbuff;
 #endif
 #ifdef CONFIG_ENABLE_MAX31_EVENTS
+    bool use_events;
     esp_event_loop_handle_t event_loop;
 #endif
 } max31_initdata_t;
@@ -208,6 +208,10 @@ typedef struct Max30102_Driver
 } max31_driver_t;
 
 
+
+typedef MAX31_h  MAX31_h;
+
+
 /******** Function Definitions *********/
 
 
@@ -216,7 +220,7 @@ typedef struct Max30102_Driver
  * \param init - pointer to max31_initdata_t struct
  * \return handle or NULL on error
  **/
-max31_driver_t *max31_init(max31_initdata_t *init);
+MAX31_h max31_init(max31_initdata_t *init);
 
 /** 
  * \brief Get the device id from the max30102 chip
@@ -224,7 +228,7 @@ max31_driver_t *max31_init(max31_initdata_t *init);
  * \param val - value storage
  * \return handle or NULL on error
  **/
-esp_err_t max31_get_device_id(max31_driver_t *dev, uint8_t *val);
+esp_err_t max31_get_device_id(MAX31_h dev, uint8_t *val);
 
 /** 
  * \brief Clears the interrupt source registers
@@ -232,7 +236,7 @@ esp_err_t max31_get_device_id(max31_driver_t *dev, uint8_t *val);
  * \param val - value storage
  * \return handle or NULL on error
  **/
-esp_err_t max31_clear_interrupt_sources(max31_driver_t *dev);
+esp_err_t max31_clear_interrupt_sources(MAX31_h dev);
 
 /** 
  * \brief Sets the interrupt source registers
@@ -240,7 +244,7 @@ esp_err_t max31_clear_interrupt_sources(max31_driver_t *dev);
  * \param val - value: an OR'd byte of max31_intr_source_t 
  * \return handle or NULL on error
  **/
-esp_err_t max31_set_interrupt_sources(max31_driver_t *dev, uint8_t *intr_mask);
+esp_err_t max31_set_interrupt_sources(MAX31_h dev, uint8_t *intr_mask);
 
 /** 
  * \brief Gets the ambient light setting - when on
@@ -250,7 +254,7 @@ esp_err_t max31_set_interrupt_sources(max31_driver_t *dev, uint8_t *intr_mask);
  * \param val - treu - enabled, false - disabled
  * \return handle or NULL on error
  **/
-esp_err_t max31_get_ambient_light_invalidates(max31_driver_t *dev, bool *val);
+esp_err_t max31_get_ambient_light_invalidates(MAX31_h dev, bool *val);
 
 /** 
  * \brief Sets the ambient light setting - when on
@@ -260,7 +264,7 @@ esp_err_t max31_get_ambient_light_invalidates(max31_driver_t *dev, bool *val);
  * \param val - treu - enabled, false - disabled
  * \return handle or NULL on error
  **/
-esp_err_t max31_set_ambient_light_invalidates(max31_driver_t *dev, bool *val);
+esp_err_t max31_set_ambient_light_invalidates(MAX31_h dev, bool *val);
 
 /** 
  * \brief Gets the sample average setting
@@ -268,7 +272,7 @@ esp_err_t max31_set_ambient_light_invalidates(max31_driver_t *dev, bool *val);
  * \param val - value storage
  * \return handle or NULL on error
  **/
-esp_err_t max31_get_sample_average(max31_driver_t *dev, max31_sampleavg_t *val);
+esp_err_t max31_get_sample_average(MAX31_h dev, max31_sampleavg_t *val);
 
 
 /** 
@@ -277,7 +281,7 @@ esp_err_t max31_get_sample_average(max31_driver_t *dev, max31_sampleavg_t *val);
  * \param val - value: one of max31_sampleavg_t
  * \return handle or NULL on error
  **/
-esp_err_t max31_set_sample_average(max31_driver_t *dev, max31_sampleavg_t *val);
+esp_err_t max31_set_sample_average(MAX31_h dev, max31_sampleavg_t *val);
 
 
 /** 
@@ -286,7 +290,7 @@ esp_err_t max31_set_sample_average(max31_driver_t *dev, max31_sampleavg_t *val);
  * \param val - value storage
  * \return handle or NULL on error
  **/
-esp_err_t max31_get_fifo_rollover(max31_driver_t *dev, uint8_t *val);
+esp_err_t max31_get_fifo_rollover(MAX31_h dev, uint8_t *val);
 
 /** 
  * \brief Sets the fifo rollover value currently set
@@ -294,7 +298,7 @@ esp_err_t max31_get_fifo_rollover(max31_driver_t *dev, uint8_t *val);
  * \param val - value 0 - off, 1+ on
  * \return handle or NULL on error
  **/
-esp_err_t max31_set_fifo_rollover(max31_driver_t *dev, uint8_t *val);
+esp_err_t max31_set_fifo_rollover(MAX31_h dev, uint8_t *val);
 
 /** 
  * \brief Gets the almost-full value
@@ -302,7 +306,7 @@ esp_err_t max31_set_fifo_rollover(max31_driver_t *dev, uint8_t *val);
  * \param val - value storage
  * \return handle or NULL on error
  **/
-esp_err_t max31_get_almost_full_val(max31_driver_t *dev, uint8_t *val);
+esp_err_t max31_get_almost_full_val(MAX31_h dev, uint8_t *val);
 
 
 /** 
@@ -311,7 +315,7 @@ esp_err_t max31_get_almost_full_val(max31_driver_t *dev, uint8_t *val);
  * \param val - value 0 - 31 (measurements until full - i.e 0=fifo full)
  * \return handle or NULL on error
  **/
-esp_err_t max31_set_almost_full_val(max31_driver_t *dev, uint8_t *val);
+esp_err_t max31_set_almost_full_val(MAX31_h dev, uint8_t *val);
 
 /** 
  * \brief Gets the shutdown status
@@ -319,7 +323,7 @@ esp_err_t max31_set_almost_full_val(max31_driver_t *dev, uint8_t *val);
  * \param val - value storage
  * \return handle or NULL on error
  **/
-esp_err_t max31_get_shutdown(max31_driver_t *dev, bool *val);
+esp_err_t max31_get_shutdown(MAX31_h dev, bool *val);
 
 
 /** 
@@ -328,7 +332,7 @@ esp_err_t max31_get_shutdown(max31_driver_t *dev, bool *val);
  * \param val - true - shutdown, false = active
  * \return handle or NULL on error
  **/
-esp_err_t max31_set_shutdown(max31_driver_t *dev, bool *val);
+esp_err_t max31_set_shutdown(MAX31_h dev, bool *val);
 
 /** 
  * \brief Gets the current device mode
@@ -336,7 +340,7 @@ esp_err_t max31_set_shutdown(max31_driver_t *dev, bool *val);
  * \param val - value storage
  * \return handle or NULL on error
  **/
-esp_err_t max31_get_mode(max31_driver_t *dev, max31_mode_t *val);
+esp_err_t max31_get_mode(MAX31_h dev, max31_mode_t *val);
 
 
 /** 
@@ -345,7 +349,7 @@ esp_err_t max31_get_mode(max31_driver_t *dev, max31_mode_t *val);
  * \param val - one of max31_mode_t
  * \return handle or NULL on error
  **/
-esp_err_t max31_set_mode(max31_driver_t *dev, max31_mode_t *val);
+esp_err_t max31_set_mode(MAX31_h dev, max31_mode_t *val);
 
 
 /** 
@@ -354,7 +358,7 @@ esp_err_t max31_set_mode(max31_driver_t *dev, max31_mode_t *val);
  * \param val - storage
  * \return handle or NULL on error
  **/
-esp_err_t max31_get_spo2_samplerate(max31_driver_t *dev, uint8_t *val);
+esp_err_t max31_get_spo2_samplerate(MAX31_h dev, uint8_t *val);
 
 
 /** 
@@ -363,7 +367,7 @@ esp_err_t max31_get_spo2_samplerate(max31_driver_t *dev, uint8_t *val);
  * \param val - one of max31_spo2_samplerate_t
  * \return handle or NULL on error
  **/
-esp_err_t max31_set_spo2_samplerate(max31_driver_t *dev, uint8_t *val);
+esp_err_t max31_set_spo2_samplerate(MAX31_h dev, uint8_t *val);
 
 
 /** 
@@ -372,7 +376,7 @@ esp_err_t max31_set_spo2_samplerate(max31_driver_t *dev, uint8_t *val);
  * \param val - storage
  * \return handle or NULL on error
  **/
-esp_err_t max31_get_ledpwm(max31_driver_t *dev, uint8_t *val);
+esp_err_t max31_get_ledpwm(MAX31_h dev, uint8_t *val);
 
 /** 
  * \brief Sets the current led pwm sample
@@ -380,27 +384,27 @@ esp_err_t max31_get_ledpwm(max31_driver_t *dev, uint8_t *val);
  * \param val - one of max31_ledpwm_t
  * \return handle or NULL on error
  **/
-esp_err_t max31_set_ledpwm(max31_driver_t *dev, uint8_t *val);
+esp_err_t max31_set_ledpwm(MAX31_h dev, uint8_t *val);
 
-esp_err_t max31_get_redledamplitude(max31_driver_t *dev, uint8_t *val);
+esp_err_t max31_get_redledamplitude(MAX31_h dev, uint8_t *val);
 
-esp_err_t max31_set_redledamplitude(max31_driver_t *dev, uint8_t *val);
+esp_err_t max31_set_redledamplitude(MAX31_h dev, uint8_t *val);
 
-esp_err_t max31_get_irledamplitude(max31_driver_t *dev, uint8_t *val);
+esp_err_t max31_get_irledamplitude(MAX31_h dev, uint8_t *val);
 
-esp_err_t max31_set_irledamplitude(max31_driver_t *dev, uint8_t *val);
+esp_err_t max31_set_irledamplitude(MAX31_h dev, uint8_t *val);
 
-esp_err_t max31_get_fifo_ovr(max31_driver_t *dev, uint8_t *val);
+esp_err_t max31_get_fifo_ovr(MAX31_h dev, uint8_t *val);
 
-esp_err_t max31_get_temperature(max31_driver_t *dev, float *val);
+esp_err_t max31_get_temperature(MAX31_h dev, float *val);
 
-esp_err_t max31_read_temperature(max31_driver_t *dev);
+esp_err_t max31_read_temperature(MAX31_h dev);
 
-esp_err_t max31_read_fifo(max31_driver_t *dev);
+esp_err_t max31_read_fifo(MAX31_h dev);
 
-esp_err_t max31_reset_device(max31_driver_t *dev);
+esp_err_t max31_reset_device(MAX31_h dev);
 
-esp_err_t max31_enable_temperature_sensor(max31_driver_t *dev);
+esp_err_t max31_enable_temperature_sensor(MAX31_h dev);
 
 
 

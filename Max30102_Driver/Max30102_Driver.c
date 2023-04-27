@@ -3,6 +3,16 @@
 * \brief    Driver for the Max30102 pulse osimeter 
 *           and heart-rate sensor
 *
+*
+*           Driver going well, still some todos. Need to decide how i'm handling the
+*           the task/event system. If the user isn't using events then we probably want
+*           to have at least some automation in there, or what else is it doing?
+*           Don't like to go much further than giving user access to the device functions 
+*           (allowing people to build their own systems like a proper libraray), but we do have this
+*           interrupt servicing task. 
+*           Maybe go minimalist and implement a fifo auto-read setting or something?
+*
+*
 * \date     Dec 2020
 * \author   RJAM
 ****************************************/
@@ -66,7 +76,7 @@ const char *MX_TAG = "MAX31 Driver";
 gpio_isr_t max31_interrupt_handler(void *args) {
 
     BaseType_t higher_prio;
-    max31_driver_t *dev = (max31_driver_t *)args;
+    MAX31_h dev = (MAX31_h )args;
     if(dev != NULL) {
         vTaskNotifyGiveFromISR(dev->taskhandle, &higher_prio);
     }
@@ -80,7 +90,32 @@ static TaskHandle_t taskhandle;
 
 /****** Private Functions *************/
 
-static void clear_fifo_buffer(max31_driver_t *dev) {
+#ifdef CONFIG_ENABLE_MAX31_EVENTS
+
+static esp_err_t emit_fifo_almostfull_event(MAX31_h dev) {
+    return esp_event_post_to(dev->event_loop, 0, MAX31_EVENT_FIFO_ALMOST_FULL, dev, sizeof(void *), pdMS_TO_TICKS(CONFIG_SHORTWAIT_MS));
+}
+
+static esp_err_t emit_ambient_overflow_event(MAX31_h dev) {
+    return esp_event_post_to(dev->event_loop, 0, MAX31_EVENT_AMBI_OVR, dev, sizeof(void *), pdMS_TO_TICKS(CONFIG_SHORTWAIT_MS));
+}
+
+static esp_err_t emit_ambient_overflow_event(MAX31_h dev) {
+    return esp_event_post_to(dev->event_loop, 0, MAX31_EVENT_FIFO_READ_COMPLETE, dev, sizeof(void *), pdMS_TO_TICKS(CONFIG_SHORTWAIT_MS));
+}
+
+static esp_err_t emit_ambient_overflow_event(MAX31_h dev) {
+    return esp_event_post_to(dev->event_loop, 0, MAX31_EVENT_NEW_RED_DATA, dev, sizeof(void *), pdMS_TO_TICKS(CONFIG_SHORTWAIT_MS));
+}
+
+static esp_err_t emit_ambient_overflow_event(MAX31_h dev) {
+    return esp_event_post_to(dev->event_loop, 0, MAX31_EVENT_NEW_IR_DATA, dev, sizeof(void *), pdMS_TO_TICKS(CONFIG_SHORTWAIT_MS));
+}
+
+#endif /** CONFIG_ENABLE_MAX31_EVENTS **/
+
+
+static void clear_fifo_buffer(MAX31_h dev) {
     memset(dev->fifo_buffer, 0, MAX31_FIFO_MAX_SIZE);
 }
 
@@ -112,6 +147,7 @@ static uint8_t adc_shift_from_pwm(max31_ledpwm_t pwm) {
     return adc_shift;
 }
 
+
 static float conversion_factor_from_adcrange(max31_adcrange_t adc_range) {
 
     float conversion_factor = 0;
@@ -139,7 +175,7 @@ static float conversion_factor_from_adcrange(max31_adcrange_t adc_range) {
 }
 
 
-static esp_err_t max31_reset_fifo(max31_driver_t *dev) {
+static esp_err_t max31_reset_fifo(MAX31_h dev) {
     
     esp_err_t status = ESP_OK;
     uint32_t clear_val = 0;
@@ -150,8 +186,7 @@ static esp_err_t max31_reset_fifo(max31_driver_t *dev) {
 }
 
 
-
-static uint8_t get_interrupt_source(max31_driver_t *dev) {
+static uint8_t get_interrupt_source(MAX31_h dev) {
     uint16_t isr_source = 0;
     esp_err_t err = gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_INTR_STATUS1, 2, &isr_source);
     /** merge the two bytes into one (no sense wasting the space) **/
@@ -160,7 +195,7 @@ static uint8_t get_interrupt_source(max31_driver_t *dev) {
 }
 
 
-static void convert_fifo_data(max31_driver_t *dev) {
+static void convert_fifo_data(MAX31_h dev) {
 
     bool dual_sample = false;
     uint16_t counter=0;
@@ -217,8 +252,7 @@ static void convert_fifo_data(max31_driver_t *dev) {
 }
 
 
-
-static esp_err_t test_mode(max31_driver_t *dev) {
+static esp_err_t test_mode(MAX31_h dev) {
 
     uint8_t val = 0;
     bool v = false;
@@ -272,10 +306,9 @@ static esp_err_t test_mode(max31_driver_t *dev) {
 }
 
 
-
 static void max31_task(void *args) {
 
-    max31_driver_t *dev = (max31_driver_t *)args;
+    MAX31_h dev = (MAX31_h )args;
     uint8_t val = 0;
     esp_err_t status = ESP_OK;
     uint32_t notify;
@@ -326,11 +359,16 @@ static void max31_task(void *args) {
                 }
                 if (val & MAX31_INTR_TYPE_ALMFULL) {
                     ESP_LOGI(MX_TAG, "Almost full interrupt");
-                    status = max31_read_fifo(dev);
 #ifdef CONFIG_ENABLE_MAX31_EVENTS
     /** TODO: Events **/
+                    if(dev->use_events && \
+                       dev->event_mask & MAX31_EVENT_FIFO_ALMOST_FULL
+                    ) {
+                        emit_fifo_almostfull(handle);
+                    }
 #endif
                     if(status == ESP_OK) {
+                        status = max31_read_fifo(dev);
                         convert_fifo_data(dev);
 #ifdef CONFIG_SUPPORT_CBUFF
                         if(dev->use_cbuff) {
@@ -359,11 +397,11 @@ static void max31_task(void *args) {
 /****** Global Functions *************/
 
 
-max31_driver_t *max31_init(max31_initdata_t *init) {
+MAX31_h max31_init(max31_initdata_t *init) {
 
     esp_err_t istatus = ESP_OK;
 
-    max31_driver_t *handle = (max31_driver_t *)heap_caps_calloc(1, sizeof(max31_driver_t), MALLOC_CAP_8BIT);
+    MAX31_h handle = (MAX31_h )heap_caps_calloc(1, sizeof(max31_driver_t), MALLOC_CAP_8BIT);
     void *fifo_mem = NULL;
 
     if(handle == NULL){
@@ -374,7 +412,13 @@ max31_driver_t *max31_init(max31_initdata_t *init) {
 #ifdef CONFIG_SUPPORT_CBUFF
         handle->use_cbuff = (init->use_cbuffer && init->cbuffer != NULL) ? 1 : 0;
         handle->cbuff = (handle->use_cbuff) ? init->cbuffer : NULL;
-#endif
+#endif /** CONFIG_SUPPORT_CBUFF **/
+
+#ifdef CONFIG_ENABLE_MAX31_EVENTS
+        handle->use_events = init->use_events;
+        handle->event_loop = init->event_loop;
+#endif /** CONFIG_ENABLE_MAX31_EVENTS **/
+
         /** set the device default settings **/
         handle->dev_addr = (uint8_t )MAX31_SLAVE_ADDR;
         handle->dev_settings.ledpwm = MAX31_LED_PWM_69;
@@ -387,7 +431,7 @@ max31_driver_t *max31_init(max31_initdata_t *init) {
         handle->dev_settings.smpavg = MAX31_SAMPLE_AVG_1;
         handle->fifo_settings.use_fifo = true;
 
-        if(init->intr_pin) {
+        if(init->intr_pin > 0) {
             gpio_config_t io_ini = {0};
             io_ini.intr_type = GPIO_INTR_NEGEDGE;
             io_ini.mode = GPIO_MODE_INPUT;
@@ -449,7 +493,7 @@ max31_driver_t *max31_init(max31_initdata_t *init) {
 
 
 
-esp_err_t max31_get_device_id(max31_driver_t *dev, uint8_t *val) {
+esp_err_t max31_get_device_id(MAX31_h dev, uint8_t *val) {
 
     esp_err_t status = ESP_OK;
     uint8_t reg= 0;
@@ -461,14 +505,14 @@ esp_err_t max31_get_device_id(max31_driver_t *dev, uint8_t *val) {
 
 /** PARAM SETS **/
 
-esp_err_t max31_clear_interrupt_sources(max31_driver_t *dev) {
+esp_err_t max31_clear_interrupt_sources(MAX31_h dev) {
     uint16_t val = 0;
     esp_err_t err = gcd_i2c_write_address(dev->i2c_bus, dev->dev_addr, MAX31_REGADDR_INTR_EN1, 2, &val);
     return err;
 }
 
 
-esp_err_t max31_set_interrupt_sources(max31_driver_t *dev, uint8_t *intr_mask) {
+esp_err_t max31_set_interrupt_sources(MAX31_h dev, uint8_t *intr_mask) {
 
     esp_err_t status = ESP_OK;
     uint8_t regval= 0;
@@ -506,20 +550,20 @@ esp_err_t max31_set_interrupt_sources(max31_driver_t *dev, uint8_t *intr_mask) {
 }
 
 
-esp_err_t max31_get_ambient_light_invalidates(max31_driver_t *dev, bool *val) {
+esp_err_t max31_get_ambient_light_invalidates(MAX31_h dev, bool *val) {
     *val = dev->ambi_ovr_invalidates;
     return ESP_OK;
 }
 
 
-esp_err_t max31_set_ambient_light_invalidates(max31_driver_t *dev, bool *val) {
+esp_err_t max31_set_ambient_light_invalidates(MAX31_h dev, bool *val) {
     
     dev->ambi_ovr_invalidates = *val;
     return ESP_OK;
 }
 
 
-esp_err_t max31_get_sample_average(max31_driver_t *dev, max31_sampleavg_t *val) {
+esp_err_t max31_get_sample_average(MAX31_h dev, max31_sampleavg_t *val) {
     
     esp_err_t status = ESP_OK; 
     *val = dev->dev_settings.smpavg;
@@ -527,7 +571,7 @@ esp_err_t max31_get_sample_average(max31_driver_t *dev, max31_sampleavg_t *val) 
 }
 
 
-esp_err_t max31_set_sample_average(max31_driver_t *dev, max31_sampleavg_t *val) {
+esp_err_t max31_set_sample_average(MAX31_h dev, max31_sampleavg_t *val) {
     
     esp_err_t status = ESP_OK; 
     uint8_t regval = 0;
@@ -548,7 +592,7 @@ esp_err_t max31_set_sample_average(max31_driver_t *dev, max31_sampleavg_t *val) 
 }
 
 
-esp_err_t max31_get_fifo_rollover(max31_driver_t *dev, uint8_t *val) {
+esp_err_t max31_get_fifo_rollover(MAX31_h dev, uint8_t *val) {
     
     esp_err_t status = ESP_OK;
     *val = dev->fifo_settings.fifo_ovr;
@@ -556,7 +600,7 @@ esp_err_t max31_get_fifo_rollover(max31_driver_t *dev, uint8_t *val) {
 }
 
 
-esp_err_t max31_set_fifo_rollover(max31_driver_t *dev, uint8_t *val) {
+esp_err_t max31_set_fifo_rollover(MAX31_h dev, uint8_t *val) {
     
     esp_err_t status = ESP_OK;
     
@@ -581,14 +625,14 @@ esp_err_t max31_set_fifo_rollover(max31_driver_t *dev, uint8_t *val) {
 }
 
 
-esp_err_t max31_get_almost_full_val(max31_driver_t *dev, uint8_t *val) {
+esp_err_t max31_get_almost_full_val(MAX31_h dev, uint8_t *val) {
     esp_err_t status = ESP_OK;
     *val = dev->fifo_settings.almostfull;
     return status;
 }
 
 
-esp_err_t max31_set_almost_full_val(max31_driver_t *dev, uint8_t *val) {
+esp_err_t max31_set_almost_full_val(MAX31_h dev, uint8_t *val) {
     esp_err_t status = ESP_OK;
     uint8_t regval = 0;
     uint8_t v = *val; 
@@ -606,14 +650,14 @@ esp_err_t max31_set_almost_full_val(max31_driver_t *dev, uint8_t *val) {
 }
 
 
-esp_err_t max31_get_shutdown(max31_driver_t *dev, bool *val) {
+esp_err_t max31_get_shutdown(MAX31_h dev, bool *val) {
     esp_err_t status = ESP_OK;
     *val = dev->shutdown;
     return status;
 }
 
 
-esp_err_t max31_set_shutdown(max31_driver_t *dev, bool *val) {
+esp_err_t max31_set_shutdown(MAX31_h dev, bool *val) {
     esp_err_t status = ESP_OK;
     uint8_t regval = 0;
     uint8_t write = 0;
@@ -636,14 +680,14 @@ esp_err_t max31_set_shutdown(max31_driver_t *dev, bool *val) {
 }
 
 
-esp_err_t max31_get_mode(max31_driver_t *dev, max31_mode_t *val) {
+esp_err_t max31_get_mode(MAX31_h dev, max31_mode_t *val) {
     esp_err_t status = ESP_OK;
     *val = dev->dev_settings.device_mode;
     return status;
 }
 
 
-esp_err_t max31_set_mode(max31_driver_t *dev, max31_mode_t *val) {
+esp_err_t max31_set_mode(MAX31_h dev, max31_mode_t *val) {
     esp_err_t status = ESP_OK;
     uint8_t mode = *val;
     uint8_t write = 0;
@@ -669,14 +713,14 @@ esp_err_t max31_set_mode(max31_driver_t *dev, max31_mode_t *val) {
 }
 
 
-esp_err_t max31_get_spo2_samplerate(max31_driver_t *dev, uint8_t *val) {
+esp_err_t max31_get_spo2_samplerate(MAX31_h dev, uint8_t *val) {
     esp_err_t status = ESP_OK;
     *val = dev->dev_settings.samplerate;
     return status;
 }
 
 
-esp_err_t max31_set_spo2_samplerate(max31_driver_t *dev, uint8_t *val) {
+esp_err_t max31_set_spo2_samplerate(MAX31_h dev, uint8_t *val) {
     esp_err_t status = ESP_OK;
     uint8_t regval = 0;
     if(*val > MAX31_SAMPLERATE_3200) {
@@ -695,14 +739,14 @@ esp_err_t max31_set_spo2_samplerate(max31_driver_t *dev, uint8_t *val) {
 }
 
 
-esp_err_t max31_get_ledpwm(max31_driver_t *dev, uint8_t *val) {
+esp_err_t max31_get_ledpwm(MAX31_h dev, uint8_t *val) {
     esp_err_t status = ESP_OK;
     *val = dev->dev_settings.ledpwm;
     return status;
 }
 
 
-esp_err_t max31_set_ledpwm(max31_driver_t *dev, uint8_t *val) {
+esp_err_t max31_set_ledpwm(MAX31_h dev, uint8_t *val) {
     esp_err_t status = ESP_OK;
     uint8_t regval = 0;
     uint8_t pwm = *val;
@@ -720,14 +764,14 @@ esp_err_t max31_set_ledpwm(max31_driver_t *dev, uint8_t *val) {
 }
 
 
-esp_err_t max31_get_redledamplitude(max31_driver_t *dev, uint8_t *val) {
+esp_err_t max31_get_redledamplitude(MAX31_h dev, uint8_t *val) {
     esp_err_t status = ESP_OK;
     *val = dev->dev_settings.ledRed_ampl;
     return status;
 }
 
 
-esp_err_t max31_set_redledamplitude(max31_driver_t *dev, uint8_t *val) {
+esp_err_t max31_set_redledamplitude(MAX31_h dev, uint8_t *val) {
     esp_err_t status = ESP_OK;
     uint8_t regval = 0;
 
@@ -742,14 +786,14 @@ esp_err_t max31_set_redledamplitude(max31_driver_t *dev, uint8_t *val) {
 }
 
 
-esp_err_t max31_get_irledamplitude(max31_driver_t *dev, uint8_t *val) {
+esp_err_t max31_get_irledamplitude(MAX31_h dev, uint8_t *val) {
     esp_err_t status = ESP_OK;
     *val = dev->dev_settings.ledIR_ampl;
     return status;
 }
 
 
-esp_err_t max31_set_irledamplitude(max31_driver_t *dev, uint8_t *val) {
+esp_err_t max31_set_irledamplitude(MAX31_h dev, uint8_t *val) {
     esp_err_t status = ESP_OK;
     uint8_t regval = 0;
 
@@ -764,7 +808,7 @@ esp_err_t max31_set_irledamplitude(max31_driver_t *dev, uint8_t *val) {
 }
 
 
-esp_err_t max31_get_fifo_ovr(max31_driver_t *dev, uint8_t *val) {
+esp_err_t max31_get_fifo_ovr(MAX31_h dev, uint8_t *val) {
     esp_err_t err = ESP_OK;
     uint8_t ovr = 0;
     err = gcd_i2c_read_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_OVRFLW_CNTR, 1, &ovr);
@@ -775,7 +819,7 @@ esp_err_t max31_get_fifo_ovr(max31_driver_t *dev, uint8_t *val) {
 }
 
 
-esp_err_t max31_get_temperature(max31_driver_t *dev, float *val) {
+esp_err_t max31_get_temperature(MAX31_h dev, float *val) {
     *val = dev->temperature;
     return ESP_OK;
 }
@@ -783,7 +827,7 @@ esp_err_t max31_get_temperature(max31_driver_t *dev, float *val) {
 
 /** ACTIONS **/
 
-esp_err_t max31_read_temperature(max31_driver_t *dev) {
+esp_err_t max31_read_temperature(MAX31_h dev) {
 
     uint8_t regval[2] = {0};
     int8_t temp_int = 0;
@@ -800,7 +844,7 @@ esp_err_t max31_read_temperature(max31_driver_t *dev) {
 }
 
 
-esp_err_t max31_read_fifo(max31_driver_t *dev) {
+esp_err_t max31_read_fifo(MAX31_h dev) {
 
     esp_err_t status = ESP_OK;
 
@@ -871,7 +915,7 @@ esp_err_t max31_read_fifo(max31_driver_t *dev) {
 }
 
 
-esp_err_t max31_reset_device(max31_driver_t *dev) {
+esp_err_t max31_reset_device(MAX31_h dev) {
     esp_err_t status = ESP_OK;
     uint8_t regval = 0;
     uint8_t  write = (1 << 6);
@@ -884,7 +928,7 @@ esp_err_t max31_reset_device(max31_driver_t *dev) {
 }
 
 
-esp_err_t max31_enable_temperature_sensor(max31_driver_t *dev) {
+esp_err_t max31_enable_temperature_sensor(MAX31_h dev) {
     esp_err_t status = ESP_OK;
     uint8_t  write = 1;
 
