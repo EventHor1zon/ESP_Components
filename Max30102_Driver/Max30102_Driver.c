@@ -60,9 +60,8 @@ const parameter_t max31_param_map[max31_param_length] = {
     {"Led PWM", 8, &max31_get_ledpwm, &max31_get_ledpwm, NULL, DATATYPE_UINT8, MAX31_LED_PWM_411, (GET_FLAG | SET_FLAG)},
     {"Red Amplitude", 9, &max31_get_redledamplitude, &max31_set_redledamplitude, NULL, DATATYPE_UINT8, 0xFF, (GET_FLAG | SET_FLAG)},
     {"IR Amplitude", 10, &max31_get_irledamplitude, &max31_set_irledamplitude, NULL, DATATYPE_UINT8, 0xFF, (GET_FLAG | SET_FLAG)},
-    {"Red Amplitude", 11, &max31_get_redledamplitude, &max31_set_redledamplitude, NULL, DATATYPE_UINT8, 0xFF, (GET_FLAG | SET_FLAG)},
-    {"Reset", 12, NULL, NULL, &max31_reset_device, DATATYPE_NONE, 0, (ACT_FLAG)},
-    {"Ambi ovr", 13, &max31_get_ambient_light_invalidates, &max31_set_ambient_light_invalidates, DATATYPE_BOOL, 1, (GET_FLAG | SET_FLAG)},
+    {"Reset", 11, NULL, NULL, &max31_reset_device, DATATYPE_NONE, 0, (ACT_FLAG)},
+    {"Ambi ovr", 12, &max31_get_ambient_light_invalidates, &max31_set_ambient_light_invalidates, DATATYPE_BOOL, 1, (GET_FLAG | SET_FLAG)},
 };
 
 const peripheral_t max31_periph_template = {
@@ -381,16 +380,9 @@ static void max31_task(void *args) {
                         emit_fifo_almostfull_event(handle);
                     }
 #endif
-                    if(status == ESP_OK && dev->read_fifo_on_almostfull) {
+                    if(dev->read_fifo_on_almostfull) {
                         status = max31_read_fifo(dev);
-#ifdef CONFIG_ENABLE_MAX31_EVENTS
-                    if(dev->use_events && \
-                       dev->event_mask & MAX31_EVENT_FIFO_READ_COMPLETE &&
-                       status == ESP_OK
-                    ) {
-                        emit_fifo_read_done_event(handle);
-                    }
-#endif
+
                         convert_fifo_data(dev);
 #ifdef CONFIG_SUPPORT_CBUFF
                         if(dev->use_cbuff) {
@@ -897,8 +889,8 @@ esp_err_t max31_read_fifo(MAX31_h dev) {
 
         /** get number of bytes **/
         if(status == ESP_OK) {
-            rd_ptr_val = (regvals[2] & 0b00011111);
-            wr_ptr_val = (regvals[0] & 0b00011111);
+            rd_ptr_val = (regvals[2] & MAX31_FIFO_RDWRT_REG_MASK);
+            wr_ptr_val = (regvals[0] & MAX31_FIFO_RDWRT_REG_MASK);
             /** does read_ptr increment per byte or per sample?? **/
             avail_samples = wr_ptr_val > rd_ptr_val ? (wr_ptr_val - rd_ptr_val) : (MAX31_FIFO_SAMPLES - rd_ptr_val) + wr_ptr_val;
             
@@ -918,7 +910,9 @@ esp_err_t max31_read_fifo(MAX31_h dev) {
         }
 
         if(status == ESP_OK && avail_bytes) {
+#ifdef DEBUG_MODE
             ESP_LOGI(MX_TAG, "Reading %u bytes from FIFO...", avail_bytes);
+#endif
             memset(dev->fifo_buffer, 0, MAX31_FIFO_MAX_SIZE);
             dev->bytes_read = 0;
             /** read the data from fifo **/
@@ -932,6 +926,15 @@ esp_err_t max31_read_fifo(MAX31_h dev) {
             }
         }
     }
+
+#ifdef CONFIG_ENABLE_MAX31_EVENTS
+    if(dev->use_events && \
+        dev->event_mask & MAX31_EVENT_FIFO_READ_COMPLETE &&
+        status == ESP_OK
+    ) {
+        emit_fifo_read_done_event(handle);
+    }
+#endif
 
     return status;
 }
@@ -960,10 +963,17 @@ esp_err_t max31_enable_temperature_sensor(MAX31_h dev) {
 }
 
 
-esp_err_t max31_read_fifo_on_almostfull(MAX31_h dev, bool *en) {
+esp_err_t max31_set_read_fifo_on_almostfull(MAX31_h dev, bool *en) {
     dev->read_fifo_on_almostfull = *en;
     return ESP_OK;
 }
+
+esp_err_t max31_get_read_fifo_on_almostfull(MAX31_h dev, bool *en) {
+    *en = dev->read_fifo_on_almostfull;
+    return ESP_OK;
+}
+
+
 
 #ifdef CONFIG_ENABLE_MAX31_EVENTS
 

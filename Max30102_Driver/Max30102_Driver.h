@@ -48,18 +48,20 @@
 #define MAX31_PART_ID   0x15
 
 #define MAX31_FIFO_SAMPLES  32
-#define MAX31_ALMOSTFULL_MAX 0xf
+#define MAX31_ALMOSTFULL_MAX 0x0F
 #define MAX31_FIFO_SINGLE_SAMPLE_LEN 3
-#define MAX31_FIFO_DOUBLE_SAMPLE_LEN 6
+#define MAX31_FIFO_DOUBLE_SAMPLE_LEN (2 * MAX31_FIFO_SINGLE_SAMPLE_LEN)
 
 
 #define MAX31_FIFO_MAX_SIZE (MAX31_FIFO_SAMPLES * MAX31_FIFO_DOUBLE_SAMPLE_LEN) /** ~192? **/
 
-#define MAX31_INTR_TYPE_ALMFULL (1 << 7)
-#define MAX31_INTR_TYPE_NEWSAMPLE (1 << 6)
-#define MAX31_INTR_TYPE_AMBILITOVF (1 << 5)
-#define MAX31_INTR_TYPE_DIETEMP_RDY (1 << 1)
-#define MAX31_INTR_TYPE_PWRRDY (1 << 0)
+#define MAX31_INTR_TYPE_PWRRDY          (1 << 0)
+#define MAX31_INTR_TYPE_DIETEMP_RDY     (1 << 1)
+#define MAX31_INTR_TYPE_AMBILITOVF      (1 << 5)
+#define MAX31_INTR_TYPE_NEWSAMPLE       (1 << 6)
+#define MAX31_INTR_TYPE_ALMFULL         (1 << 7)
+
+#define MAX31_FIFO_RDWRT_REG_MASK 0b00011111
 
 #ifdef CONFIG_SHORTWAIT_MS 100
 
@@ -390,14 +392,44 @@ esp_err_t max31_get_ledpwm(MAX31_h dev, uint8_t *val);
  **/
 esp_err_t max31_set_ledpwm(MAX31_h dev, uint8_t *val);
 
+/** 
+ * \brief gets the current red led amplitude setting
+ * \param dev - device handle
+ * \param val - storage
+ * \return handle or NULL on error
+ **/
 esp_err_t max31_get_redledamplitude(MAX31_h dev, uint8_t *val);
 
+/** 
+ * \brief sets the current red led amplitude setting
+ * \param dev - device handle
+ * \param val - storage
+ * \return handle or NULL on error
+ **/
 esp_err_t max31_set_redledamplitude(MAX31_h dev, uint8_t *val);
 
+/** 
+ * \brief gets the current ir led amplitude setting
+ * \param dev - device handle
+ * \param val - storage
+ * \return handle or NULL on error
+ **/
 esp_err_t max31_get_irledamplitude(MAX31_h dev, uint8_t *val);
 
+/** 
+ * \brief sets the current ir led amplitude setting
+ * \param dev - device handle
+ * \param val - storage
+ * \return handle or NULL on error
+ **/
 esp_err_t max31_set_irledamplitude(MAX31_h dev, uint8_t *val);
 
+/** 
+ * \brief gets the value of the fifo overflow register
+ * \param dev - device handle
+ * \param val - storage
+ * \return handle or NULL on error
+ **/
 esp_err_t max31_get_fifo_ovr(MAX31_h dev, uint8_t *val);
 
 esp_err_t max31_get_temperature(MAX31_h dev, float *val);
