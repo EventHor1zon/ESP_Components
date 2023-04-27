@@ -181,6 +181,7 @@ typedef struct Max30102_Driver
     bool use_cbuff;
     bool ambi_ovr_invalidates;
     bool drop_next_fifo;
+    bool read_fifo_on_almostfull;
     gpio_num_t intr_pin;
     TaskHandle_t taskhandle;
     uint8_t intr_mask;
@@ -200,11 +201,14 @@ typedef struct Max30102_Driver
     float temperature;
     uint32_t ticks_since_temperature;
 #ifdef CONFIG_SUPPORT_CBUFF
+    bool use_cbuffer;
     CBuff cbuff;
 #endif
 #ifdef CONFIG_ENABLE_MAX31_EVENTS
+    bool use_events;
+    uint8_t event_mask;
     esp_event_loop_handle_t event_loop;
-#endif
+#endif /** CONFIG_ENABLE_MAX31_EVENTS **/
 } max31_driver_t;
 
 
@@ -406,7 +410,9 @@ esp_err_t max31_reset_device(MAX31_h dev);
 
 esp_err_t max31_enable_temperature_sensor(MAX31_h dev);
 
+esp_err_t max31_set_read_fifo_on_almostfull(MAX31_h dev, bool *en);
 
+esp_err_t max31_get_read_fifo_on_almostfull(MAX31_h dev, bool *en);
 
 
 

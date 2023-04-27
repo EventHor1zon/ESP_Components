@@ -13,6 +13,13 @@
 *           Maybe go minimalist and implement a fifo auto-read setting or something?
 *
 *
+*           Also, do we need to do floating-point maths to generate pico-amps? Maybe leave
+*           that to the data processing functions, and instead use raw ADC counts instead to save
+*           space. We only really care about the difference peak-to-peak in case of HB detect.
+*
+*           
+*
+*
 * \date     Dec 2020
 * \author   RJAM
 ****************************************/
@@ -100,16 +107,16 @@ static esp_err_t emit_ambient_overflow_event(MAX31_h dev) {
     return esp_event_post_to(dev->event_loop, 0, MAX31_EVENT_AMBI_OVR, dev, sizeof(void *), pdMS_TO_TICKS(CONFIG_SHORTWAIT_MS));
 }
 
-static esp_err_t emit_ambient_overflow_event(MAX31_h dev) {
-    return esp_event_post_to(dev->event_loop, 0, MAX31_EVENT_FIFO_READ_COMPLETE, dev, sizeof(void *), pdMS_TO_TICKS(CONFIG_SHORTWAIT_MS));
-}
-
-static esp_err_t emit_ambient_overflow_event(MAX31_h dev) {
+static esp_err_t emit_new_reddata_event(MAX31_h dev) {
     return esp_event_post_to(dev->event_loop, 0, MAX31_EVENT_NEW_RED_DATA, dev, sizeof(void *), pdMS_TO_TICKS(CONFIG_SHORTWAIT_MS));
 }
 
-static esp_err_t emit_ambient_overflow_event(MAX31_h dev) {
+static esp_err_t emit_new_irdata_event(MAX31_h dev) {
     return esp_event_post_to(dev->event_loop, 0, MAX31_EVENT_NEW_IR_DATA, dev, sizeof(void *), pdMS_TO_TICKS(CONFIG_SHORTWAIT_MS));
+}
+
+static esp_err_t emit_fifo_read_done_event(MAX31_h dev) {
+    return esp_event_post_to(dev->event_loop, 0, MAX31_EVENT_FIFO_READ_COMPLETE, dev, sizeof(void *), pdMS_TO_TICKS(CONFIG_SHORTWAIT_MS));
 }
 
 #endif /** CONFIG_ENABLE_MAX31_EVENTS **/
@@ -352,6 +359,13 @@ static void max31_task(void *args) {
                 }
                 if (val & MAX31_INTR_TYPE_AMBILITOVF) {
                     ESP_LOGI(MX_TAG, "Ambient overflow interrupt");
+#ifdef CONFIG_ENABLE_MAX31_EVENTS
+                    if(dev->use_events && \
+                       dev->event_mask & MAX31_EVENT_AMBI_OVR
+                    ) {
+                        emit_ambient_overflow_event(handle);
+                    }
+#endif
                     if(dev->ambi_ovr_invalidates) {
                         dev->drop_next_fifo = true;
                         max31_read_fifo(dev);
@@ -364,11 +378,19 @@ static void max31_task(void *args) {
                     if(dev->use_events && \
                        dev->event_mask & MAX31_EVENT_FIFO_ALMOST_FULL
                     ) {
-                        emit_fifo_almostfull(handle);
+                        emit_fifo_almostfull_event(handle);
                     }
 #endif
-                    if(status == ESP_OK) {
+                    if(status == ESP_OK && dev->read_fifo_on_almostfull) {
                         status = max31_read_fifo(dev);
+#ifdef CONFIG_ENABLE_MAX31_EVENTS
+                    if(dev->use_events && \
+                       dev->event_mask & MAX31_EVENT_FIFO_READ_COMPLETE &&
+                       status == ESP_OK
+                    ) {
+                        emit_fifo_read_done_event(handle);
+                    }
+#endif
                         convert_fifo_data(dev);
 #ifdef CONFIG_SUPPORT_CBUFF
                         if(dev->use_cbuff) {
@@ -937,3 +959,23 @@ esp_err_t max31_enable_temperature_sensor(MAX31_h dev) {
     return status;
 }
 
+
+esp_err_t max31_read_fifo_on_almostfull(MAX31_h dev, bool *en) {
+    dev->read_fifo_on_almostfull = *en;
+    return ESP_OK;
+}
+
+#ifdef CONFIG_ENABLE_MAX31_EVENTS
+
+esp_err_t max31_set_event_mask(MAX31_h dev, uint8_t *mask) {
+    dev->event_mask = mask;
+    return ESP_OK;
+}
+
+esp_err_t max31_get_event_mask(MAX31_h dev, uint8_t *mask) {
+    *mask = dev->event_mask;
+    return ESP_OK;
+}
+
+
+#endif /** CONFIG_ENABLE_MAX31_EVENTS **/
