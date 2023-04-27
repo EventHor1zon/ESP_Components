@@ -52,6 +52,7 @@
 #define MAX31_FIFO_SINGLE_SAMPLE_LEN 3
 #define MAX31_FIFO_DOUBLE_SAMPLE_LEN (2 * MAX31_FIFO_SINGLE_SAMPLE_LEN)
 
+#define CONFIG_SHORTWAIT_MS 100
 
 #define MAX31_FIFO_MAX_SIZE (MAX31_FIFO_SAMPLES * MAX31_FIFO_DOUBLE_SAMPLE_LEN) /** ~192? **/
 
@@ -63,7 +64,7 @@
 
 #define MAX31_FIFO_RDWRT_REG_MASK 0b00011111
 
-#ifdef CONFIG_SHORTWAIT_MS 100
+#ifdef CONFIG_ENABLE_MAX31_EVENTS
 
 #define MAX31_EVENT_DEVICE_READY        (1 << 0)
 #define MAX31_EVENT_FIFO_ALMOST_FULL    (1 << 1)
@@ -180,7 +181,6 @@ typedef struct Max30102_Driver
     /* data */
     uint8_t dev_addr;
     uint8_t i2c_bus;
-    bool use_cbuff;
     bool ambi_ovr_invalidates;
     bool drop_next_fifo;
     bool read_fifo_on_almostfull;
@@ -192,18 +192,15 @@ typedef struct Max30102_Driver
     max31_settings_t dev_settings;
     max31_fifosetting_t fifo_settings;
 
-    uint8_t red_lvl;
     bool temp_sampling;
     uint8_t fifo_buffer[MAX31_FIFO_MAX_SIZE];
     uint8_t bytes_read;
     float red_buffer[MAX31_FIFO_SAMPLES];
     float ir_buffer[MAX31_FIFO_SAMPLES];
     uint8_t pkts_in_fifo;
-    bool configured;
     float temperature;
-    uint32_t ticks_since_temperature;
 #ifdef CONFIG_SUPPORT_CBUFF
-    bool use_cbuffer;
+    bool use_cbuff;
     CBuff cbuff;
 #endif
 #ifdef CONFIG_ENABLE_MAX31_EVENTS
@@ -226,7 +223,11 @@ typedef MAX31_h  MAX31_h;
  * \param init - pointer to max31_initdata_t struct
  * \return handle or NULL on error
  **/
+#ifdef CONFIG_DRIVERS_USE_HEAP
 MAX31_h max31_init(max31_initdata_t *init);
+#else 
+MAX31_h max31_init(MAX31_h handle, max31_initdata_t *init);
+#endif
 
 /** 
  * \brief Get the device id from the max30102 chip

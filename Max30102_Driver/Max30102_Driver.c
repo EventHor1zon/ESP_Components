@@ -327,7 +327,7 @@ static void max31_task(void *args) {
      **/
 
     while(1) {
-        if(dev->configured != true) {
+        if(dev->shutdown) {
             vTaskDelay(100); 
         } 
         else {
@@ -346,6 +346,7 @@ static void max31_task(void *args) {
                 if(val & MAX31_INTR_TYPE_DIETEMP_RDY) {
                     ESP_LOGI(MX_TAG, "Die temp ready interrupt");
                     status = max31_read_temperature(dev);
+                    dev->temp_sampling = false;
                 }
                 if (val & MAX31_INTR_TYPE_NEWSAMPLE) {
                 /** if interrupting on single sample, read single fifo measurement **/
@@ -410,19 +411,27 @@ static void max31_task(void *args) {
 
 /****** Global Functions *************/
 
-
-MAX31_h max31_init(max31_initdata_t *init) {
-
+#ifdef CONFIG_DRIVERS_USE_HEAP
+MAX31_h max31_init(max31_initdata_t *init) 
+#else 
+MAX31_h max31_init(MAX31_h handle, max31_initdata_t *init) 
+#endif
+{
     esp_err_t istatus = ESP_OK;
 
+#ifdef CONFIG_DRIVERS_USE_HEAP
     MAX31_h handle = (MAX31_h )heap_caps_calloc(1, sizeof(max31_driver_t), MALLOC_CAP_8BIT);
-    void *fifo_mem = NULL;
-
     if(handle == NULL){
         ESP_LOGE(MX_TAG, "Error initialising driver memory!");
         istatus = ESP_ERR_NO_MEM;
     }
-    else {
+#else
+    memset(handle, 0, sizeof(max31_driver_t));
+#endif
+    void *fifo_mem = NULL;
+
+
+    if(istatus == ESP_OK) {
 #ifdef CONFIG_SUPPORT_CBUFF
         handle->use_cbuff = (init->use_cbuffer && init->cbuffer != NULL) ? 1 : 0;
         handle->cbuff = (handle->use_cbuff) ? init->cbuffer : NULL;
@@ -467,6 +476,16 @@ MAX31_h max31_init(max31_initdata_t *init) {
         }
 
         if(istatus == ESP_OK) {
+            if(!(gcd_i2c_check_bus(init->i2c_bus))) {
+                ESP_LOGE(MX_TAG, "Error: Invalid i2c bus");
+                istatus = ESP_ERR_INVALID_ARG;
+            } 
+            else {
+                handle->i2c_bus = init->i2c_bus;
+            }
+        }
+
+        if(istatus == ESP_OK) {
             /** create the driver task **/
             if(xTaskCreate(max31_task, "max31_task", 2056, (void *)handle, 3, &taskhandle) != pdTRUE) {
                 ESP_LOGE(MX_TAG, "Error in creating driver task");
@@ -477,27 +496,18 @@ MAX31_h max31_init(max31_initdata_t *init) {
             }
         }
 
-        if(istatus == ESP_OK) {
-            if(init->i2c_bus > 3) {
-                ESP_LOGE(MX_TAG, "Error: Invalid i2c bus");
-                istatus = ESP_ERR_INVALID_ARG;
-            } 
-            else {
-                handle->i2c_bus = init->i2c_bus;
-            }
-        }
     
         if(istatus != ESP_OK && handle != NULL) {
             /** dont leave trash if init fails **/
 #ifdef CONFIG_DRIVERS_USE_HEAP
             heap_caps_free(handle);
 #endif
+            ESP_LOGE(MX_TAG, "Error starting Max30102 driver [%u]", istatus);
         } else {
             ESP_LOGI(MX_TAG, "Max30102 driver started succesfully!");
 #ifdef DEBUG_MODE
             test_mode(handle);
 #endif
-            handle->configured = true;
             max31_reset_fifo(handle);
         }
     }
@@ -793,7 +803,7 @@ esp_err_t max31_set_redledamplitude(MAX31_h dev, uint8_t *val) {
     status = gcd_i2c_write_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_LED1PULSE_AMP, 1, &regval);
 
     if(status == ESP_OK) {
-        dev->red_lvl = *val;
+        dev->dev_settings.ledRed_ampl = *val;
     }
 
     return status;
@@ -815,7 +825,7 @@ esp_err_t max31_set_irledamplitude(MAX31_h dev, uint8_t *val) {
     status = gcd_i2c_write_address(dev->i2c_bus, dev->dev_addr, (uint8_t )MAX31_REGADDR_LED2PULSE_AMP, 1, &regval);
 
     if(status == ESP_OK) {
-        dev->red_lvl = *val;
+        dev->dev->dev_settings.ledIR_ampl = *val;
     }
 
     return status;
