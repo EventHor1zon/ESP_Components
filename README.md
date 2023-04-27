@@ -38,7 +38,7 @@ a device handle and a pointer to a value (set) or value storage (get)
 - LedEffects for ws2812/apa102   (beta - three working effects! - In refactor)
 - LoRa SX1276 chipset            (beta - Tx working. Get another module for Rx development)
 - LSM6DS3  Accel/Gyro sensor     (Release - TODO: Refactor for simplicity!)
-- Max30102 Heartbeat sensor      (not complete)
+- Max30102 Heartbeat sensor      (beta) - Working but not well tested
 - MFRC552 NRFC/MiFare Transciever (alpha)
 - MSGEQ7 Audio spectrum ic       (beta - could do with tweaking/tidying)
 - PushButton driver              (Release - TODO: Refactor for static task/multiple instances)
