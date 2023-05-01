@@ -39,6 +39,115 @@ static esp_err_t vfd_init_commands(VFD_HANDLE handle);
 
 /****** Private Functions *************/
 
+
+static esp_err_t sx_read_address_byte(VFD_HANDLE dev, uint8_t addr, uint8_t *byte) {
+
+    esp_err_t err = ESP_OK;
+    uint8_t cmd = (addr & ~(SX_READWRITE_BIT));
+    spi_transaction_t trx = {0};
+
+    trx.length = 16;
+    trx.rxlength = 16;
+    trx.tx_data[0] = cmd;
+    trx.tx_data[1] = 0x00;
+    trx.flags = (SPI_TRANS_USE_RXDATA | SPI_TRANS_USE_TXDATA);
+
+    err = spi_device_transmit(dev->spi_handle, &trx);
+    
+    if(err != ESP_OK) {
+        ESP_LOGE(VFD_TAG, "Error performing SPI transaction! [%u]", err);
+    }
+    else {
+#ifdef SPI_DEBUG
+        ESP_LOGI(LORA_TAG, "Read the following data: 0x%02x 0x%02x", trx.rx_data[0], trx.rx_data[1]);
+#endif
+        *byte = trx.rx_data[1];
+    }
+
+    return err;
+}
+
+
+static esp_err_t sx_write_address_byte(VFD_HANDLE dev, uint8_t addr, uint8_t byte) {
+
+    esp_err_t err = ESP_OK;
+    uint8_t cmd = (addr | SX_READWRITE_BIT);
+    spi_transaction_t trx = {0};
+
+    trx.length = 16;
+    trx.tx_data[0] = cmd;
+    trx.tx_data[1] = byte;
+    trx.flags = (SPI_TRANS_USE_RXDATA | SPI_TRANS_USE_TXDATA);
+
+    // err = spi_device_acquire_bus(dev->spi_handle, SX_SPI_TIMEOUT_DEFAULT);
+
+    err = spi_device_transmit(dev->spi_handle, &trx);
+    if(err != ESP_OK) {
+        ESP_LOGE(VFD_TAG, "Error performing SPI transaction! [%u]", err);
+    }
+#ifdef SPI_DEBUG
+    else {
+        ESP_LOGI(VFD_TAG, "Read the following data: 0x%02x 0x%02x", trx.rx_data[0], trx.rx_data[1]);
+    }
+#endif
+
+    return err;
+}
+
+
+static esp_err_t sx_spi_burst_write(VFD_HANDLE dev, uint8_t addr, uint8_t *data, uint8_t len) {
+
+    uint8_t cmd = (addr | SX_READWRITE_BIT);
+    spi_transaction_t trx = {0};
+    uint8_t buffer[256] = {0};
+
+    buffer[0] = cmd;
+    memcpy(&buffer[1], data, sizeof(uint8_t) * len);
+
+    trx.length = (8 + (len * 8));
+    trx.tx_buffer = buffer;
+    trx.flags = 0;
+
+    return spi_device_transmit(dev->spi_handle, &trx);
+
+}
+
+
+
+/** this operation clears the masked bits, then Or's with data, then writes **/
+static esp_err_t sx_spi_read_mod_write_mask(VFD_HANDLE dev, uint8_t addr, uint8_t data, uint8_t mask, uint8_t *storage) {
+    esp_err_t err = ESP_OK;
+
+    uint8_t reg = 0;
+    err = sx_read_address_byte(dev, addr, &reg);
+
+    /** conditional write - check the masked bits aren't already set... */
+    if(!err) {
+        if((reg & mask) != data) {
+            reg &= ~(mask);
+            reg |= data;
+#ifdef SPI_DEBUG
+            ESP_LOGI(VFD_TAG, "Writing value 0x%02x to register %02x", reg, addr);
+#endif /** SPI_DEBUG **/
+            err = sx_write_address_byte(dev, addr, reg);
+        }
+#ifdef SPI_DEBUG
+        else {
+            ESP_LOGI(VFD_TAG, "Not writing to register - curr: %02x, data: %02x", reg, data);
+        }
+#endif /** SPI_DEBUG **/
+    }
+
+    /** store the new register value **/
+    if(!err && storage != NULL) {
+        *storage = reg;
+    }
+
+    return err;
+}
+
+
+
 static void vfd_driver_task(void *args) {
  
     VFD_HANDLE handle = (vfd_handle_t *)args;
