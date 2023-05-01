@@ -2,8 +2,8 @@
 * \file         FutabaVFD_Driver.c
 * \brief        Driver for the Futaba 8-MD-06INKM C2CIG type VFD display
 *               Good luck finding a datasheet lolz
-*               Code adapted from https://github.com/positronicsengineer/rpi-spi-vfd
-*               Cheers fella
+*               Code hints from https://github.com/positronicsengineer/rpi-spi-vfd
+*               More hints: https://github.com/sfxfs/ESP32-VFD-8DM-Arduino/blob/oop/src/VFD.cpp#L256
 * \date         Aug 2021
 * \author       RJAM
 ****************************************/
