@@ -46,7 +46,7 @@ static esp_err_t vfd_init_commands(VFD_HANDLE handle);
 
 #ifdef DEBUG_MODE
 
-const uint8_t char_data[VFD_SEG_WIDTH] = {
+const uint8_t test_char_data[VFD_SEG_WIDTH] = {
     0x55,
     0x55,
     0x55,
@@ -140,6 +140,7 @@ static void vfd_reset(VFD_HANDLE handle) {
 static esp_err_t vfd_init_commands(VFD_HANDLE handle) {
 
     esp_err_t err = ESP_OK;
+    uint8_t var = 0;
 
     vfd_reset(handle);
 
@@ -152,6 +153,7 @@ static esp_err_t vfd_init_commands(VFD_HANDLE handle) {
         ESP_LOGE(VFD_TAG, "Error writing initialisation commands");
     }
 
+#ifdef DEBUG_MODE
     for(uint8_t i=0; i < VFD_SEGMENTS; i++) {
         err = vfd_write_command_with_data_byte(handle, (DCRAM_DATA_WRITE|i), (0x41+i));
         if(err) {
@@ -159,6 +161,25 @@ static esp_err_t vfd_init_commands(VFD_HANDLE handle) {
             break;
         }
     }
+#endif /** DEBUG_MODE **/
+
+    vTaskDelay(pdMS_TO_TICKS(1000));
+
+    vfd_copy_string(handle, "Hello");
+    vfd_write_all_segments(handle);
+
+    vTaskDelay(pdMS_TO_TICKS(1000));
+
+    vfd_copy_string(handle, "World!");
+    vfd_write_all_segments(handle);
+
+    vTaskDelay(3000);
+
+    vfd_set_current_cgram_page(handle, &var);
+    vfd_write_custom_segment(handle, &test_char_data[0]);
+
+    vfd_clear_all_segments(handle);
+    vfd_display_custom_segment(handle, &var);
 
     return err;
 }
@@ -442,6 +463,32 @@ esp_err_t vfd_get_character15(VFD_HANDLE handle, uint8_t *character) {
 #endif
 
 
+esp_err_t vfd_set_brightness(VFD_HANDLE dev, uint8_t *br) {
+    esp_err_t status = ESP_OK;
+    uint8_t brt = *br;
+
+    if(brt >= VFD_CONFIG_MAX_BRIGHTNESS) {
+        return ESP_ERR_INVALID_ARG;
+    }
+    else {
+       dev->brightness = brt;
+    }
+   
+   return status;
+}
+
+esp_err_t vfd_get_brightness(VFD_HANDLE dev, uint8_t *br) {
+   esp_err_t status = ESP_OK;
+   *br = dev->brightness;
+   return status;
+}
+
+
+esp_err_t vfd_update_brightness(VFD_HANDLE dev) {
+    return vfd_write_command_with_data_byte(dev, VFD_CMD_DIM, dev->brightness);
+}
+
+
 esp_err_t vfd_set_current_cgram_page(VFD_HANDLE dev, uint8_t *page) {
     
     uint8_t p = *page;
@@ -465,7 +512,7 @@ esp_err_t vfd_get_current_cgram_page(VFD_HANDLE dev, uint8_t *page) {
 
 
 esp_err_t vfd_display_custom_segment(VFD_HANDLE dev, uint8_t *segment) {
-    return vfd_write_command_with_data(dev, (VFD_CMD_DCRAM_DATA_WRITE | *segment), dev->cgram_page);
+    return vfd_write_command_with_data_byte(dev, (VFD_CMD_DCRAM_DATA_WRITE | *segment), dev->cgram_page);
 }
 
 
@@ -476,7 +523,7 @@ esp_err_t vfd_write_custom_segment(VFD_HANDLE dev, uint8_t *data) {
      **/
     esp_err_t err = ESP_OK;
 
-    err = vfd_write_command_with_data_byte(dev, (VFD_CMD_CGRAM_DATA_WRITE | dev->cgram_page), data, 5);
+    err = vfd_write_command_with_data(dev, (VFD_CMD_CGRAM_DATA_WRITE | dev->cgram_page), data, 5);
     
     if(err) {
         ESP_LOGE(VFD_TAG, "Error writing custom character data [%u]", err);
@@ -502,7 +549,7 @@ esp_err_t vfd_write_segment(VFD_HANDLE dev, uint8_t *segment) {
     return err;
 }
 
-esp_err_t vdf_clear_segment(VFD_HANDLE dev, uint8_t *segment) {
+esp_err_t vfd_clear_segment(VFD_HANDLE dev, uint8_t *segment) {
     esp_err_t err = ESP_OK;
     uint8_t seg = *segment;
 
@@ -533,7 +580,7 @@ esp_err_t vfd_write_all_segments(VFD_HANDLE dev) {
     return err;
 }
 
-esp_err_t vdf_clear_all_segments(VFD_HANDLE dev) {
+esp_err_t vfd_clear_all_segments(VFD_HANDLE dev) {
     esp_err_t err = ESP_OK;
 
     for(uint8_t i=0; i < VFD_SEGMENTS; i++) {
@@ -545,4 +592,14 @@ esp_err_t vdf_clear_all_segments(VFD_HANDLE dev) {
     }
 
     return err;
+}
+
+esp_err_t vfd_copy_string(VFD_HANDLE dev, char *input) {
+
+    memset(dev->vfd_buff, 0, sizeof(uint8_t) * VFD_SEGMENTS);
+
+    strncpy(dev->vfd_buff, input, VFD_SEGMENTS);
+
+    return ESP_OK;
+
 }
