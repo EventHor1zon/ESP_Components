@@ -75,7 +75,7 @@ typedef struct FutabaVFD_Driver
 {
     /* data */
     uint8_t spi_bus;
-    char vfd_buff[VFD_SEGMENTS+1];
+    char vfd_buff[VFD_SEGMENTS];
     uint8_t cgram_page;
     uint8_t brightness;
     TaskHandle_t task_handle;
