@@ -44,7 +44,7 @@ With several (18 I think...) cgram pages to play with, the user can create anima
 
 ### Changing the number of segments
 
-The number of segments can be changed using the `#define VFD_SEGMENTS` line in the header file. This value can only be 8 or 16. Do not use values outside of this range.
+The number of segments can be changed using the `#define VFD_SEGMENTS` line in the header file. This value can only be 8 or 16. Do not use other values.
 
 ## Datasheet
 

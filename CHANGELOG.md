@@ -1,4 +1,7 @@
 
+- v0.1.2: Pending
+    - Update pushbutton driver to bring into line
+
 - v0.1.1: Alpha 1 Release
     - update Rotary encoder driver to bring into line with other drivers
     - Fix Max30102 driver and test
