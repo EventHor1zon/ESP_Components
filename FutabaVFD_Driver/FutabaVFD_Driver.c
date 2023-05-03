@@ -56,6 +56,49 @@ const uint8_t test_char_data[VFD_SEG_WIDTH] = {
 
 #endif
 
+#ifdef CONFIG_USE_PERIPH_MANAGER
+
+#include "PeripheralManager.h"
+
+const parameter_t vfd_parameter_map[vfd_parameter_len] = {
+    {"Character 0", 1, &vfd_get_character0, &vfd_set_character0, NULL, DATATYPE_UINT8, 0xFF, (GET_FLAG | SET_FLAG)},
+    {"Character 1", 2, &vfd_get_character1, &vfd_set_character1, NULL, DATATYPE_UINT8, 0xFF, (GET_FLAG | SET_FLAG)},
+    {"Character 2", 3, &vfd_get_character2, &vfd_set_character2, NULL, DATATYPE_UINT8, 0xFF, (GET_FLAG | SET_FLAG)},
+    {"Character 3", 4, &vfd_get_character3, &vfd_set_character3, NULL, DATATYPE_UINT8, 0xFF, (GET_FLAG | SET_FLAG)},
+    {"Character 4", 5, &vfd_get_character4, &vfd_set_character4, NULL, DATATYPE_UINT8, 0xFF, (GET_FLAG | SET_FLAG)},
+    {"Character 5", 6, &vfd_get_character5, &vfd_set_character5, NULL, DATATYPE_UINT8, 0xFF, (GET_FLAG | SET_FLAG)},
+    {"Character 6", 7, &vfd_get_character6, &vfd_set_character6, NULL, DATATYPE_UINT8, 0xFF, (GET_FLAG | SET_FLAG)},
+    {"Character 7", 8, &vfd_get_character7, &vfd_set_character7, NULL, DATATYPE_UINT8, 0xFF, (GET_FLAG | SET_FLAG)},
+#if VFD_SEGMENTS == 16
+    {"Character 8", 9, &vfd_get_character8, &vfd_set_character8, NULL, DATATYPE_UINT8, 0xFF, (GET_FLAG | SET_FLAG)},
+    {"Character 9", 10, &vfd_get_character9, &vfd_set_character9, NULL, DATATYPE_UINT8, 0xFF, (GET_FLAG | SET_FLAG)},
+    {"Character 10", 11, &vfd_get_character10, &vfd_set_character10, NULL, DATATYPE_UINT8, 0xFF, (GET_FLAG | SET_FLAG)},
+    {"Character 11", 12, &vfd_get_character11, &vfd_set_character11, NULL, DATATYPE_UINT8, 0xFF, (GET_FLAG | SET_FLAG)},
+    {"Character 12", 13, &vfd_get_character12, &vfd_set_character12, NULL, DATATYPE_UINT8, 0xFF, (GET_FLAG | SET_FLAG)},
+    {"Character 13", 14, &vfd_get_character13, &vfd_set_character13, NULL, DATATYPE_UINT8, 0xFF, (GET_FLAG | SET_FLAG)},
+    {"Character 14", 15, &vfd_get_character14, &vfd_set_character14, NULL, DATATYPE_UINT8, 0xFF, (GET_FLAG | SET_FLAG)},
+    {"Character 15", 16, &vfd_get_character15, &vfd_set_character15, NULL, DATATYPE_UINT8, 0xFF, (GET_FLAG | SET_FLAG)},
+#endif /** VFD_SEGMENTS == 16 **/
+    {"Brightness", 17, &vfd_get_brightness, &vfd_set_brightness, NULL, DATATYPE_UINT8, VFD_CONFIG_MAX_BRIGHTNESS, (GET_FLAG | SET_FLAG)},
+    {"Update Bright", 18, NULL, NULL, &vfd_update_brightness, DATATYPE_NONE, 0, (ACT_FLAG)},
+    {"CGram Page", 19, &vfd_get_current_cgram_page, &vfd_set_current_cgram_page, NULL, DATATYPE_UINT8, VFD_NUM_CGRAM_PAGES, (GET_FLAG | SET_FLAG)},
+    {"Custom Char", 20, NULL, &vfd_display_custom_segment, NULL, DATATYPE_UINT8, VFD_SEGMENTS, (SET_FLAG)},
+    {"Write Segments", 21, NULL, NULL, &vfd_write_all_segments, DATATYPE_NONE, 0, (ACT_FLAG)},
+    {"Clear Segments", 22, NULL, NULL, &vfd_clear_all_segments, DATATYPE_NONE, 0, (ACT_FLAG)},
+    {"Load String", 23, NULL, &vfd_copy_string, NULL, DATATYPE_STRING, VFD_SEGMENTS, (SET_FLAG)},
+};
+
+const peripheral_t vfd_periph_template = {
+    .handle = NULL,
+    .param_len = vfd_parameter_len,
+    .params = vfd_parameter_map,
+    .periph_type = "VFD Display",
+    .peripheral_id = 0,
+    .periph_type = PTYPE_DISPLAY
+};
+
+#endif /** CONFIG_USE_PERIPH_MANAGER **/
+
 /****** Private Functions *************/
 
 
@@ -147,7 +190,7 @@ static esp_err_t vfd_init_commands(VFD_HANDLE handle) {
     vTaskDelay(pdMS_TO_TICKS(VFD_CONFIG_CMD_DELAY_MS));
 
     if(vfd_write_command_with_data_byte(handle, VFD_CMD_DISPLAY_TIMING, 7) != ESP_OK ||
-       vfd_write_command_with_data_byte(handle, VFD_CMD_DIM, (uint8_t)VFD_DEFAULT_DIMMING) != ESP_OK ||
+       vfd_write_command_with_data_byte(handle, VFD_CMD_DIM, (uint8_t)VFD_CONFIG_DEFAULT_DIMMING) != ESP_OK ||
        vfd_write_command_with_data_byte(handle, VFD_CMD_BKLIGHT_ON, 0) != ESP_OK 
     ) {
         ESP_LOGE(VFD_TAG, "Error writing initialisation commands");
@@ -155,7 +198,7 @@ static esp_err_t vfd_init_commands(VFD_HANDLE handle) {
 
 #ifdef DEBUG_MODE
     for(uint8_t i=0; i < VFD_SEGMENTS; i++) {
-        err = vfd_write_command_with_data_byte(handle, (DCRAM_DATA_WRITE|i), (0x41+i));
+        err = vfd_write_command_with_data_byte(handle, (VFD_CMD_DCRAM_DATA_WRITE|i), (0x41+i));
         if(err) {
             ESP_LOGE(VFD_TAG, "Error writing test data [%u]", err);
             break;
@@ -176,7 +219,7 @@ static esp_err_t vfd_init_commands(VFD_HANDLE handle) {
     vTaskDelay(3000);
 
     vfd_set_current_cgram_page(handle, &var);
-    vfd_write_custom_segment(handle, &test_char_data[0]);
+    vfd_load_custom_segment(handle, &test_char_data[0]);
 
     vfd_clear_all_segments(handle);
     vfd_display_custom_segment(handle, &var);
@@ -220,6 +263,8 @@ VFD_HANDLE vfd_init(VFD_HANDLE handle, vfd_init_t *init)
         handle->rst_pin = init->rst_pin;
         handle->spi_bus = init->spi_bus;
         handle->spi_handle = dev_handle;
+        handle->brightness = VFD_CONFIG_DEFAULT_DIMMING;
+        handle->cgram_page = 0;
     }
 
     if(!err) {
@@ -516,7 +561,7 @@ esp_err_t vfd_display_custom_segment(VFD_HANDLE dev, uint8_t *segment) {
 }
 
 
-esp_err_t vfd_write_custom_segment(VFD_HANDLE dev, uint8_t *data) {
+esp_err_t vfd_load_custom_segment(VFD_HANDLE dev, uint8_t *data) {
     /** expects a pointer to a 5 element array
      *  characters are written by column, expect 1 bit to be
      *  lost. Assume MSB but might be LSB. Will find out soon
@@ -602,4 +647,13 @@ esp_err_t vfd_copy_string(VFD_HANDLE dev, char *input) {
 
     return ESP_OK;
 
+}
+
+
+esp_err_t vfd_set_backlight_on(VFD_HANDLE dev) {
+    return vfd_write_command_with_data_byte(dev, VFD_CMD_BKLIGHT_ON, 0);
+}
+
+esp_err_t vfd_set_backlight_off(VFD_HANDLE dev) {
+    return vfd_write_command_with_data_byte(dev, VFD_CMD_BKLIGHT_OFF, 0);
 }

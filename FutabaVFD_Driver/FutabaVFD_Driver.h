@@ -19,6 +19,15 @@
 #include "driver/gpio.h"
 #include "driver/spi_master.h"
 
+#ifdef CONFIG_USE_PERIPH_MANAGER
+
+#include "PeripheralManager.h"
+#define vfd_parameter_len 15
+const parameter_t vfd_parameter_map[vfd_parameter_len];
+const peripheral_t vfd_periph_template;
+
+#endif /** CONFIG_USE_PERIPH_MANAGER **/
+
 /********* Definitions *****************/
 
 #define VFD_COMMAND_LEN         2
@@ -33,19 +42,12 @@
 
 #define VFD_MAX_DATA_LEN 16
 
-#define DCRAM_DATA_WRITE 0x20
-#define DGRAM_DATA_CLAER 0x10
-#define CGRAM_DATA_WRITE 0x40
-#define SET_DISPLAY_TIMING 0xE0
-#define SET_DIMMING_DATA 0xE4
-#define SET_DISPLAT_LIGHT_ON 0xE8
-#define SET_DISPLAT_LIGHT_OFF 0xEA
-#define SET_STAND_BY_MODE 0xEC
-
-
-#define VFD_DEFAULT_DIMMING 50
+#define VFD_CONFIG_DEFAULT_DIMMING 50
 #define VFD_CONFIG_MAX_BRIGHTNESS 255 /** no idea about this **/
 #define VFD_NUM_CGRAM_PAGES 18   /** I have no idea if this is correct **/
+
+
+
 
 
 typedef enum {
@@ -177,7 +179,7 @@ esp_err_t vfd_get_current_cgram_page(VFD_HANDLE dev, uint8_t *page);
 
 esp_err_t vfd_display_custom_segment(VFD_HANDLE dev, uint8_t *segment);
 
-esp_err_t vfd_write_custom_segment(VFD_HANDLE dev, uint8_t *data);
+esp_err_t vfd_load_custom_segment(VFD_HANDLE dev, uint8_t *data);
 
 esp_err_t vfd_write_segment(VFD_HANDLE dev, uint8_t *segment);
 
@@ -189,5 +191,8 @@ esp_err_t vfd_clear_all_segments(VFD_HANDLE dev);
 
 esp_err_t vfd_copy_string(VFD_HANDLE dev, char *input);
 
+esp_err_t vfd_set_backlight_on(VFD_HANDLE dev);
+
+esp_err_t vfd_set_backlight_off(VFD_HANDLE dev);
 
 #endif /* VFD_DRIVER_H */
