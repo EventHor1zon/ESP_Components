@@ -45,53 +45,60 @@ void pushbutton_isr(void *args)
 {
     BTN_DEV btnData = (buttonData_t *)args;
     BaseType_t pdHigherPrioWoken;
-    uint32_t notification = 0;
-    uint8_t pinLevel = 0;
-
-    pinLevel = gpio_get_level(btnData->btn_pin);
-    btnData->btnState = pinLevel;
 
     /** check debounce **/
     if (btnData->btn_debounce_en && btnData->btnDebounceState == 0)
     {
-        if (pinLevel)
-        { /** found a rising edge **/
-            notification |= (NOTIFY_BTN_UP);
-            xTaskNotifyFromISR(btnData->parentTask, notification, eSetValueWithOverwrite, &pdHigherPrioWoken);
-        }
-        else
-        {
-            notification |= (NOTIFY_BTN_DWN);
-            xTaskNotifyFromISR(btnData->parentTask, notification, eSetValueWithOverwrite, &pdHigherPrioWoken);
-        }
+        /** restart debounce timer & set debounce state **/
+        xTimerStartFromISR(btnData->debounceTimer, &pdHigherPrioWoken);
+        btnData->btnDebounceState = 1;
 
-        /* enable the debounce */
-        if (btnData->btn_debounce_en)
-        {
-            /** start timer, set debounce state **/
-            xTimerStartFromISR(btnData->debounceTimer, &pdHigherPrioWoken);
-            btnData->btnDebounceState = 1;
-        }
-
+        /** update the button details **/
         btnData->btnCount = INCREMENT_TO_MAX(btnData->btnCount, UINT16_MAX);
+
+        /** send the notify using the button handle as the argument **/
+        xTaskNotifyFromISR(btn_task_handle, args, eSetValueWithOverwrite, &pdHigherPrioWoken);
     }
 
     portYIELD_FROM_ISR();
 };
 
 
+void debounceExpireCallback(TimerHandle_t xTimer)
+{
+    BTN_DEV btn = (buttonData_t *)pvTimerGetTimerID(xTimer);
+    if(btn == NULL) {
+        ESP_LOGE("BTN", "That didn't work!");
+    }
+    else {
+        btn->btnDebounceState = false;
+    }
+}
+
+
 static void btn_driver_task(void *args) {
  
-    BTN_DEV btn = (buttonData_t *)args;
-    uint32_t notify = 0;
+    uint32_t source = 0;
+
+    BTN_DEV btn;
+    uint8_t pinLevel = 0;
+
 
     while(1) {
         /** wait forever for a notification **/
-        xTaskNotifyWait(ULONG_MAX, ULONG_MAX, &notify, portMAX_DELAY);
+        xTaskNotifyWait(0, ULONG_MAX, &source, portMAX_DELAY);
 
-        ESP_LOGI("BTN Driver", "Received a task notification - value [0x%08x] (db state: %u)", notify, btn->btnDebounceState);
+        btn = (BTN_DEV)source;
+
+        if(btn == NULL) {
+            ESP_LOGE("BTN", "Error, invalid source value 0x%08x", source);
+        }
+        else {
+            pinLevel = gpio_get_level(btn->btn_pin);
+            btn->btn_state = pinLevel;
+        }
     
-        if(notify & NOTIFY_BTN_DWN) {
+        if(btn->btn_state == 0) {
             if(btn->btn_setting == BTN_CONFIG_ACTIVELOW || 
                 btn->btn_setting == BTN_CONFIG_ACTIVELOW_PULLUP) {
 #ifdef CONFIG_USE_EVENTS
@@ -103,11 +110,10 @@ static void btn_driver_task(void *args) {
 #endif /** CONFIG_USE_EVENTS **/
             }
         }
-        else if (notify & NOTIFY_BTN_UP) {
+
+        else if (btn->btn_state == 1) {
             if(btn->btn_setting == BTN_CONFIG_ACTIVEHIGH || 
                 btn->btn_setting == BTN_CONFIG_ACTIVEHIGH_PULLDOWN) {
-                    
-
 #ifdef CONFIG_USE_EVENTS
                 if(btn->loop != NULL) {
                     uint32_t id = BTN_EVENT_BTNUP;
@@ -117,24 +123,14 @@ static void btn_driver_task(void *args) {
 #endif /** CONFIG_USE_EVENTS **/
             }
         }
+
     }
    /** here be dragons **/
 
 }
 
 
-void debounceExpireCallback(TimerHandle_t xTimer)
-{
-    printf("debounce timer expired\n");
 
-    BTN_DEV btn = (buttonData_t *)pvTimerGetTimerID(xTimer);
-    if(btn == NULL) {
-        ESP_LOGE("BTN", "That didn't work!");
-    }
-    else {
-        btn->btnDebounceState = false;
-    }
-}
 
 /****** Private Functions *************/
 
@@ -229,7 +225,7 @@ BTN_DEV pushbutton_init(BTN_DEV btn, pushbtn_init_t *init)
 
     if(initStatus == ESP_OK && btn_task_handle == NULL) {
         /** only start one instance of the task **/
-        if(xTaskCreate(btn_driver_task, "btn_driver_task", 2048, btn, 3, &btn_task_handle) != pdTRUE) {
+        if(xTaskCreate(btn_driver_task, "btn_driver_task", 2048, NULL, 3, &btn_task_handle) != pdTRUE) {
             ESP_LOGE("BTN Driver", "Error starting driver task");
             initStatus = ESP_ERR_NO_MEM;
         }
@@ -250,26 +246,26 @@ BTN_DEV pushbutton_init(BTN_DEV btn, pushbtn_init_t *init)
     return btn;
 }
 
-esp_err_t pushBtn_getButtonState(uint8_t *state)
+esp_err_t pushBtn_getButtonState(BTN_DEV btn, uint8_t *state)
 {
-    *state = (uint8_t)btnData.btnState;
+    *state = btn->btn_state;
     return ESP_OK;
 }
 
-esp_err_t pushBtn_getButtonPressT(uint32_t *btnPressT)
+esp_err_t pushBtn_getButtonPressT(BTN_DEV btn, uint32_t *btnPressT)
 {
-    *btnPressT = btnData.tBtnPress;
+    *btnPressT = btn->tBtnPress;
     return ESP_OK;
 }
 
-esp_err_t pushBtn_sedebounce_timeTime(uint16_t dbTime)
+esp_err_t pushbutton_set_debounce_time(BTN_DEV btn, uint16_t dbTime)
 {
-    btnData.debounce_time = dbTime;
+    btn->debounce_time = dbTime;
     return ESP_OK;
 }
 
-esp_err_t pushBtn_setHalfPressNotify(bool state)
+esp_err_t pushbutton_set_half_interrupt(BTN_DEV btn, bool state)
 {
-    btnData.halfBtnInterrupt = state;
+    btn->halfBtnInterrupt = state;
     return ESP_OK;
 }

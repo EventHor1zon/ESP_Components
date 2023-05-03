@@ -67,7 +67,7 @@ typedef struct buttonData
 {
     bool btn_debounce_en; /** < bool btn_debounce_en: enable to button debounce **/
     bool btnDebounceState;  /** < bool btnDebounceState: button debounce state **/
-    bool btnState;          /** < bool btnState: current state of button (ie pin state) **/
+    bool btn_state;          /** < bool btn_state: current state of button (ie pin state) **/
     bool alertBtn;          /** < bool alertBtn: send task notification if button pressed - default on with parentTask **/
     bool halfBtnInterrupt;  /** < send the notify on each edge change, rather than whole button cycle */
 
