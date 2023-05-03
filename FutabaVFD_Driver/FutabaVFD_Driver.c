@@ -92,7 +92,7 @@ const peripheral_t vfd_periph_template = {
     .handle = NULL,
     .param_len = vfd_parameter_len,
     .params = vfd_parameter_map,
-    .periph_type = "VFD Display",
+    .peripheral_name = "VFD Display",
     .peripheral_id = 0,
     .periph_type = PTYPE_DISPLAY
 };
@@ -205,24 +205,6 @@ static esp_err_t vfd_init_commands(VFD_HANDLE handle) {
         }
     }
 #endif /** DEBUG_MODE **/
-
-    vTaskDelay(pdMS_TO_TICKS(1000));
-
-    vfd_copy_string(handle, "Hello");
-    vfd_write_all_segments(handle);
-
-    vTaskDelay(pdMS_TO_TICKS(1000));
-
-    vfd_copy_string(handle, "World!");
-    vfd_write_all_segments(handle);
-
-    vTaskDelay(3000);
-
-    vfd_set_current_cgram_page(handle, &var);
-    vfd_load_custom_segment(handle, &test_char_data[0]);
-
-    vfd_clear_all_segments(handle);
-    vfd_display_custom_segment(handle, &var);
 
     return err;
 }
