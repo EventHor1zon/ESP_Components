@@ -65,7 +65,7 @@ typedef struct VFD_Init
 {
     /* data */
     uint8_t spi_bus;
-    uint16_t clock_speed;
+    uint32_t clock_speed;
     gpio_num_t cs_pin;
     gpio_num_t rst_pin;
 } vfd_init_t;
