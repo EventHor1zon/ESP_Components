@@ -34,24 +34,25 @@
 /****** Private Data ******************/
 
 static buttonData_t btnData;
+static TaskHandle_t btn_task_handle = NULL;
 
 const char *BTN_TAG = "Push Button Driver";
 static void btn_driver_task(void *args);
 
 /************ ISR *********************/
 
-void pushBtn_Isr(void *args)
+void pushbutton_isr(void *args)
 {
     BTN_DEV btnData = (buttonData_t *)args;
     BaseType_t pdHigherPrioWoken;
     uint32_t notification = 0;
     uint8_t pinLevel = 0;
 
-    pinLevel = gpio_get_level(btnData->btnPin);
+    pinLevel = gpio_get_level(btnData->btn_pin);
     btnData->btnState = pinLevel;
 
     /** check debounce **/
-    if (btnData->btnDebounceEnable && btnData->btnDebounceState == 0)
+    if (btnData->btn_debounce_en && btnData->btnDebounceState == 0)
     {
         if (pinLevel)
         { /** found a rising edge **/
@@ -65,7 +66,7 @@ void pushBtn_Isr(void *args)
         }
 
         /* enable the debounce */
-        if (btnData->btnDebounceEnable)
+        if (btnData->btn_debounce_en)
         {
             /** start timer, set debounce state **/
             xTimerStartFromISR(btnData->debounceTimer, &pdHigherPrioWoken);
@@ -140,45 +141,64 @@ void debounceExpireCallback(TimerHandle_t xTimer)
 /****** Global Data *******************/
 
 /****** Global Functions *************/
-BTN_DEV pushBtn_Init(gpio_num_t btnPin, btn_config_t btnConfig, esp_event_loop_handle_t event_loop)
+#ifdef CONFIG_DRIVERS_USE_HEAP
+BTN_DEV pushbutton_init(pushbtn_init_t *init)
+#else
+BTN_DEV pushbutton_init(BTN_DEV btn, pushbtn_init_t *init)
+#endif
 {
 
     esp_err_t initStatus = 0;
     gpio_config_t pinConfig = {0};
 
+#ifdef CONFIG_DRIVERS_USE_HEAP
     BTN_DEV btn = heap_caps_calloc(1, sizeof(buttonData_t), MALLOC_CAP_DEFAULT);
     if(btn == NULL) {
         ESP_LOGE("BTN DRIVER", "Error assigning struct memory");
         initStatus = ESP_ERR_NO_MEM;
     }
+#else
+    memset(btn, 0, sizeof(buttonData_t));
+#endif
 
-    switch (btnConfig)
-    {
-        case BTN_CONFIG_ACTIVELOW:
-        case BTN_CONFIG_ACTIVEHIGH:
-            pinConfig.pull_down_en = 0;
-            pinConfig.pull_up_en = 0;
-            break;
-
-        case BTN_CONFIG_ACTIVELOW_PULLUP:
-            pinConfig.pull_down_en = 0;
-            pinConfig.pull_up_en = 1;
-            break;
-
-        case BTN_CONFIG_ACTIVEHIGH_PULLDOWN:
-            pinConfig.pull_down_en = 1;
-            pinConfig.pull_up_en = 0;
-            break;
-        default:
-            ESP_LOGE(BTN_TAG, "Error: Invalid button config");
-            initStatus = ESP_ERR_INVALID_ARG;
+    if(initStatus == ESP_OK) {
+        btn->btn_debounce_en = true;
+        btn->debounce_time = BTN_DEFAULT_DEBOUNCE_T;
+        btn->btn_pin = init->btn_pin;
+#ifdef CONFIG_USE_EVENTS
+        btn->loop = init->event_loop;
+#endif
     }
-    pinConfig.mode = GPIO_MODE_INPUT;
-    pinConfig.pin_bit_mask = (1 << btnPin); /** set unused pins to 0 **/
-    pinConfig.intr_type = GPIO_INTR_ANYEDGE;
 
-    if (initStatus == ESP_OK)
-    {
+    if(initStatus == ESP_OK) {
+        switch (init->btn_config)
+        {
+            case BTN_CONFIG_ACTIVELOW:
+            case BTN_CONFIG_ACTIVEHIGH:
+                pinConfig.pull_down_en = 0;
+                pinConfig.pull_up_en = 0;
+                break;
+
+            case BTN_CONFIG_ACTIVELOW_PULLUP:
+                pinConfig.pull_down_en = 0;
+                pinConfig.pull_up_en = 1;
+                break;
+
+            case BTN_CONFIG_ACTIVEHIGH_PULLDOWN:
+                pinConfig.pull_down_en = 1;
+                pinConfig.pull_up_en = 0;
+                break;
+            default:
+                ESP_LOGE(BTN_TAG, "Error: Invalid button config");
+                initStatus = ESP_ERR_INVALID_ARG;
+        }
+    }
+
+    if(initStatus == ESP_OK) {
+        pinConfig.mode = GPIO_MODE_INPUT;
+        pinConfig.pin_bit_mask = (1 << init->btn_pin); /** set unused pins to 0 **/
+        pinConfig.intr_type = GPIO_INTR_ANYEDGE;
+
         initStatus = gpio_config(&pinConfig);
         if(initStatus)
         {
@@ -188,7 +208,7 @@ BTN_DEV pushBtn_Init(gpio_num_t btnPin, btn_config_t btnConfig, esp_event_loop_h
 
     if (initStatus == ESP_OK)
     {
-        initStatus = gpio_isr_handler_add(btnPin, pushBtn_Isr, btn);
+        initStatus = gpio_isr_handler_add(btn->btn_pin, pushbutton_isr, btn);
         if(initStatus)
         {
             ESP_LOGE(BTN_TAG, "Error asssigning isr handler %08x", initStatus);
@@ -199,17 +219,17 @@ BTN_DEV pushBtn_Init(gpio_num_t btnPin, btn_config_t btnConfig, esp_event_loop_h
     if (initStatus == ESP_OK)
     {
         /** initialise the btnData struct **/
-
-        TimerHandle_t timerHandle = xTimerCreate("btnDebounceTmr", pdMS_TO_TICKS(BTN_DEFAULT_DEBOUNCE_T), pdFALSE, btn, &debounceExpireCallback);
-        btn->debounceTimer = timerHandle;
-        btn->btnDebounceEnable = true;
-        btn->tDebounce = BTN_DEFAULT_DEBOUNCE_T;
-        btn->btnPin = btnPin;
-        btn->loop = event_loop;
+        btn->debounceTimer = xTimerCreate("btnDebounceTmr", pdMS_TO_TICKS(BTN_DEFAULT_DEBOUNCE_T), pdFALSE, btn, &debounceExpireCallback);
+        if(btn->debounceTimer == NULL)
+        {
+            initStatus = ESP_ERR_NO_MEM;
+            ESP_LOGE(BTN_TAG, "Error asssigning button timer %08x", initStatus);
+        }
     }
 
-    if(initStatus == ESP_OK) {
-        if(xTaskCreate(btn_driver_task, "btn_driver_task", 2048, btn, 3, &(btn->parentTask)) != pdTRUE) {
+    if(initStatus == ESP_OK && btn_task_handle == NULL) {
+        /** only start one instance of the task **/
+        if(xTaskCreate(btn_driver_task, "btn_driver_task", 2048, btn, 3, &btn_task_handle) != pdTRUE) {
             ESP_LOGE("BTN Driver", "Error starting driver task");
             initStatus = ESP_ERR_NO_MEM;
         }
@@ -220,9 +240,11 @@ BTN_DEV pushBtn_Init(gpio_num_t btnPin, btn_config_t btnConfig, esp_event_loop_h
     }
     else {
         ESP_LOGE("BTN Driver", "Failed to start button driver!");
+#ifdef CONFIG_DRIVERS_USE_HEAP
         if(btn != NULL) {
             heap_caps_free(btn);
         }
+#endif /**CONFIG_DRIVERS_USE_HEAP **/
     }
 
     return btn;
@@ -240,9 +262,9 @@ esp_err_t pushBtn_getButtonPressT(uint32_t *btnPressT)
     return ESP_OK;
 }
 
-esp_err_t pushBtn_setDebounceTime(uint16_t dbTime)
+esp_err_t pushBtn_sedebounce_timeTime(uint16_t dbTime)
 {
-    btnData.tDebounce = dbTime;
+    btnData.debounce_time = dbTime;
     return ESP_OK;
 }
 
