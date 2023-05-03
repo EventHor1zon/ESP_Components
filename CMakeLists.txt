@@ -14,7 +14,7 @@ set(srcs
     # "LSM_Driver/LSM_Driver.c"
     # "Max30102_Driver/Max30102_Driver.c"
     # "MSGEQ7_Driver/MSGEQ7_Driver.c"
-    # "PushButton_Driver.c"
+    "Pushbutton_Driver/PushButton_Driver.c"
     # "RotaryEncoder_Driver.c"
     # "SSD1306_Driver/SSD1306_Driver.c"
     # "ST7735_Screen.c"

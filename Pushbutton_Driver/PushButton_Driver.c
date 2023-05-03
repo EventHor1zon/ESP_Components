@@ -94,36 +94,37 @@ static void btn_driver_task(void *args) {
             ESP_LOGE("BTN", "Error, invalid source value 0x%08x", source);
         }
         else {
+            /** get button state **/
             pinLevel = gpio_get_level(btn->btn_pin);
             btn->btn_state = pinLevel;
-        }
-    
-        if(btn->btn_state == 0) {
-            if(btn->btn_setting == BTN_CONFIG_ACTIVELOW || 
-                btn->btn_setting == BTN_CONFIG_ACTIVELOW_PULLUP) {
-#ifdef CONFIG_USE_EVENTS
-                if(btn->loop != NULL) {
-                    uint32_t id = BTN_EVENT_BTNDOWN;
-                    ESP_LOGI("BTN", "Sending a btn down event (%u | 0x%08x)", id, id);
-                    esp_event_post_to(btn->loop, PM_EVENT_BASE, id, NULL, 0, pdMS_TO_TICKS(10));
+            
+            /** falling interrupt **/
+            if(btn->btn_state == 0) {
+                if(btn->btn_setting == BTN_CONFIG_ACTIVELOW || 
+                    btn->btn_setting == BTN_CONFIG_ACTIVELOW_PULLUP) {
+    #ifdef CONFIG_USE_EVENTS
+                    if(btn->loop != NULL) {
+                        uint32_t id = BTN_EVENT_BTNDOWN;
+                        ESP_LOGI("BTN", "Sending a btn down event (%u | 0x%08x)", id, id);
+                        esp_event_post_to(btn->loop, PM_EVENT_BASE, id, NULL, 0, pdMS_TO_TICKS(10));
+                    }
+    #endif /** CONFIG_USE_EVENTS **/
                 }
-#endif /** CONFIG_USE_EVENTS **/
+            }
+            /** rising interrupt **/
+            else if (btn->btn_state == 1) {
+                if(btn->btn_setting == BTN_CONFIG_ACTIVEHIGH || 
+                    btn->btn_setting == BTN_CONFIG_ACTIVEHIGH_PULLDOWN) {
+    #ifdef CONFIG_USE_EVENTS
+                    if(btn->loop != NULL) {
+                        uint32_t id = BTN_EVENT_BTNUP;
+                        ESP_LOGI("BTN", "Sending a btn up event  (%u | 0x%08x)", id, id);
+                        esp_event_post_to(btn->loop, PM_EVENT_BASE, id, NULL, 0, pdMS_TO_TICKS(10));
+                    }
+    #endif /** CONFIG_USE_EVENTS **/
+                }
             }
         }
-
-        else if (btn->btn_state == 1) {
-            if(btn->btn_setting == BTN_CONFIG_ACTIVEHIGH || 
-                btn->btn_setting == BTN_CONFIG_ACTIVEHIGH_PULLDOWN) {
-#ifdef CONFIG_USE_EVENTS
-                if(btn->loop != NULL) {
-                    uint32_t id = BTN_EVENT_BTNUP;
-                    ESP_LOGI("BTN", "Sending a btn up event  (%u | 0x%08x)", id, id);
-                    esp_event_post_to(btn->loop, PM_EVENT_BASE, id, NULL, 0, pdMS_TO_TICKS(10));
-                }
-#endif /** CONFIG_USE_EVENTS **/
-            }
-        }
-
     }
    /** here be dragons **/
 
@@ -192,9 +193,8 @@ BTN_DEV pushbutton_init(BTN_DEV btn, pushbtn_init_t *init)
 
     if(initStatus == ESP_OK) {
         pinConfig.mode = GPIO_MODE_INPUT;
-        pinConfig.pin_bit_mask = (1 << init->btn_pin); /** set unused pins to 0 **/
+        pinConfig.pin_bit_mask = (1 << init->btn_pin);
         pinConfig.intr_type = GPIO_INTR_ANYEDGE;
-
         initStatus = gpio_config(&pinConfig);
         if(initStatus)
         {
@@ -245,6 +245,7 @@ BTN_DEV pushbutton_init(BTN_DEV btn, pushbtn_init_t *init)
 
     return btn;
 }
+
 
 esp_err_t pushBtn_getButtonState(BTN_DEV btn, uint8_t *state)
 {
