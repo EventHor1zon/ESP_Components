@@ -345,7 +345,6 @@ typedef struct bm_controlData
     bm_calibrationData_t calibrationData;   /**< the device calibrationdata **/
     bm_sensorData_t sensorData;             /**< the device sensor data **/
     bm_deviceSettings_t devSettings;        /**< the device settings **/
-    bm_initData_t *initData;                /**< pointer to the init data **/
 
     uint8_t peripheralID;                   /**< the periph_id **/
     uint8_t deviceAddress;                  /**< the device's I2C address **/
@@ -378,7 +377,12 @@ typedef bm_controlData_t * BM_DEV;
  *  \param initData - of type bm_initData_t, initial device settings
  *  \return pointer to device handle, or NULL
 */
-BM_DEV bm280_init(bm_initData_t *initData);
+#ifdef CONFIG_DRIVERS_USE_HEAP
+BM_DEV bm280_init(bm_initData_t *initData)
+#else
+BM_DEV bm280_init(BM_DEV bmCtrl, bm_initData_t *initData)
+#endif
+
 
 /** \brief getSampleInterval - returns the sample interval. Matters in 
  *          auto mode only. See enum bm_standbyT_t for int > time

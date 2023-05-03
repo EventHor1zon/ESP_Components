@@ -283,21 +283,17 @@ static esp_err_t bm280_getCalibrationData(BM_DEV bmCtrl)
 }
 
 
-/** TODO: Refactor init function to bring inline with other drivers */
-
 static esp_err_t bm280_InitDeviceSettings(BM_DEV bmCtrl)
 {
 
     esp_err_t trxStatus = ESP_OK;
-    uint8_t sampleMode = bmCtrl->initData->sampleMode;
-    uint8_t sampleType = bmCtrl->initData->sampleType;
 
     uint8_t commands[BM_CONFIG_WRITE_LEN] = {0};
 
     /* put the device in sleep mode */
     gcd_i2c_write_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, commands);
 
-    switch (sampleMode)
+    switch (bmCtrl->devSettings.sampleMode)
     {
     case BM_SAMPLE_OFF:
         break;
@@ -320,7 +316,7 @@ static esp_err_t bm280_InitDeviceSettings(BM_DEV bmCtrl)
         uint8_t ids[3] = {0};
         uint8_t sz = 0;
 
-        switch(sampleType) {
+        switch(bmCtrl->devSettings.sampleType) {
             case BM_MODE_TEMP:
                 sz = 1;
                 names[0] = n[0];
@@ -366,7 +362,7 @@ static esp_err_t bm280_InitDeviceSettings(BM_DEV bmCtrl)
         }
     }
 
-    switch (sampleType)
+    switch (bmCtrl->devSettings.sampleType)
     {
     case BM_MODE_TEMP:
         commands[0] |= BM_CTRL_TEMP_BIT;
@@ -402,8 +398,6 @@ static esp_err_t bm280_InitDeviceSettings(BM_DEV bmCtrl)
     {
         bmCtrl->sampleMask = commands[0];
         bmCtrl->configMask = commands[1];
-        bmCtrl->devSettings.sampleMode = sampleMode;
-        bmCtrl->devSettings.sampleType = sampleType;
     }
 
     return trxStatus;
@@ -423,10 +417,7 @@ esp_err_t bm280_getDeviceID(BM_DEV bmCtrl, uint8_t *deviceID)
     {
         *deviceID = devID;
     }
-    else
-    {
-        printf("txStatus = %d", trxStatus);
-    }
+
     return trxStatus;
 }
 
@@ -437,6 +428,8 @@ esp_err_t bm280_updateMeasurements(BM_DEV bmCtrl)
     esp_err_t trxStatus = ESP_OK;
     uint8_t forcedMeasure = bmCtrl->sampleMask | BM_CTRL_MODE_FORCED;
     uint8_t rxBuffer[BM_MEASURE_READ_LEN] = {0};
+    uint8_t reg = 0;
+    uint8_t retries = 10;
 
     float temp[4] = {0};
 
@@ -453,17 +446,20 @@ esp_err_t bm280_updateMeasurements(BM_DEV bmCtrl)
         vTaskDelay(pdMS_TO_TICKS(wait_new_sample));
 
         /** check sample finished **/
-        uint8_t reg = 0;
-        if (gcd_i2c_read_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_DEV_STATUS, 1, &reg) & BM_STATUS_MEASURE_MASK)
-        {
-            while (gcd_i2c_read_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_DEV_STATUS, 1, &reg) & BM_STATUS_MEASURE_MASK)
-            {
-                vTaskDelay(pdMS_TO_TICKS(wait_sample_fin));
-            }
+        trxStatus = gcd_i2c_read_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_DEV_STATUS, 1, &reg);
+
+        while (reg & BM_STATUS_MEASURE_MASK && trxStatus == ESP_OK && retries > 0) {
+            trxStatus = gcd_i2c_read_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_DEV_STATUS, 1, &reg);
+            vTaskDelay(pdMS_TO_TICKS(wait_sample_fin));
+            retries--;
         }
     }
 
-    trxStatus = gcd_i2c_read_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_PRESSURE_MSB, (uint16_t)BM_MEASURE_READ_LEN, rxBuffer);
+    if (trxStatus == ESP_OK)
+    {   
+        /** Read the fifo **/
+        trxStatus = gcd_i2c_read_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_PRESSURE_MSB, (uint16_t)BM_MEASURE_READ_LEN, rxBuffer);
+    }
 
     if (trxStatus == ESP_OK)
     {
@@ -494,7 +490,6 @@ esp_err_t bm280_updateMeasurements(BM_DEV bmCtrl)
         case BM_MODE_TEMP:
             bmCtrl->sensorData.calibratedTemperature = bm280_compensate_T_int32(bmCtrl);
             bmCtrl->sensorData.realTemperature = (float)bmCtrl->sensorData.calibratedTemperature / 100.0;
-            bmCtrl->devSettings.tempOS = 1;
             if (bmCtrl->use_cbuffer) {
                 temp[0] = bmCtrl->sensorData.realTemperature;
                 cbuffer_write_packet(bmCtrl->cbuff, temp, sizeof(float));
@@ -505,8 +500,6 @@ esp_err_t bm280_updateMeasurements(BM_DEV bmCtrl)
             bmCtrl->sensorData.calibratedPressure = bm280_compensate_P_int64(bmCtrl);
             bmCtrl->sensorData.realTemperature = (float)bmCtrl->sensorData.calibratedTemperature / 100.0;
             bmCtrl->sensorData.realPressure = (float)bmCtrl->sensorData.calibratedPressure / 256;
-            bmCtrl->devSettings.tempOS = 1; /** TODO: What was I doing here? **/
-            bmCtrl->devSettings.pressOS = 1;
             if (bmCtrl->use_cbuffer) {
                 temp[0] = bmCtrl->sensorData.realTemperature;
                 temp[1] = bmCtrl->sensorData.realPressure;
@@ -519,8 +512,6 @@ esp_err_t bm280_updateMeasurements(BM_DEV bmCtrl)
             bmCtrl->sensorData.realTemperature = (float)bmCtrl->sensorData.calibratedTemperature / 100.0;
             bmCtrl->sensorData.calibratedHumidity = bm280_compensate_H_int32(bmCtrl);
             bmCtrl->sensorData.realHumidity = (float)bmCtrl->sensorData.calibratedHumidity / 1024;
-            bmCtrl->devSettings.tempOS = 1;
-            bmCtrl->devSettings.humidOS = 1;
             if (bmCtrl->use_cbuffer) {
                 temp[0] = bmCtrl->sensorData.realTemperature;
                 temp[1] = bmCtrl->sensorData.realHumidity;
@@ -534,8 +525,6 @@ esp_err_t bm280_updateMeasurements(BM_DEV bmCtrl)
             bmCtrl->sensorData.realPressure = (float)bmCtrl->sensorData.calibratedPressure / 256;
             bmCtrl->sensorData.calibratedHumidity = bm280_compensate_H_int32(bmCtrl);
             bmCtrl->sensorData.realHumidity = (float)bmCtrl->sensorData.calibratedHumidity / 1024;
-            bmCtrl->devSettings.tempOS = 1;
-            bmCtrl->devSettings.humidOS = 1;
             if (bmCtrl->use_cbuffer) {
                 temp[0] = bmCtrl->sensorData.realTemperature;
                 temp[1] = bmCtrl->sensorData.realPressure;
@@ -599,17 +588,28 @@ esp_err_t bm280_getHumidityOS(BM_DEV bmCtrl, uint8_t *humidOS)
 esp_err_t bm280_setHumidityOS(BM_DEV bmCtrl, BM_overSample_t *os)
 {
     esp_err_t status = ESP_OK;
-    uint8_t OSlevel = *os;
-    status = gcd_i2c_write_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_HUMID, 1, &OSlevel);
-    bmCtrl->devSettings.humidOS = *os;
-    if (OSlevel > 0)
-    {
-        bmCtrl->devSettings.sampleType |= BM_MODE_HUMIDITY;
+    uint8_t _os = *os;
+
+    if(_os > BM_OS_16) {
+        status = ESP_ERR_INVALID_ARG;
     }
-    else
+
+    if (status == ESP_OK && 
+        gcd_i2c_read_mod_write(bmCtrl->i2cChannel, 
+                               bmCtrl->deviceAddress, 
+                               BM_REG_ADDR_CTRL_HUMID, 
+                               _os, 
+                               0b111) == ESP_OK)
     {
-        bmCtrl->devSettings.sampleType &= ~(BM_MODE_HUMIDITY);
+        bmCtrl->devSettings.humidOS = *os;
+        if (_os > 0) {
+            BYTE_SET_BITS(bmCtrl->devSettings.sampleType, BM_MODE_HUMIDITY);
+        }
+        else {
+            BYTE_UNSET_BITS(bmCtrl->devSettings.sampleType, BM_MODE_HUMIDITY);
+        }
     }
+    
     return status;
 }
 
@@ -623,6 +623,36 @@ esp_err_t bm280_getTemperatureOS(BM_DEV bmCtrl, uint8_t *tempOS)
 }
 
 
+esp_err_t bm280_setTemperatureOS(BM_DEV bmCtrl, BM_overSample_t *os)
+{
+    esp_err_t status = ESP_OK;
+    uint8_t _os = *os;
+
+    if(_os > BM_OS_16) {
+        status = ESP_ERR_INVALID_ARG;
+    }
+
+    if (status == ESP_OK &&
+        gcd_i2c_read_mod_write(bmCtrl->i2cChannel, 
+                               bmCtrl->deviceAddress, 
+                               BM_REG_ADDR_CTRL_MEASURE, 
+                               (_os << 5), 
+                               0b11100000) == ESP_OK)
+    {
+        bmCtrl->devSettings.tempOS = _os;
+
+        if (_os > 0) {
+            BYTE_SET_BITS(bmCtrl->devSettings.sampleType, BM_MODE_TEMP);
+        }
+        else {
+            BYTE_UNSET_BITS(bmCtrl->devSettings.sampleType, BM_MODE_TEMP);
+        }
+    }
+
+    return status;
+}
+
+
 esp_err_t bm280_getPressureOS(BM_DEV bmCtrl, uint8_t *presOS)
 {
     esp_err_t status = ESP_OK;
@@ -632,55 +662,33 @@ esp_err_t bm280_getPressureOS(BM_DEV bmCtrl, uint8_t *presOS)
 }
 
 
-esp_err_t bm280_setTemperatureOS(BM_DEV bmCtrl, BM_overSample_t *os)
-{
-    esp_err_t status = ESP_OK;
-    uint8_t _os = *os;
-
-    uint8_t reg = 0;
-    status = gcd_i2c_read_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg);
-    if (status == ESP_OK)
-    {
-        reg &= 0b00011111;        /* clear the top 3 bits */
-        uint8_t level = _os << 5; /** shift level over 5 bits */
-        reg &= level;             /* set the new value in reg */
-        status = gcd_i2c_write_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg);
-    }
-    bmCtrl->devSettings.tempOS = _os;
-    if (_os > 0)
-    {
-        bmCtrl->devSettings.sampleType |= BM_MODE_TEMP;
-    }
-    else
-    {
-        bmCtrl->devSettings.sampleType &= ~(BM_MODE_TEMP);
-    }
-    return status;
-}
-
 
 esp_err_t bm280_setPressureOS(BM_DEV bmCtrl, BM_overSample_t *os)
 {
     esp_err_t status = ESP_OK;
     uint8_t _os = *os;
-    uint8_t reg = 0;
-    status = gcd_i2c_read_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg);
-    if (status == ESP_OK)
-    {
-        reg &= 0b11100011;        /* clear the mid 3 bits */
-        uint8_t level = _os << 2; /** shift level over 2 bits */
-        reg &= level;             /* set the new value in reg */
-        status = gcd_i2c_write_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg);
+
+    if(_os > BM_OS_16) {
+        status = ESP_ERR_INVALID_ARG;
     }
-    bmCtrl->devSettings.pressOS = *os;
-    if (_os > 0)
+
+    if(status == ESP_OK &&
+       gcd_i2c_read_mod_write(bmCtrl->i2cChannel, 
+                              bmCtrl->deviceAddress, 
+                              BM_REG_ADDR_CTRL_MEASURE, 
+                              (_os << 2), 
+                              0b11100) == ESP_OK)
     {
-        bmCtrl->devSettings.sampleType |= BM_MODE_PRESSURE;
+        bmCtrl->devSettings.pressOS = *os;
+        if (_os > 0) {
+            BYTE_SET_BITS(bmCtrl->devSettings.sampleType, BM_MODE_PRESSURE);
+        }
+        else {
+            BYTE_UNSET_BITS(bmCtrl->devSettings.sampleType, BM_MODE_PRESSURE);
+        }
+
     }
-    else
-    {
-        bmCtrl->devSettings.sampleType &= ~(BM_MODE_PRESSURE);
-    }
+
     return status;
 }
 
@@ -699,22 +707,19 @@ esp_err_t bm280_setSampleMode(BM_DEV bmCtrl, BM_sampleMode_t *sampleMode)
 {
     esp_err_t status = ESP_OK;
     uint8_t sm = *sampleMode;
-    ESP_LOGI(BM_DRIVER_TAG, "Got request to set mode to %u", sm);
     if(sm > 3 || sm == 2) {
-        ESP_LOGI(BM_DRIVER_TAG, "Bad value");        
+        status = ESP_ERR_INVALID_ARG;
     }
-    else {
-        uint8_t reg = 0;
-        if (gcd_i2c_read_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg) == ESP_OK)
-        {
-            reg &= 0b11111100;
-            reg |= sm;
-            printf("0x%02x", reg);
-            status = gcd_i2c_write_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CTRL_MEASURE, 1, &reg);
-        }
+    if (status == ESP_OK && 
+        gcd_i2c_read_mod_write(bmCtrl->i2cChannel, 
+                               bmCtrl->deviceAddress, 
+                               BM_REG_ADDR_CTRL_MEASURE, 
+                               sm, 
+                               0b11) == ESP_OK)
+    {
         bmCtrl->devSettings.sampleMode = sm;
-
     }
+
     return status;
 }
 
@@ -742,11 +747,18 @@ esp_err_t bm280_setFilterSetting(BM_DEV bmCtrl, bm_filter_t *filter)
     esp_err_t status = ESP_OK;
     uint8_t reg = 0;
     uint8_t f = *filter;
-    if (gcd_i2c_read_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CONFIG, 1, &reg) == ESP_OK)
+
+    if(f > BM_FILTER_16) {
+        status = ESP_ERR_INVALID_ARG;
+    }
+
+    if(status == ESP_OK && 
+        gcd_i2c_read_mod_write(bmCtrl->i2cChannel,
+                               bmCtrl->deviceAddress, 
+                               BM_REG_ADDR_CONFIG, 
+                               (f << 2), 
+                               0b111000) == ESP_OK)
     {
-        reg &= 0b11100011;
-        reg |= (f << 2);
-        status = gcd_i2c_write_address(bmCtrl->i2cChannel, bmCtrl->deviceAddress, BM_REG_ADDR_CONFIG, 1, &reg);
         bmCtrl->devSettings.filterCoefficient = f;
     }
     return status;
@@ -802,7 +814,7 @@ void bmCtrlTask(void *args)
         if (bmCtrl->devSettings.sampleMode == BM_FORCE_MODE)
         {
             /** wait for task notify  to sample**/
-            uint32_t trigd= ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(1000));
+            uint32_t trigd = ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(1000));
             if (trigd > 0) {
                 bm280_updateMeasurements(bmCtrl);
             }
@@ -839,19 +851,25 @@ void bmCtrlTask(void *args)
     }
 }
 
-
+#ifdef CONFIG_DRIVERS_USE_HEAP
 BM_DEV bm280_init(bm_initData_t *initData)
+#else
+BM_DEV bm280_init(BM_DEV bmCtrl, bm_initData_t *initData)
+#endif
 {
     esp_err_t initStatus = ESP_OK;
 
+#ifdef CONFIG_DRIVERS_USE_HEAP
     /** assign some heap memory for the control structure **/
-
     BM_DEV bmCtrl = (BM_DEV )calloc(1, sizeof(bm_controlData_t));
     if (bmCtrl == NULL)
     {
         ESP_LOGE(BM_DRIVER_TAG, "Error in assigning control structure memory!");
         initStatus = ESP_ERR_NO_MEM;
     }
+#else
+    memset(bmCtrl, 0, sizeof(bm_controlData_t));
+#endif
 
     if (initStatus == ESP_OK)
     {
@@ -860,7 +878,7 @@ BM_DEV bm280_init(bm_initData_t *initData)
         bmCtrl->devSettings.humidOS = 0;
         bmCtrl->devSettings.tempOS = 0;
         bmCtrl->devSettings.pressOS = 0;
-        bmCtrl->initData = initData;
+        bmCtrl = initData;
         bmCtrl->i2cChannel = initData->i2cChannel;
 
         if(initData->use_cbuffer && initData->cbuff != NULL) {
@@ -876,9 +894,7 @@ BM_DEV bm280_init(bm_initData_t *initData)
         {
             bmCtrl->deviceAddress = (uint8_t)BM_I2C_ADDRESS_SDLOW;
         }
-#ifdef CONFIG_USE_PERIPH_MANAGER
-        bmCtrl->peripheral_template = &bme_peripheral_template;
-#endif
+
         ESP_LOGI(BM_DRIVER_TAG, "Device address - %u", bmCtrl->deviceAddress);
     }
 
@@ -909,6 +925,7 @@ BM_DEV bm280_init(bm_initData_t *initData)
     }
 
     bm280_getDeviceStatus(bmCtrl);
+ 
     xTaskCreate(bmCtrlTask, "bmCtrlTask", 5012, (void *)bmCtrl, 3, NULL);
 
     return bmCtrl;
