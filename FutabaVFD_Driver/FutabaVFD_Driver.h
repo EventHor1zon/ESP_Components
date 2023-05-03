@@ -30,8 +30,8 @@ const peripheral_t vfd_periph_template;
 
 /********* Definitions *****************/
 
-#define VFD_COMMAND_LEN         2
 #define VFD_SEGMENTS            8
+#define VFD_COMMAND_LEN         2
 #define VFD_SEG_HEIGHT          7
 #define VFD_SEG_WIDTH           5
 
