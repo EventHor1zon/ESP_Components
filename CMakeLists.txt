@@ -20,13 +20,13 @@ set(srcs
     # "ST7735_Screen.c"
     # "VL53L0X_Driver.c"
     # "WS2812B_Driver/WS2812_Driver.c"
-    # "A4988_Driver.c"
+    "A4988_Driver/A4988_Driver.c"
     # "VEML6070_Driver.c"
     # "RGB_Driver/RGB_Driver.c"
     # "CBuffer/CircularBuffer.c"
     "FutabaVFD_Driver/FutabaVFD_Driver.c"
     # "MFRC522_Driver/MFRC522_Driver.c"
-    # "TestComponent/TestComponent.c"
+    "TestComponent/TestComponent.c"
     # "LedStrip_Driver/LedEffects.c"
      )
 

@@ -57,7 +57,7 @@ void pushbutton_isr(void *args)
         btnData->btnCount = INCREMENT_TO_MAX(btnData->btnCount, UINT16_MAX);
 
         /** send the notify using the button handle as the argument **/
-        xTaskNotifyFromISR(btn_task_handle, args, eSetValueWithOverwrite, &pdHigherPrioWoken);
+        xTaskNotifyFromISR(btn_task_handle, (uint32_t)args, eSetValueWithOverwrite, &pdHigherPrioWoken);
     }
 
     portYIELD_FROM_ISR();

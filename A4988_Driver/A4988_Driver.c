@@ -64,7 +64,7 @@ const peripheral_t a4988_periph_template = {
 /****** Private Functions *************/
 
 
-timer_isr_t pulse_timer_callback(void *args) {
+void pulse_timer_callback(void *args) {
     BaseType_t higherPrioWoken = pdFALSE;
 
     a4988_msg_t msg = {
@@ -138,11 +138,11 @@ static void a4988_driver_task(void *args) {
                 if(xTimerStop(dev->step_timer, A4988_CONFIG_SHORT_WAIT) != pdPASS || 
                 xTimerChangePeriod(dev->step_timer, dev->step_wait, A4988_CONFIG_SHORT_WAIT) != pdPASS
                 ) {
-                    ESP_LOGE(DEV_TAG, "Error changing timer period")
+                    ESP_LOGE(DEV_TAG, "Error changing timer period");
                 }
                 else {
                     if(dev->steps_queued > 0 && xTimerStart(dev->step_timer, A4988_CONFIG_SHORT_WAIT) != pdPASS) {
-                        ESP_LOGE(DEV_TAG, "Error restarting timer")                    
+                        ESP_LOGE(DEV_TAG, "Error restarting timer");                  
                     }
                 }
 
@@ -172,12 +172,11 @@ A4988_DEV a4988_init(A4988_DEV dev, a4988_init_t *init) {
 #endif
 
     esp_err_t err = ESP_OK;
-    TaskHandle_t t_handle = NULL;
     TimerHandle_t timer = NULL;
     gpio_config_t pins = {0};
 
     if(num_devices >= A4988_CONFIG_MAX_SUPPORTED_DEVICES) {
-        return ESP_ERR_NOT_SUPPORTED;
+        err = ESP_ERR_NOT_SUPPORTED;
     }
 
 #ifdef CONFIG_DRIVERS_USE_HEAP
