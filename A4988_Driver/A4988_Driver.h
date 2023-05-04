@@ -106,7 +106,6 @@ typedef struct A4988_Driver
 
     step_size_t step_size;  /**< step size setting **/
     TimerHandle_t timer;    /**< timer handle **/
-    TaskHandle_t t_handle;  /**< driver task handle **/
 
 } a4988_handle_t;
 

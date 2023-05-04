@@ -21,9 +21,13 @@
 
 const char *DEV_TAG = "A4988 Driver";
 
+/** keep the task handle static as we only instatiate it
+ * once
+ */
+static TaskHandle_t a4988_task_handle = NULL;
+
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
-
 
 const parameter_t a4988_param_map[a4988_param_len] = {
     {"step size", 1, &a4988_get_stepsize, &a4988_set_stepsize, NULL, DATATYPE_UINT8, 7, (GET_FLAG | SET_FLAG)},
@@ -71,22 +75,25 @@ void a4988_step_timer_callback(TimerHandle_t tmr) {
 static void a4988_driver_task(void *args) {
  
 
-    A4988_DEV dev = args;
     uint16_t last_t = dev->step_wait;
 
     while(1) {
 
+
+
         if(dev->steps_queued > 0) {
             /** take the queued step, then start the timer & wait for notify **/
+#ifdef DEBUG_MODE
             ESP_LOGI(DEV_TAG, "Stepping... (steps in queue: %u)", dev->steps_queued);
+#endif
             a4988_step(dev);
             if(last_t != dev->step_wait) {
-                if(xTimerChangePeriod(dev->timer, pdMS_TO_TICKS(dev->step_wait), portMAX_DELAY) == pdFAIL) {
+                if(xTimerChangePeriod(dev->step_timer, pdMS_TO_TICKS(dev->step_wait), portMAX_DELAY) == pdFAIL) {
                     ESP_LOGE(DEV_TAG, "Error changing timer freq");
                 }
                 last_t = dev->step_wait;
             }
-            if(xTimerStart(dev->timer, 0) != pdPASS) {
+            if(xTimerStart(dev->step_timer, 0) != pdPASS) {
                 ESP_LOGE(DEV_TAG, "Error starting timer");
             }
             ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
@@ -205,17 +212,17 @@ A4988_DEV a4988_init(A4988_DEV dev, a4988_init_t *init) {
                     gpio_set_level(dev->ms1, 0);
                     gpio_set_level(dev->ms2, 0);
                     gpio_set_level(dev->ms3, 0);
+                    dev->step_size = 0;
                 }
             }
         }
     }
 
-    if(!err && xTaskCreate(a4988_driver_task, "a4988_driver_task", 5012, (void *)dev, 3, &t_handle) != pdTRUE) {
-        ESP_LOGE(DEV_TAG, "Error starting dev task!");
-        err = ESP_ERR_NO_MEM;
-    }
-    else {
-        dev->t_handle = t_handle;
+    if(!err) {
+        if(a4988_task_handle == NULL && xTaskCreate(a4988_driver_task, "a4988_driver_task", 5012, (void *)dev, 3, &t_handle) != pdTRUE) {
+            ESP_LOGE(DEV_TAG, "Error starting dev task!");
+            err = ESP_ERR_NO_MEM;
+        }
     }
 
     if(!err ) {
@@ -225,7 +232,7 @@ A4988_DEV a4988_init(A4988_DEV dev, a4988_init_t *init) {
             err = ESP_ERR_NO_MEM;
         }
         else {
-            dev->timer = timer;
+            dev->step_timer = timer;
         }
     }
 
@@ -375,7 +382,9 @@ esp_err_t a4988_get_direction(A4988_DEV dev, bool *dir) {
 }
 
 esp_err_t a4988_set_direction(A4988_DEV dev, bool *dir) {
-
+    /** TODO: don't check for existing direction here in case
+     *  driver ends up in unknown state or something weird
+     *  **/
     uint8_t val = *dir;
     if((val && !(dev->direction)) || (!(val) && dev->direction)) {
         gpio_set_level(dev->dir, (uint32_t )val);
