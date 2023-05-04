@@ -47,6 +47,10 @@ const peripheral_t a4988_periph_template;
 #define A4988_CONFIG_MAX_SUPPORTED_DEVICES  4
 #define A4988_CONFIG_QUEUE_LEN  8
 #define A4988_CONFIG_PULSE_LEN  100 /** pulse length in microseconds **/
+#define A4988_CONFIG_SHORT_WAIT pdMS_TO_TICKS(10)
+
+#define TIMER_GRP_FROM_INDEX(i) (i >> 1)
+#define TIMER_ID_FROM_INDEX(i) (i & 1)
 
 /** @enum step_size_t 
  *  @brief Defines the step size types **/

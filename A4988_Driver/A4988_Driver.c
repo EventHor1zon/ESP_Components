@@ -78,40 +78,81 @@ timer_isr_t pulse_timer_callback(void *args) {
 
 
 void a4988_step_timer_callback(TimerHandle_t tmr) {
-
-    A4988_DEV dev = pvTimerGetTimerID(tmr);
     BaseType_t higherPrioWoken = pdFALSE;
-    xTaskNotifyGive(dev->t_handle);
+    A4988_DEV dev = pvTimerGetTimerID(tmr);
+    a4988_msg_t msg = {
+        .cmd = A4988_CMD_STEP_TMR,
+        .dev = dev
+    };
+
+    xQueueSendFromISR(a4988_cmd_queue, &msg, &higherPrioWoken);
+
     return;
 } 
 
 
+/**
+ * @brief driver task. Runs a single instance which controls multiple devices
+ *  keep the code here nice and fast, no delays. Just resetting timers etc.
+ *  Waits on message from the command queue and takes the appropriate action.
+ * 
+ * @param args - unused
+ * @return ** void 
+ */
 static void a4988_driver_task(void *args) {
- 
 
-    uint16_t last_t = dev->step_wait;
+    a4988_msg_t msg = {0};
+    BaseType_t rx = pdFALSE;
+    
 
     while(1) {
 
+        rx = xQueueReceive(a4988_cmd_queue, &msg, portMAX_DELAY);
 
+        if(rx == pdTRUE) {
+            /** retrieve the device handle **/
+            A4988_DEV dev = (A4988_DEV)msg.dev;
 
-        if(dev->steps_queued > 0) {
-            /** take the queued step, then start the timer & wait for notify **/
+            switch (msg.cmd)
+            {
+            /** step timer expired, take another step **/
+            case A4988_CMD_STEP_TMR:
+                if(dev->steps_queued > 0) {
+                    /** take the queued step, then start the timer & wait for notify **/
 #ifdef DEBUG_MODE
             ESP_LOGI(DEV_TAG, "Stepping... (steps in queue: %u)", dev->steps_queued);
 #endif
-            a4988_step(dev);
-            if(last_t != dev->step_wait) {
-                if(xTimerChangePeriod(dev->step_timer, pdMS_TO_TICKS(dev->step_wait), portMAX_DELAY) == pdFAIL) {
-                    ESP_LOGE(DEV_TAG, "Error changing timer freq");
+                    a4988_step(dev);
+                    if(xTimerStart(dev->step_timer, 0) != pdPASS) {
+                        ESP_LOGE(DEV_TAG, "Error restarting timer");
+                    }
                 }
-                last_t = dev->step_wait;
+                break;
+            
+            /** pulse timer expired, deasset step pin **/
+            case A4988_CMD_PULSE_TMR:
+                gpio_set_level(dev->step, 0);
+                break;
+
+            case A4988_CMD_UPDATE_PERIOD:
+                if(xTimerStop(dev->step_timer, A4988_CONFIG_SHORT_WAIT) != pdPASS || 
+                xTimerChangePeriod(dev->step_timer, dev->step_wait, A4988_CONFIG_SHORT_WAIT) != pdPASS
+                ) {
+                    ESP_LOGE(DEV_TAG, "Error changing timer period")
+                }
+                else {
+                    if(dev->steps_queued > 0 && xTimerStart(dev->step_timer, A4988_CONFIG_SHORT_WAIT) != pdPASS) {
+                        ESP_LOGE(DEV_TAG, "Error restarting timer")                    
+                    }
+                }
+
+            default:
+                break;
             }
-            if(xTimerStart(dev->step_timer, 0) != pdPASS) {
-                ESP_LOGE(DEV_TAG, "Error starting timer");
-            }
-            ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+
         }
+
         else {
             vTaskDelay(pdMS_TO_TICKS(100));
         }
@@ -237,7 +278,7 @@ A4988_DEV a4988_init(A4988_DEV dev, a4988_init_t *init) {
 
     /** Create the task and command queue - this should only be called once **/
     if(!err) {
-        if(a4988_task_handle == NULL && xTaskCreate(a4988_driver_task, "a4988_driver_task", 5012, (void *)dev, 3, &t_handle) != pdTRUE) {
+        if(a4988_task_handle == NULL && xTaskCreate(a4988_driver_task, "a4988_driver_task", 5012, NULL, 3, &a4988_task_handle) != pdTRUE) {
             ESP_LOGE(DEV_TAG, "Error starting dev task!");
             err = ESP_ERR_NO_MEM;
         }
@@ -270,7 +311,7 @@ A4988_DEV a4988_init(A4988_DEV dev, a4988_init_t *init) {
         .auto_reload = true,
         .counter_dir = TIMER_COUNT_DOWN,
         .divider = A4988_CONFIG_PTMR_DIV,
-        .intr_type = TIMER_INTR_LEVEL
+        .intr_type = TIMER_INTR_LEVEL,
     };
 
     if(!err) {
@@ -282,10 +323,19 @@ A4988_DEV a4988_init(A4988_DEV dev, a4988_init_t *init) {
          *  dev 2: (1)(0)
          *  dev 3: (1)(1)
          **/
-        if(timer_init((num_devices >> 1), (num_devices & 1), &tmr) != ESP_OK ||
-           timer_enable_intr((num_devices >> 1), (num_devices & 1)) != ESP_OK ||
-           timer_set_counter_value((num_devices >> 1), (num_devices & 1), A4988_CONFIG_PULSE_LEN) != ESP_OK ||
-           timer_isr_callback_add((num_devices >> 1), (num_devices & 1), pulse_timer_callback, dev, ESP_INTR_FLAG_LEVEL5) != ESP_OK)
+
+        /** this block - 
+         *  - inits timer
+         *  - enables timer interrupt
+         *  - sets the counter value to default
+         *  - sets the isr callback
+         *  - sets the alarm value (we count down to 0)
+         **/
+        if(timer_init(TIMER_GRP_FROM_INDEX(num_devices), TIMER_ID_FROM_INDEX(num_devices), &tmr) != ESP_OK ||
+           timer_enable_intr(TIMER_GRP_FROM_INDEX(num_devices), TIMER_ID_FROM_INDEX(num_devices)) != ESP_OK ||
+           timer_set_counter_value(TIMER_GRP_FROM_INDEX(num_devices), TIMER_ID_FROM_INDEX(num_devices), A4988_CONFIG_PULSE_LEN) != ESP_OK ||
+           timer_isr_callback_add(TIMER_GRP_FROM_INDEX(num_devices), TIMER_ID_FROM_INDEX(num_devices), pulse_timer_callback, dev, ESP_INTR_FLAG_LEVEL5) != ESP_OK ||
+           timer_set_alarm_value(TIMER_GRP_FROM_INDEX(num_devices), TIMER_ID_FROM_INDEX(num_devices), 0) != ESP_OK
         ) {
             ESP_LOGE(DEV_TAG, "Error configuring timer");
             err = ESP_ERR_INVALID_RESPONSE;
@@ -319,9 +369,13 @@ esp_err_t a4988_step(A4988_DEV dev) {
     esp_err_t err = ESP_OK;
 
     err = gpio_set_level(dev->step, 1);
-    vTaskDelay(pdMS_TO_TICKS(dev->step_pulse_len));
-    err = gpio_set_level(dev->step, 0);
-    if(dev->steps_queued > 0) {
+    
+    if(timer_start(TIMER_GRP_FROM_INDEX(num_devices), TIMER_ID_FROM_INDEX(num_devices)) != ESP_OK) {
+        ESP_LOGE(DEV_TAG, "Error starting pulse timer");
+        err = ESP_ERR_INVALID_STATE;
+    }
+
+    if(!err && dev->steps_queued > 0) {
         dev->steps_queued--;
     }
     return err;
@@ -430,7 +484,13 @@ esp_err_t a4988_get_step_delay(A4988_DEV dev, uint16_t *t) {
 esp_err_t a4988_set_step_delay(A4988_DEV dev, uint16_t *t) {
 
     dev->step_wait = *t;
-    xTaskNotifyGive(dev->t_handle);
+    
+    a4988_msg_t msg = {
+        .cmd = A4988_CMD_UPDATE_PERIOD,
+        .dev = dev
+    };
+
+    xQueueSend(a4988_cmd_queue, &msg, A4988_CONFIG_SHORT_WAIT);
     return ESP_OK;
 }
 
