@@ -15,6 +15,7 @@
 #include "esp_types.h"
 
 #include "driver/gpio.h"
+#include "driver/timer.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/timers.h"
@@ -41,7 +42,11 @@ const peripheral_t a4988_periph_template;
 
 #define A4988_DEFAULT_STEP_PULSE_LEN 1
 #define A4988_DEFAULT_STEP_DELAY 100
+#define A4988_CONFIG_PTMR_DIV 80    /** 80MHz apb clock / 80 = 1MHz, microsecond timer **/
 
+#define A4988_CONFIG_MAX_SUPPORTED_DEVICES  4
+#define A4988_CONFIG_QUEUE_LEN  8
+#define A4988_CONFIG_PULSE_LEN  100 /** pulse length in microseconds **/
 
 /** @enum step_size_t 
  *  @brief Defines the step size types **/
@@ -52,6 +57,17 @@ typedef enum {
     EGTH_STEP_T = 3,
     SXTN_STEP_T = 7,
 } step_size_t;
+
+
+/** @enum a4988_cmd_t
+ *  @brief command types for the command queue
+ * 
+ */
+typedef enum {
+    A4988_CMD_STEP_TMR,
+    A4988_CMD_PULSE_TMR,
+    A4988_CMD_UPDATE_PERIOD
+} a4988_cmd_t;
 
 /** @struct a4988_init_t 
  *  @brief Defines the initialisation data 
@@ -105,13 +121,21 @@ typedef struct A4988_Driver
     bool _ms;               /**< driver manages 3 microstep select pins **/
 
     step_size_t step_size;  /**< step size setting **/
-    TimerHandle_t timer;    /**< timer handle **/
+    TimerHandle_t step_timer;    /**< timer handle **/
+    uint8_t pulse_timer;    /**< timer id **/
+    uint8_t index;
 
 } a4988_handle_t;
 
 
 /** @brief Device handle type **/
 typedef a4988_handle_t * A4988_DEV;
+
+typedef struct {
+    A4988_DEV dev;
+    a4988_cmd_t cmd;
+} a4988_msg_t;
+
 
 /** @} A4988_definitions */
 

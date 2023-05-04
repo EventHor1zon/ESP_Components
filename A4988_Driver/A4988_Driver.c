@@ -18,14 +18,15 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/timers.h"
+#include "freertos/queue.h"
 
 const char *DEV_TAG = "A4988 Driver";
-
 /** keep the task handle static as we only instatiate it
  * once
  */
 static TaskHandle_t a4988_task_handle = NULL;
-
+static QueueHandle_t a4988_cmd_queue = NULL;
+static uint8_t num_devices = 0;
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
 
@@ -61,6 +62,19 @@ const peripheral_t a4988_periph_template = {
 /****** Private Data ******************/
 
 /****** Private Functions *************/
+
+
+timer_isr_t pulse_timer_callback(void *args) {
+    BaseType_t higherPrioWoken = pdFALSE;
+
+    a4988_msg_t msg = {
+        .cmd = A4988_CMD_PULSE_TMR,
+        .dev = (A4988_DEV)args
+    };
+
+    xQueueSendFromISR(a4988_cmd_queue, &msg, &higherPrioWoken);
+
+}
 
 
 void a4988_step_timer_callback(TimerHandle_t tmr) {
@@ -121,6 +135,9 @@ A4988_DEV a4988_init(A4988_DEV dev, a4988_init_t *init) {
     TimerHandle_t timer = NULL;
     gpio_config_t pins = {0};
 
+    if(num_devices >= A4988_CONFIG_MAX_SUPPORTED_DEVICES) {
+        return ESP_ERR_NOT_SUPPORTED;
+    }
 
 #ifdef CONFIG_DRIVERS_USE_HEAP
     /** initialise the handle **/
@@ -218,6 +235,7 @@ A4988_DEV a4988_init(A4988_DEV dev, a4988_init_t *init) {
         }
     }
 
+    /** Create the task and command queue - this should only be called once **/
     if(!err) {
         if(a4988_task_handle == NULL && xTaskCreate(a4988_driver_task, "a4988_driver_task", 5012, (void *)dev, 3, &t_handle) != pdTRUE) {
             ESP_LOGE(DEV_TAG, "Error starting dev task!");
@@ -225,8 +243,17 @@ A4988_DEV a4988_init(A4988_DEV dev, a4988_init_t *init) {
         }
     }
 
+    if(!err && a4988_cmd_queue == NULL) {
+        a4988_cmd_queue = xQueueCreate(sizeof(a4988_cmd_t), A4988_CONFIG_QUEUE_LEN);
+        if(a4988_cmd_queue == NULL) {
+            ESP_LOGE(DEV_TAG, "Error creating queue");
+            err = ESP_ERR_NO_MEM;
+        }
+    }
+
+    /** Create the step timer **/
     if(!err ) {
-        timer = xTimerCreate("a4988_timer", pdMS_TO_TICKS(dev->step_wait), true, (void *)dev, a4988_step_timer_callback);
+        timer = xTimerCreate("step_tmr", pdMS_TO_TICKS(dev->step_wait), true, (void *)dev, a4988_step_timer_callback);
         if(timer == NULL) {
             ESP_LOGE(DEV_TAG, "Error creating timer!");
             err = ESP_ERR_NO_MEM;
@@ -236,8 +263,40 @@ A4988_DEV a4988_init(A4988_DEV dev, a4988_init_t *init) {
         }
     }
 
+    /** Create the pulse timer **/
+    timer_config_t tmr = {
+        .counter_en = false,
+        .alarm_en = true,
+        .auto_reload = true,
+        .counter_dir = TIMER_COUNT_DOWN,
+        .divider = A4988_CONFIG_PTMR_DIV,
+        .intr_type = TIMER_INTR_LEVEL
+    };
+
+    if(!err) {
+        /** use a hack to select a timer (0,1)(0,1) from the pool depending on
+         *  device index. Using a hardware timer does limit the max num of drivers
+         *  to 4.
+         *  dev 0: (0)(0)
+         *  dev 1: (0)(1)
+         *  dev 2: (1)(0)
+         *  dev 3: (1)(1)
+         **/
+        if(timer_init((num_devices >> 1), (num_devices & 1), &tmr) != ESP_OK ||
+           timer_enable_intr((num_devices >> 1), (num_devices & 1)) != ESP_OK ||
+           timer_set_counter_value((num_devices >> 1), (num_devices & 1), A4988_CONFIG_PULSE_LEN) != ESP_OK ||
+           timer_isr_callback_add((num_devices >> 1), (num_devices & 1), pulse_timer_callback, dev, ESP_INTR_FLAG_LEVEL5) != ESP_OK)
+        ) {
+            ESP_LOGE(DEV_TAG, "Error configuring timer");
+            err = ESP_ERR_INVALID_RESPONSE;
+        }
+    }
+
+
     if(!err) {
         ESP_LOGI(DEV_TAG, "Succesfully started the A4988 Driver!");
+        dev->index = num_devices;
+        num_devices++;
     }
     else {
         ESP_LOGE(DEV_TAG, "Error starting the driver (Error: %u)", err);
