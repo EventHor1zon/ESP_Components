@@ -59,7 +59,7 @@ const peripheral_t a4988_periph_template = {
 /****** Private Functions *************/
 
 
-void a4988_timer_callback(TimerHandle_t tmr) {
+void a4988_step_timer_callback(TimerHandle_t tmr) {
 
     A4988_DEV dev = pvTimerGetTimerID(tmr);
     BaseType_t higherPrioWoken = pdFALSE;
@@ -219,7 +219,7 @@ A4988_DEV a4988_init(A4988_DEV dev, a4988_init_t *init) {
     }
 
     if(!err ) {
-        timer = xTimerCreate("a4988_timer", pdMS_TO_TICKS(dev->step_wait), true, (void *)dev, a4988_timer_callback);
+        timer = xTimerCreate("a4988_timer", pdMS_TO_TICKS(dev->step_wait), true, (void *)dev, a4988_step_timer_callback);
         if(timer == NULL) {
             ESP_LOGE(DEV_TAG, "Error creating timer!");
             err = ESP_ERR_NO_MEM;
@@ -246,7 +246,10 @@ A4988_DEV a4988_init(A4988_DEV dev, a4988_init_t *init) {
 
 
 esp_err_t a4988_step(A4988_DEV dev) {
-
+    /** TODO: Set a timer to unlock pin so we can control this 
+     *        entirely through interrupt. Look at using a hardware timer
+     *        for this.
+     *  **/
     esp_err_t err = ESP_OK;
 
     err = gpio_set_level(dev->step, 1);
@@ -308,8 +311,8 @@ esp_err_t a4988_set_stepsize(A4988_DEV dev, uint8_t *sz) {
 
     /** write the pins **/
     gpio_set_level(dev->ms1, (val & 0b001));
-    gpio_set_level(dev->ms1, (val & 0b010));
-    gpio_set_level(dev->ms1, (val & 0b100));
+    gpio_set_level(dev->ms2, (val & 0b010));
+    gpio_set_level(dev->ms3, (val & 0b100));
 
     return ESP_OK;
 }
