@@ -29,12 +29,23 @@ The LedStrip driver is used to store the translation functions and led type data
 
 These modes can be adjusted using the colour, brightness and speed attributes of the ledstrip driver. 
 
+### Colour Order and Pixel types
+
+Internally, all colours are treated as a 32-bit integer, with hex pairs representing `uint32_t colour 0xDDRRGGBB`, where `DD` is unused, and R, G, B values are as expected. Assumes 8-bit colour values. The actual order of the colours is recorded in the `ledtype_t` struct, which contains all the neccessary info for controlling an addressable led. Hopefully.
+
+### Supported Led controller types
+
+Currently supports:
+- APA102
+- WS2812b
+
+
 ## TODOs
 
 - Implement adjustable animation timer
 - More effects
 - Fix APA102 bug re. rendering (split start frame from pixel frames?)
-
+- Support more addressable led types
 
 ## Datasheet
 
