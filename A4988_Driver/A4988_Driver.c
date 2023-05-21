@@ -65,15 +65,8 @@ const peripheral_t a4988_periph_template = {
 
 
 void pulse_timer_callback(void *args) {
-    BaseType_t higherPrioWoken = pdFALSE;
-
-    a4988_msg_t msg = {
-        .cmd = A4988_CMD_PULSE_TMR,
-        .dev = (A4988_DEV)args
-    };
-
-    xQueueSendFromISR(a4988_cmd_queue, &msg, &higherPrioWoken);
-
+    A4988_DEV dev = (A4988_DEV)args;
+    gpio_set_level(dev->step, 0);
 }
 
 
@@ -129,11 +122,6 @@ static void a4988_driver_task(void *args) {
                 }
                 break;
             
-            /** pulse timer expired, deasset step pin **/
-            case A4988_CMD_PULSE_TMR:
-                gpio_set_level(dev->step, 0);
-                break;
-
             case A4988_CMD_UPDATE_PERIOD:
                 if(xTimerStop(dev->step_timer, A4988_CONFIG_SHORT_WAIT) != pdPASS || 
                 xTimerChangePeriod(dev->step_timer, dev->step_wait, A4988_CONFIG_SHORT_WAIT) != pdPASS
@@ -149,12 +137,6 @@ static void a4988_driver_task(void *args) {
             default:
                 break;
             }
-
-
-        }
-
-        else {
-            vTaskDelay(pdMS_TO_TICKS(100));
         }
     }
     /** here be dragons **/
@@ -276,8 +258,8 @@ A4988_DEV a4988_init(A4988_DEV dev, a4988_init_t *init) {
     }
 
     /** Create the task and command queue - this should only be called once **/
-    if(!err) {
-        if(a4988_task_handle == NULL && xTaskCreate(a4988_driver_task, "a4988_driver_task", 5012, NULL, 3, &a4988_task_handle) != pdTRUE) {
+    if(!err && a4988_task_handle == NULL) {
+        if(xTaskCreate(a4988_driver_task, "a4988_driver_task", 5012, NULL, 3, &a4988_task_handle) != pdTRUE) {
             ESP_LOGE(DEV_TAG, "Error starting dev task!");
             err = ESP_ERR_NO_MEM;
         }
@@ -369,12 +351,12 @@ esp_err_t a4988_step(A4988_DEV dev) {
 
     err = gpio_set_level(dev->step, 1);
     
-    if(timer_start(TIMER_GRP_FROM_INDEX(num_devices), TIMER_ID_FROM_INDEX(num_devices)) != ESP_OK) {
+    if(timer_start(TIMER_GRP_FROM_INDEX(dev->index), TIMER_ID_FROM_INDEX(dev->index)) != ESP_OK) {
         ESP_LOGE(DEV_TAG, "Error starting pulse timer");
         err = ESP_ERR_INVALID_STATE;
     }
-
-    if(!err && dev->steps_queued > 0) {
+    /** even if error, we want the step count to decrease **/
+    if(dev->steps_queued > 0) {
         dev->steps_queued--;
     }
     return err;
