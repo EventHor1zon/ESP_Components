@@ -11,6 +11,8 @@
 /********* Includes ********************/
 #include "esp_types.h"
 #include "math.h"
+#include "nvs_flash.h"
+
 /********* Definitions *****************/
 
 #define INCREMENT_TO_MAX(i, max) ((i == max) ? (max) : (i + 1))

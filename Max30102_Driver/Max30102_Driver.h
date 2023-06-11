@@ -211,8 +211,7 @@ typedef struct Max30102_Driver
 } max31_driver_t;
 
 
-
-typedef MAX31_h  MAX31_h;
+typedef max31_driver_t * MAX31_h;
 
 
 /******** Function Definitions *********/
