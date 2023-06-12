@@ -125,7 +125,7 @@ esp_err_t ovo_set_jpeg_quality(OVO_H ovo, uint16_t *qual) {
     esp_err_t err = ovo->cam_sensor->set_quality(ovo->cam_sensor, *qual);
     ovo->settings.jpeg_quality = (err == ESP_OK) ? 
                                   *qual : 
-                                  0);
+                                  0;
     return err;
 }
 
@@ -176,7 +176,7 @@ esp_err_t ovo_set_pixformat(OVO_H ovo, pixformat_t *fmt) {
 
 
 esp_err_t ovo_get_framesize(OVO_H ovo, framesize_t *fs) {
-    *qual = ovo->settings.framesize;
+    *fs = ovo->settings.framesize;
     return ESP_OK;
 }
 
@@ -209,7 +209,7 @@ esp_err_t ovo_get_colourbar_en(OVO_H ovo, bool *en) {
 }
 
 esp_err_t ovo_set_colourbar_en(OVO_H ovo, bool *en) {
-    esp_err_t err = ovo->cam_sensor->set_colourbar(ovo->cam_sensor, *en);
+    esp_err_t err = ovo->cam_sensor->set_colorbar(ovo->cam_sensor, *en);
     if(!err) {
         ovo->settings.colourbar_en = *en;
     }
@@ -275,7 +275,7 @@ esp_err_t ovo_get_exposure_ctrl_en(OVO_H ovo, bool *en) {
 }
 
 esp_err_t ovo_set_exposure_ctrl_en(OVO_H ovo, bool *en) {
-    esp_err_t err = ovo->cam_sensor->exposure_ctrl(ovo->cam_sensor, *en);
+    esp_err_t err = ovo->cam_sensor->set_exposure_ctrl(ovo->cam_sensor, *en);
     if(!err) {
         ovo->settings.exposurectrl_en = *en;
     }
@@ -313,7 +313,7 @@ esp_err_t ovo_set_gain(OVO_H ovo, uint8_t *gain) {
 
 
 esp_err_t ovo_get_autoexpose_val(OVO_H ovo, uint8_t *exp) {
-    *gainc = ovo->settings.autoexpose_val;
+    *exp = ovo->settings.autoexpose_val;
     return ESP_OK;
 }
 
@@ -327,7 +327,7 @@ esp_err_t ovo_set_autoexpose_val(OVO_H ovo, uint8_t *exp) {
 
 
 esp_err_t ovo_get_sfx(OVO_H ovo, uint8_t *fx) {
-    *gainc = ovo->settings.sfx;
+    *fx = ovo->settings.sfx;
     return ESP_OK;
 }
 
@@ -339,7 +339,33 @@ esp_err_t ovo_set_sfx(OVO_H ovo, uint8_t *fx) {
     return err;
 }
 
+esp_err_t ovo_get_wbmode(OVO_H ovo, uint8_t *wb) {
+    *wb = ovo->settings.wb_mode;
+    return ESP_OK;
+}
 
+esp_err_t ovo_set_wbmode(OVO_H ovo, uint8_t *wb) {
+    esp_err_t err = ovo->cam_sensor->set_wb_mode(ovo->cam_sensor, *wb);
+    if(!err) {
+        ovo->settings.wb_mode = *wb;
+    }
+    return err;
+}
+
+esp_err_t ovo_get_ae_level(OVO_H ovo, uint8_t *ae) {
+    *ae = ovo->settings.ae_level;
+    return ESP_OK;
+}
+
+esp_err_t ovo_set_ae_level(OVO_H ovo, uint8_t *ae) {
+    esp_err_t err = ovo->cam_sensor->set_ae_level(ovo->cam_sensor, *ae);
+    if(!err) {
+        ovo->settings.ae_level = *ae;
+    }
+    return err;
+}
+
+/**
 esp_err_t ovo_get_gainceiling(OVO_H ovo, uint8_t *gainc) {
     *gainc = ovo->settings.gainceiling;
     return ESP_OK;
@@ -352,6 +378,6 @@ esp_err_t ovo_set_gainceiling(OVO_H ovo, uint8_t *gainc) {
     }
     return err;
 }
-
+**/
 
 /** END **/

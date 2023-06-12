@@ -27,6 +27,27 @@
 
 /** Defines **/
 
+#define CAM_BRIGHTNESS_LOW -2
+#define CAM_BRIGHTNESS_HI   2
+#define CAM_SATURATION_LOW  0
+#define CAM_SATURATION_HI   5
+#define CAM_JQUALITY_LOW    0
+#define CAM_JQUALITY_HI     63
+#define CAM_GAIN_LOW        0
+#define CAM_GAIN_HIGH       30
+#define CAM_AUTOEXPOCTL_LOW 0
+#define CAM_AUTOEXPOCTL_HI  1200
+#define CAM_GAINCTRL_LOW    0
+#define CAM_GAINCTRL_HI     8
+#define CAM_SFX_LOW         0
+#define CAM_SFX_HI          7
+#define CAM_WB_MODE_LOW     0
+#define CAM_WB_MODE_HI      4
+#define CAM_AE_LOW          0
+#define CAM_AE_HI           5
+
+
+
 /** Typedefs **/
 
 typedef struct {  
@@ -66,11 +87,26 @@ const io_t default_io = {
 };
 
 typedef struct {
-    int8_t brightness;
+    uint16_t brightness;
     int8_t contrast;
     pixformat_t pixformat;
     int8_t etc;
     uint8_t jpeg_quality;
+    uint8_t framesize;
+    uint8_t saturation;
+    uint8_t autoexpose_val;
+    bool colourbar_en;
+    bool hmirror_en;
+    bool vflip_en;
+    bool whitebalance_en;
+    bool aec2_en;
+    bool exposurectrl_en;
+    uint8_t wb_mode;
+    uint16_t gainceiling;
+    uint16_t gain;
+    uint8_t sfx;
+    uint8_t ae_level;
+
 } camera_settings_t;
 
 typedef struct {
@@ -82,5 +118,86 @@ typedef struct {
 typedef ovo_handle_t * OVO_H;
 
 /** Function Declarations **/
+esp_err_t ovo_get_init_status(OVO_H ovo, int *status);
+
+esp_err_t ovo_reset_software(OVO_H ovo);
+
+esp_err_t ovo_get_jpeg_quality(OVO_H ovo, uint16_t *qual);
+
+esp_err_t ovo_set_jpeg_quality(OVO_H ovo, uint16_t *qual);
+
+esp_err_t ovo_get_brightness(OVO_H ovo, uint16_t *brt);
+
+esp_err_t ovo_set_brightness(OVO_H ovo, uint16_t *brt);
+
+esp_err_t ovo_get_contrast(OVO_H ovo, int8_t *con);
+
+esp_err_t ovo_set_contrast(OVO_H ovo, int8_t *con);
+
+esp_err_t ovo_get_pixformat(OVO_H ovo, pixformat_t *fmt);
+
+esp_err_t ovo_set_pixformat(OVO_H ovo, pixformat_t *fmt);
+
+esp_err_t ovo_get_framesize(OVO_H ovo, framesize_t *fs);
+
+esp_err_t ovo_set_framesize(OVO_H ovo, framesize_t *fs);
+
+esp_err_t ovo_get_saturation(OVO_H ovo, int8_t *sat);
+
+esp_err_t ovo_set_saturation(OVO_H ovo, int8_t *sat);
+
+
+
+esp_err_t ovo_get_colourbar_en(OVO_H ovo, bool *en);
+
+esp_err_t ovo_set_colourbar_en(OVO_H ovo, bool *en);
+
+esp_err_t ovo_get_hmirror_en(OVO_H ovo, bool *en);
+
+esp_err_t ovo_set_hmirror_en(OVO_H ovo, bool *en);
+
+esp_err_t ovo_get_vflip_en(OVO_H ovo, bool *en);
+
+esp_err_t ovo_set_vflip_en(OVO_H ovo, bool *en);
+
+esp_err_t ovo_get_whitebalance_en(OVO_H ovo, bool *en);
+
+esp_err_t ovo_set_whitebalance_en(OVO_H ovo, bool *en);
+
+esp_err_t ovo_get_aec2_en(OVO_H ovo, bool *en);
+
+esp_err_t ovo_set_aec2_en(OVO_H ovo, bool *en);
+
+esp_err_t ovo_get_exposure_ctrl_en(OVO_H ovo, bool *en);
+
+esp_err_t ovo_set_exposure_ctrl_en(OVO_H ovo, bool *en);
+
+
+
+esp_err_t ovo_get_gainceiling(OVO_H ovo, uint8_t *gainc);
+
+esp_err_t ovo_set_gainceiling(OVO_H ovo, uint8_t *gainc);
+
+esp_err_t ovo_get_gain(OVO_H ovo, uint8_t *gain);
+
+esp_err_t ovo_set_gain(OVO_H ovo, uint8_t *gain);
+
+esp_err_t ovo_get_autoexpose_val(OVO_H ovo, uint8_t *exp);
+
+esp_err_t ovo_set_autoexpose_val(OVO_H ovo, uint8_t *exp);
+
+esp_err_t ovo_get_sfx(OVO_H ovo, uint8_t *fx);
+
+esp_err_t ovo_set_sfx(OVO_H ovo, uint8_t *fx);
+
+esp_err_t ovo_get_wbmode(OVO_H ovo, uint8_t *wb);
+
+esp_err_t ovo_set_wbmode(OVO_H ovo, uint8_t *wb);
+
+esp_err_t ovo_get_ae_level(OVO_H ovo, uint8_t *ae);
+
+esp_err_t ovo_set_ae_level(OVO_H ovo, uint8_t *ae);
+
+
 
 /** END **/

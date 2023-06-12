@@ -20,6 +20,8 @@
 #define BYTE_SET_BITS(i, set) (i |= set)
 #define BYTE_UNSET_BITS(i, unset) (i &= ~(unset))
 #define MAX_VAL_FROM_BITS(bits) ((1 << (bits+1))-1)
+#define WITHIN_RANGE_INCLUSIVE(x, low, high) (x >= low && x <= high)
+#define WITHIN_RANGE_EXCLUSIVE(x, low, high) (x > low && x < high)
 
 /********** Types **********************/
 
