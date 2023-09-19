@@ -159,7 +159,7 @@ static uint8_t get_interrupt_source_and_clear(APDS_DEV dev) {
 static apds_direction_t apds_gst_max_at_index(APDS_DEV dev, uint8_t index) {
 
     if(index > 31) {
-        return APDS_DIRECTION_INVALID;
+        return -2;
     }
 
     apds_direction_t dir = APDS_DIRECTION_UP;

@@ -14,8 +14,6 @@
 #include "esp_err.h"
 #include "esp_log.h"
 
-#include "Utilities.h"
-
 /****** Function Prototypes ***********/
 
 /************ ISR *********************/
@@ -27,7 +25,7 @@
 /****** Global Data *******************/
 
 /****** Global Functions *************/
-void showmem(uint8_t *memptr, uint16_t len)
+void showmem(uint8_t *memptr, int len)
 {
     for (int i = 0; i < len; i++)
     {

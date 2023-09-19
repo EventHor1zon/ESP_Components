@@ -30,20 +30,12 @@
 #ifdef CONFIG_USE_EVENTS
 
 #define RE_EVENT_ID_BASE    0x46
-#define RE_EVENT_INCREMENT    (RE_EVENT_ID_BASE << 16 | RE_NOTIFY_CW_STEP)
-#define RE_EVENT_DECREMENT    (RE_EVENT_ID_BASE << 16 | RE_NOTIFY_CC_STEP)
+#define RE_EVENT_CW_STEP    (RE_EVENT_ID_BASE << 16 | RE_NOTIFY_CW_STEP)
+#define RE_EVENT_CC_STEP    (RE_EVENT_ID_BASE << 16 | RE_NOTIFY_CC_STEP)
 #define RE_EVENT_BTN_DWN    (RE_EVENT_ID_BASE << 16 | RE_NOTIFY_BTN_DWN)
 #define RE_EVENT_BTN_UP    (RE_EVENT_ID_BASE << 16 | RE_NOTIFY_BTN_UP)
 
 #endif
-
-typedef rotaryEncoder_t * RE_h;
-
-
-typedef struct {
-    gpio_num_t data_pin;
-    gpio_num_t clock_pin;
-} rotary_encoder_init_t;
 
 typedef union {
     uint16_t uValue; /** < rotary encoder value (unsigned version) **/
@@ -64,8 +56,8 @@ typedef struct rotaryEncoder
     bool use_events;                /** < Send events on Button & RE events **/
     esp_event_loop_handle_t loop;   /** < event loop to send events to **/
 
-    gpio_num_t data_pin;          /** < data pin gpio  **/
-    gpio_num_t clock_pin;         /** < clock pin gpio **/
+    gpio_num_t dataPinNum;          /** < data pin gpio  **/
+    gpio_num_t clockPinNum;         /** < clock pin gpio **/
 
     uint16_t counterMax;            /** < max counter value **/
     uint16_t counterMin;            /** < min counter value **/
@@ -82,11 +74,6 @@ typedef struct rotaryEncoder
 
 /******** Function Definitions *********/
 
-#ifdef CONFIG_DRIVERS_USE_HEAP
-RE_h rotaryEncoderInit(RE_h handle, rotary_encoder_init_t *init);
-#else
-RE_h rotaryEncoderInit(RE_h handle, rotary_encoder_init_t *init);
-#endif /** CONFIG_DRIVERS_USE_HEAP **/
-
+esp_err_t rotaryEncoderInit(gpio_num_t dataPin, gpio_num_t clockPin, bool installISR);
 
 #endif /* ROTARYENCODER_DRIVER_H */

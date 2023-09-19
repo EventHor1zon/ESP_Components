@@ -10,14 +10,6 @@
  *  TODO: Maybe add a short debounce to the rotary encoder?
  *        Do function Prototypes
  *        Maybe do button as separate component?
- * 
- * 
- *  REFACTOR:
- *      - Design for multi-device support
- *      - Single task
- *      - Move gpio reads to task
- *      - simplifiy initialiser, etc
- *      - more consistent naming
  *          
  **/
 
@@ -42,22 +34,29 @@
 
 const char *RE_TAG = "RotaryEncoder:";
 
-static bool task_running = false;
-
 /************ ISR *********************/
 
 static void IRAM_ATTR RE_DataInterrupt(void *args)
 {
 
     BaseType_t pdHigherPrioWoken = pdFALSE;
-    RE_h reControl = (RE_h )args;
+    rotaryEncoder_t *reControl = (rotaryEncoder_t *)args;
     /** check debounce **/
     if (!(reControl->debounceState))
     {
-        /** New approach - send the handle as the notify value
-         *  check direction in the task 
-         ***/
-        xTaskNotifyFromISR(reControl->parentTask, args, eSetValueWithOverwrite, &pdHigherPrioWoken);
+        uint8_t direction = gpio_get_level(reControl->clockPinNum);
+        uint8_t rising = gpio_get_level(reControl->dataPinNum);
+
+        uint8_t rotation = direction + rising;
+        uint32_t notification = 0;
+
+        if(rotation) {
+            notification = RE_EVENT_CW_STEP;
+        }
+        else {
+            notification = RE_EVENT_CC_STEP;
+        }
+        xTaskNotifyFromISR(reControl->parentTask, notification, eSetValueWithOverwrite, &pdHigherPrioWoken);
 
         /** start the debounce timer **/
         xTimerStartFromISR(reControl->debounceTimer, &pdHigherPrioWoken);
@@ -67,20 +66,13 @@ static void IRAM_ATTR RE_DataInterrupt(void *args)
     portYIELD_FROM_ISR();
 };
 
-static uint8_t re_get_direction(RE_h dev) {
-
-    uint8_t direction = gpio_get_level(dev->clock_pin);
-    uint8_t rising = gpio_get_level(dev->data_pin);
-    
-    return direction + rising;
-}
-
-
 void debounceExpireCallback(TimerHandle_t xTimer)
 {
-    RE_h re = (RE_h )pvTimerGetTimerID(xTimer);
+    rotaryEncoder_t *re = (rotaryEncoder_t *)pvTimerGetTimerID(xTimer);
     // uint32_t notify = RE_NOTIFY_DEBOUNCE_EXPIRED;
     re->debounceState = 0;
+    /** need to do this? **/
+    // xTaskNotify(re->parentTask, )
 }
 
 /****** Private Functions *************/
@@ -90,48 +82,48 @@ static void re_driver_task(void *args) {
     /** keep this driver event-based - interrupt pins raise a notify to 
      * this task, then task handles sending events depending on driver settings
      */
-    RE_h re = (RE_h ) args;
+    rotaryEncoder_t *re = (rotaryEncoder_t *) args;
 
-    uint32_t rotary_value = 0;
-    uint32_t handle_ptr;
-    RE_h dev;
+    uint32_t notify_value = 0;
 #ifdef CONFIG_USE_EVENTS    
     uint32_t event_value = 0;
 #endif
 
     while(1) {
 
-        xTaskNotifyWait(0x00, 0x00, &handle_ptr, portMAX_DELAY);
+        xTaskNotifyWait(0x00, 0x00, &notify_value, portMAX_DELAY);
 
-        dev = (rotaryEncoder_t *)handle_ptr;
-
-        rotary_value = re_get_direction(dev);
-
-        if(rotary_value == RE_NOTIFY_CW_STEP) {
+        if(notify_value & RE_NOTIFY_CW_STEP) {
 #ifdef CONFIG_USE_EVENTS    
-            event_value = re->use_events ? RE_EVENT_INCREMENT : event_value;
+            event_value = re->use_events ? RE_EVENT_CW_STEP : event_value;
 #endif
-            re->count.uValue = INCREMENT_TO_MAX(re->count.uValue, re->counterMax);
+            if(re->signedCounter) {
+                re->count.Value = INCREMENT_TO_MAX(re->count.Value, re->counterMax);
+            }
+            else {
+                re->count.uValue = INCREMENT_TO_MAX(re->count.uValue, re->counterMax);
+            }
             ESP_LOGI(RE_TAG, "Got CW step - {%u}", re->count.Value);
         }
         
-        else if(rotary_value == RE_NOTIFY_CW_STEP) {
+        else if(notify_value & RE_NOTIFY_CW_STEP) {
 #ifdef CONFIG_USE_EVENTS    
-            event_value = re->use_events ? RE_EVENT_DECREMENT : event_value;
+            event_value = re->use_events ? RE_EVENT_CC_STEP : event_value;
 #endif
-            re->count.uValue = DECREMENT_TO_MIN(re->count.uValue, re->counterMin);
+            if(re->signedCounter) {
+                re->count.Value = DECREMENT_TO_MIN(re->count.Value, re->counterMin);
+            }
+            else {
+                re->count.uValue = DECREMENT_TO_MIN(re->count.uValue, re->counterMin);
+            }
             ESP_LOGI(RE_TAG, "Got CC step - {%u}", re->count.Value);
-        }
-
-        else {
-            ESP_LOGE(RE_TAG, "Unknown rotary state [%u]", rotary_value);
         }
     
 #ifdef CONFIG_USE_EVENTS    
         if(re->use_events && event_value) {
-            esp_event_post_to(re->loop, 0, event_value, NULL, 0, pdMS_TO_TICKS(100));
+            esp_event_post_to(re->loop, PM_EVENT_BASE, event_value, NULL, 0, pdMS_TO_TICKS(100));
         }
-#endif
+#endif    
     }
     /** here be dragons **/
 }
@@ -146,11 +138,7 @@ static void re_driver_task(void *args) {
  *                  populate the device struct
  **/
 
-#ifdef CONFIG_DRIVERS_USE_HEAP
-RE_h rotaryEncoderInit(RE_h handle, rotary_encoder_init_t *init)
-#else
-RE_h rotaryEncoderInit(RE_h handle, rotary_encoder_init_t *init)
-#endif
+esp_err_t rotaryEncoderInit(gpio_num_t dataPin, gpio_num_t clockPin, bool installISR)
 {
 
     esp_err_t initStatus = ESP_OK;
@@ -159,10 +147,10 @@ RE_h rotaryEncoderInit(RE_h handle, rotary_encoder_init_t *init)
     gpio_config_t pinConfig;
     TimerHandle_t timerHandle = NULL;
     TaskHandle_t parentTask;
-    RE_h reControl = NULL; 
+    rotaryEncoder_t *reControl = NULL; 
 
     pinConfig.mode = GPIO_MODE_INPUT;
-    pinConfig.pin_bit_mask = (1UL << init->data_pin); /** set unused pins to 0 **/
+    pinConfig.pin_bit_mask = (1UL << dataPin); /** set unused pins to 0 **/
     pinConfig.intr_type = GPIO_INTR_POSEDGE;
     pinConfig.pull_down_en = 0;
     pinConfig.pull_up_en = 0;
@@ -171,7 +159,7 @@ RE_h rotaryEncoderInit(RE_h handle, rotary_encoder_init_t *init)
     if (initStatus == ESP_OK)
     {
         pinConfig.intr_type = GPIO_INTR_DISABLE;
-        pinConfig.pin_bit_mask = init->clock_pin;
+        pinConfig.pin_bit_mask = clockPin;
         initStatus = gpio_config(&pinConfig);
     }
     else
@@ -182,33 +170,38 @@ RE_h rotaryEncoderInit(RE_h handle, rotary_encoder_init_t *init)
     /** configure the interrupts **/
     if (initStatus == ESP_OK)
     {
-        initStatus = gpio_isr_handler_add(init->data_pin, RE_DataInterrupt, &reControl);
-        if (initStatus != ESP_OK)
+        if (installISR)
         {
-            ESP_LOGE(RE_TAG, "Error adding data gpio isr handler: 0x%x", initStatus);
+            /** driver will init the gpio isr service **/
+            initStatus = gpio_install_isr_service(ESP_INTR_FLAG_LOWMED);
+            if (initStatus != ESP_OK)
+            {
+                ESP_LOGE(RE_TAG, "Error installing ISR service: 0x%x", initStatus);
+            }
+        }
+        if (initStatus == ESP_OK)
+        {
+            initStatus = gpio_isr_handler_add(dataPin, RE_DataInterrupt, &reControl);
+            if (initStatus != ESP_OK)
+            {
+                ESP_LOGE(RE_TAG, "Error adding data gpio isr handler: 0x%x", initStatus);
+            }
         }
     }
 
     /* build the control struct */
     if (initStatus == ESP_OK)
     {
-#ifdef CONFIG_DRIVERS_USE_HEAP
         reControl = heap_caps_calloc(1, sizeof(rotaryEncoder_t), MALLOC_CAP_DEFAULT);
-#else
-        memset(reControl, 0, sizeof(rotaryEncoder_t));
-#endif
-        reControl->clock_pin = init->clock_pin;
-        reControl->data_pin = init->data_pin;
+        reControl->clockPinNum = clockPin;
+        reControl->dataPinNum = dataPin;
         reControl->stepSize = 1;
         reControl->counterMax = UINT16_MAX;
         reControl->count.uValue = (reControl->counterMax / 2); /** start the counter in middle of value range **/
         reControl->counterMin = 0;
 
-        if(!task_running) {
-            if(xTaskCreate("re_driver_task", re_driver_task, 2048, reControl, 4, &parentTask) == pdTRUE) {
-                reControl->parentTask = parentTask;
-                task_running = true;
-            }
+        if(xTaskCreate("re_driver_task", re_driver_task, 2048, reControl, 4, &parentTask) == pdTRUE) {
+            reControl->parentTask = parentTask;
         }
         else {
             ESP_LOGE(RE_TAG, "Error starting task");
@@ -243,7 +236,7 @@ RE_h rotaryEncoderInit(RE_h handle, rotary_encoder_init_t *init)
 }
 
 
-esp_err_t rotaryEncoder_setSignedCounter(RE_h re, int16_t *set)
+esp_err_t rotaryEncoder_setSignedCounter(rotaryEncoder_t *re, int16_t *set)
 {
 
     esp_err_t status = ESP_OK;
@@ -257,7 +250,7 @@ esp_err_t rotaryEncoder_setSignedCounter(RE_h re, int16_t *set)
     return status;
 }
 
-esp_err_t rotaryEncoder_getValue(RE_h re, int16_t *get)
+esp_err_t rotaryEncoder_getValue(rotaryEncoder_t *re, int16_t *get)
 {
     if (re->signedCounter)
     {
@@ -271,13 +264,13 @@ esp_err_t rotaryEncoder_getValue(RE_h re, int16_t *get)
     return ESP_OK;
 }
 
-esp_err_t rotaryEncoder_getLastDir(RE_h re, uint8_t *lastDir)
+esp_err_t rotaryEncoder_getLastDir(rotaryEncoder_t *re, uint8_t *lastDir)
 {
     *lastDir = re->dirLast;
     return ESP_OK;
 }
 
-esp_err_t rotaryEncoder_setCounterMax(RE_h re, uint16_t countMax)
+esp_err_t rotaryEncoder_setCounterMax(rotaryEncoder_t *re, uint16_t countMax)
 {
 
     esp_err_t setStatus = ESP_OK;
@@ -295,7 +288,7 @@ esp_err_t rotaryEncoder_setCounterMax(RE_h re, uint16_t countMax)
     return setStatus;
 }
 
-esp_err_t rotaryEncoder_resetCounter(RE_h re)
+esp_err_t rotaryEncoder_resetCounter(rotaryEncoder_t *re)
 {
     if (re->signedCounter)
     {
