@@ -23,3 +23,6 @@ SPI
 https://microcontrollerslab.com/wp-content/uploads/2020/01/SX1278-Lora-Datasheet.pdf
 
 ## Credits
+
+Some credit of course to https://github.com/sandeepmistry/arduino-LoRa whose config settings got me Tx'ing packets
+Lots of credit to the lora datasheet, it's pretty extensive.

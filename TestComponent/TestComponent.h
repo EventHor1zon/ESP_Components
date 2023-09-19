@@ -22,5 +22,13 @@ typedef struct {
 } testcomponent_init_t;
 
 
-testcomponent_t *tc_init(testcomponent_init_t *init);
+typedef testcomponent_t * TC_h;
 
+TC_h tc_init(testcomponent_init_t *init);
+
+void notify_task(testcomponent_t *t);
+
+typedef struct {
+    TC_h handle;
+    uint32_t id;
+} msg_t;

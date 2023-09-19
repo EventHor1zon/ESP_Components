@@ -22,7 +22,14 @@ I2C Interface
 
 Initialise the driver using the init function. The user can specify the samples it wants to aquire in the init data struct. 
 
-TODO: Let user change setting after driver start.
+
+### TODOs
+
+- Clean up task instantiation
+- Fix notification to update using handle
+- keep task state agnostic, allowing for multiple devices
+- Deal with Cbuffer integration properly
+
 
 ## Datasheet
 
