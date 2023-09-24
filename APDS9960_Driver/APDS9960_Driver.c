@@ -317,8 +317,6 @@ esp_err_t apds_detect_swipe_dir(APDS_DEV dev) {
 }
 
 
-
-
 static bool is_als_valid(APDS_DEV dev) {
     uint8_t val = 0;
     gcd_i2c_read_address(dev->bus, dev->addr, APDS_REGADDR_STATUS, 1, &val);

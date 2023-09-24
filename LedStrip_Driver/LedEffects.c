@@ -97,7 +97,7 @@ static void set_pixel_brt_colour32(ledtype_t *p_type, void *pixel, uint32_t colo
 static void clear_mem(LEDSTRIP_h strip) {
     /** obvs be careful with this **/
     for(uint16_t i=0; i<strip->num_leds; i++) {
-        set_pixel_colour32(strip->led_type, (strip->pixel_start + (i * PIXEL_BYTES_FROM_TYPE(strip->led_type))), LEDFX_RBG_COL_BLACK);
+        set_pixel_colour32(strip->led_type, PIXEL_FROM_INDEX(strip, i), LEDFX_RBG_COL_BLACK);
     }
 }
 
