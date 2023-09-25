@@ -13,6 +13,8 @@
 #include "math.h"
 /********* Definitions *****************/
 
+#define BITS_PER_BYTE (8u)
+
 #define INCREMENT_TO_MAX(i, max) ((i == max) ? (max) : (i + 1))
 #define DECREMENT_TO_MIN(i, min) ((i == min) ? (min) : (i - 1))
 #define BYTE_SET_BITS(i, set) (i |= set)

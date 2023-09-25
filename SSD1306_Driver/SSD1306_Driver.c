@@ -470,9 +470,11 @@ ssd1306_handle_t *ssd1306_init(ssd1306_handle_t *handle, ssd1306_init_t *init) {
         }
     }
 
+#ifdef CONFIG_DRIVERS_USE_HEAP
     if(err != ESP_OK && handle != NULL) {
         heap_caps_free(handle);
     }
+#endif
 
     if(err == ESP_OK) {
         ESP_LOGI(SSD_TAG, "Succesfully started SSD1306 Driver");

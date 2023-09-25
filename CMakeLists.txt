@@ -14,9 +14,9 @@ set(srcs
     # "LSM_Driver/LSM_Driver.c"
     # "Max30102_Driver/Max30102_Driver.c"
     # "MSGEQ7_Driver/MSGEQ7_Driver.c"
-    "Pushbutton_Driver/PushButton_Driver.c"
+    # "Pushbutton_Driver/PushButton_Driver.c"
     # "RotaryEncoder_Driver.c"
-    # "SSD1306_Driver/SSD1306_Driver.c"
+    "SSD1306_Driver/SSD1306_Driver.c"
     # "ST7735_Screen.c"
     # "VL53L0X_Driver.c"
     # "WS2812B_Driver/WS2812_Driver.c"
@@ -24,9 +24,9 @@ set(srcs
     # "VEML6070_Driver.c"
     # "RGB_Driver/RGB_Driver.c"
     # "CBuffer/CircularBuffer.c"
-    "FutabaVFD_Driver/FutabaVFD_Driver.c"
+    # "FutabaVFD_Driver/FutabaVFD_Driver.c"
     # "MFRC522_Driver/MFRC522_Driver.c"
-    "TestComponent/TestComponent.c"
+    # "TestComponent/TestComponent.c"
     # "LedStrip_Driver/LedEffects.c"
      )
 
