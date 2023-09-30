@@ -19,8 +19,6 @@
 
 /********** Types **********************/
 
-typedef void (pixelWrite)(void *addr, uint32_t value);
-
 typedef enum {
     PIXEL_TYPE_BIT,
     PIXEL_TYPE_8BIT,
@@ -45,18 +43,28 @@ typedef struct
 
 
 typedef struct {
-    uint16_t frame_width;   /** in bytes */
-    uint16_t frame_height;  /** in bytes */
-    fb_pixel_t pixel_size;  /** in bytes */
+    uint16_t frame_width;   /** in pixels */
+    uint16_t frame_height;  /** in pixels */
+    fb_pixel_t pixel_size;
     void *frame_start;
     uint32_t frame_len;
-    pixelWrite *px_write;
-
 } framebuff_handle_t;
 
 
 typedef framebuff_handle_t * FB_h;
 
+
 /******** Function Definitions *********/
+
+
+esp_err_t framebuffer_init(FB_h fb, framebuff_init_t *init);
+
+esp_err_t framebuffer_draw_horizontal_xsteps(FB_h fb, coord_t *start, coord_t *end);
+
+esp_err_t framebuffer_draw_vertical_ysteps(FB_h fb, coord_t *start, coord_t *end);
+
+esp_err_t framebuffer_draw_line_xsteps(FB_h fb, coord_t *start, coord_t *end);
+
+void framebuff_draw_circle_xsteps(FB_h fb, coord_t *centre, uint8_t radius);
 
 #endif /* FRAMEBUFFER_H */

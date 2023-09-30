@@ -151,5 +151,7 @@ esp_err_t ssd1306_write_text(ssd1306_handle_t *screen);
     ssd1306_handle_t *ssd1306_init(ssd1306_handle_t *handle, ssd1306_init_t *init);
 #endif
 
+esp_err_t ssd1306_write_graphics_buffer(ssd1306_handle_t *screen, uint8_t *buffer);
+
 
 #endif /* SSD1306_DRIVER_H */

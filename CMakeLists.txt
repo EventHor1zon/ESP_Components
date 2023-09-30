@@ -1,5 +1,5 @@
 set(srcs
-     "Utils/Utilities.c"
+    "Utils/Utilities.c"
     # "LedEffects.c"
     # "SystemComponent.c"
     # "APA102_Driver/APA102_Driver.c"
@@ -20,7 +20,7 @@ set(srcs
     # "ST7735_Screen.c"
     # "VL53L0X_Driver.c"
     # "WS2812B_Driver/WS2812_Driver.c"
-    "A4988_Driver/A4988_Driver.c"
+    # "A4988_Driver/A4988_Driver.c"
     # "VEML6070_Driver.c"
     # "RGB_Driver/RGB_Driver.c"
     # "CBuffer/CircularBuffer.c"
@@ -28,6 +28,7 @@ set(srcs
     # "MFRC522_Driver/MFRC522_Driver.c"
     # "TestComponent/TestComponent.c"
     # "LedStrip_Driver/LedEffects.c"
+    "Utils/framebuffer.c"
      )
 
 set(includes "../main/inc"

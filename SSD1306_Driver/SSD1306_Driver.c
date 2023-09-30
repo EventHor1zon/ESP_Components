@@ -369,6 +369,39 @@ esp_err_t ssd1306_clear_screen(ssd1306_handle_t *screen) {
     return stat;
 }
 
+esp_err_t ssd1306_write_graphics_buffer(ssd1306_handle_t *screen, uint8_t *buffer) {
+    /**
+     * write a full 8 * 128 bytes to the graphical ram from buffer
+     */
+    esp_err_t err = ESP_OK;
+    uint32_t offset;
+
+    uint8_t data[3] = {0};
+
+    data[0] = 0;
+    data[1] = 0x10;
+
+    for(uint8_t i=0; i<8; i++) {
+        offset = i * 128;
+        data[2] = 0xB0 + i;
+
+        err = gcd_i2c_write_address(screen->bus, screen->dev_addr, OLED_CONTROL_BYTE_CMD_STREAM, 3, data);
+        
+        if(err) {
+            ESP_LOGE(SSD_TAG, "Error writing page address [%u]", err);
+            break;
+        }
+        
+        err = gcd_i2c_write_address(screen->bus, screen->dev_addr, OLED_CONTROL_BYTE_DATA_STREAM, 128, buffer+offset);
+
+        if(err) {
+            ESP_LOGE(SSD_TAG, "Error writing block data to GRAM [%u]", err);
+            break;
+        }
+    }
+
+    return err;
+}
 
 esp_err_t ssd1306_write_text(ssd1306_handle_t *screen) {
 
