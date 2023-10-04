@@ -18,6 +18,14 @@
 *                    + ((y / BITS_PER_BYTE) * (fb->frame_width * fb->pixel_size))
 *                    this points us at the byte containing the y co-ordinate
 *
+*           This is straying close to the ledeffects stuff I've already done.
+*           Some duplication might happen as I want this the generic frame buffer
+*           which led screens can write from, complete with dma support etc.
+*
+*           Potentially lots of switching depending on pixel type/order - can I skip this by 
+*           using a function table for more speeds? Could even look at putting the functions in 
+*           RAM...
+*
 * \date     Sept 2023
 * \author   RJAM
 ****************************************/
@@ -55,7 +63,11 @@ const char *FB_TAG="Framebuffer";
                                                    (((uint16_t)(y / BITS_PER_BYTE)) * fb->frame_width)) \
                                                    &= ~(1 << (y % BITS_PER_BYTE)))
 
-#define COORDS_OUTSIDE_FRAME_BOUNDS(fb, x, y) ((x > fb->frame_width) || (y > fb->frame_height))
+#define PIXEL_PTR_FROM_CARTESIAN(fb, x, y) (uint8_t *)fb->frame_start + \
+                                           ((x % frame->width) * fb->pixel_size) + \
+                                           ((y * frame->width) * fb->pixel_size)
+
+#define COORDS_OUTSIDE_FRAME_BOUNDS(fb, x, y) ((x >= fb->frame_width) || (y >= fb->frame_height))
 
 
 /** TODO: Fix these */
@@ -85,6 +97,7 @@ static uint8_t coords_match(coord_t *a, coord_t *b) {
 esp_err_t framebuffer_init(FB_h fb, framebuff_init_t *init) {
 
     esp_err_t err = ESP_OK;
+    bool frame_assigned = false;
 
     if(init->frame_width > FRAMEBUFFER_MAX_SUPPORTED_WIDTH || 
        init->frame_height > FRAMEBUFFER_MAX_SUPPORTED_HEIGHT 
@@ -93,25 +106,47 @@ esp_err_t framebuffer_init(FB_h fb, framebuff_init_t *init) {
         err = ESP_ERR_INVALID_ARG;
     }
 
-    else if(init->pixel_size >= PIXEL_TYPE_INVALID) {
-        err = ESP_ERR_INVALID_ARG;
-        ESP_LOGE(FB_TAG, "Error, invalid pixel size!");
-    }
 
     if(!err) {
         memset(fb, 0, sizeof(framebuff_handle_t));
-        fb->frame_height = init->frame_height;  // 8 bytes
-        fb->frame_width = init->frame_width;    // 16 bytes
-        fb->pixel_size = init->pixel_size;
 
-        if(fb->pixel_size == PIXEL_TYPE_BIT) {
-            /** adjust for bits (don't divide both by 8 tho... ) **/
-            fb->frame_height = fb->frame_height / 8;
+        fb->frame_height = init->frame_height;
+        fb->frame_width = init->frame_width;
+
+        switch (init->pixel_size)
+        {
+        case PIXEL_TYPE_BIT:
+            /** going off the SSD130X as example - pixel fields have N*M resolution
+             *  with memory laid out as M * (N/8) bytes 
+             **/
+            fb->frame_len = fb->frame_width * (uint32_t)(fb->frame_width / 8);
+            break;
+        
+        case PIXEL_TYPE_8BIT:
             fb->frame_len = fb->frame_height * fb->frame_width;
-        } 
-        else {
-            fb->frame_len = (fb->frame_height * fb->frame_width * fb->pixel_size);
+            break;
+        case PIXEL_TYPE_16BIT:
+            fb->frame_len = fb->frame_height * fb->frame_width * 2;
+            break;
+        case PIXEL_TYPE_24BIT:
+            fb->frame_len = fb->frame_height * fb->frame_width * 3;
+            break;
+        case PIXEL_TYPE_32BIT:
+            fb->frame_len = fb->frame_height * fb->frame_width * 4;
+            break;                
+        default:
+            err = ESP_ERR_INVALID_ARG;
+            ESP_LOGE(FB_TAG, "Error, invalid pixel size!");
+            break;
         }
+
+        if(!err) {
+            fb->pixel_size = init->pixel_size;
+        }
+    }
+
+    if(!err) {
+
         fb->frame_start = heap_caps_malloc(fb->frame_len, MALLOC_CAP_8BIT);
 
         if(fb->frame_start == NULL) {
@@ -119,11 +154,17 @@ esp_err_t framebuffer_init(FB_h fb, framebuff_init_t *init) {
             ESP_LOGE(FB_TAG, "Error, unable to assign frame heap memory!");
         }
         else {
+            frame_assigned = true;
             memset(fb->frame_start, 0, sizeof(uint8_t) * fb->frame_len);
         }
     }
 
-    ESP_LOGE(FB_TAG, "Err : %u", err);
+    if(err) {
+        ESP_LOGE(FB_TAG, "Failed to initialise framebuffer [%u]", err);
+        if(frame_assigned == true) {
+            heap_caps_free(fb->frame_start);
+        }
+    }
 
     return err;
 
@@ -182,7 +223,7 @@ void framebuff_draw_circle_xsteps(FB_h fb, coord_t *centre, uint8_t radius) {
 esp_err_t framebuffer_draw_vertical_ysteps(FB_h fb, coord_t *start, coord_t *end) {
 
     esp_err_t err = ESP_OK;
-    // draw a simple horizontal line
+    // draw a simple vertical line
     if(COORDS_OUTSIDE_FRAME_BOUNDS(fb, start->x, start->y) ||
        COORDS_OUTSIDE_FRAME_BOUNDS(fb, end->x, end->y)) {
         err = ESP_ERR_INVALID_ARG; 
@@ -192,7 +233,7 @@ esp_err_t framebuffer_draw_vertical_ysteps(FB_h fb, coord_t *start, coord_t *end
         err = ESP_ERR_INVALID_SIZE;
     }
     else if (start->x != end->x) {
-        /** invalid coords for a horizontal line */
+        /** invalid coords for a vertical line */
         err = ESP_ERR_INVALID_ARG;
     }
 
@@ -271,5 +312,10 @@ esp_err_t framebuffer_draw_line_xsteps(FB_h fb, coord_t *start, coord_t *end) {
     }
 
     return err;
+}
 
+
+esp_err_t framebuffer_clear_buffer(FB_h fb) {
+    memset(fb->frame_start, 0, sizeof(uint8_t ) * fb->frame_len);
+    return ESP_OK;
 }

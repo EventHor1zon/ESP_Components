@@ -33,6 +33,17 @@ typedef struct {
     uint16_t y;
 } coord_t;
 
+typedef struct {
+    uint8_t red;
+    uint8_t green;
+    uint8_t blue;
+} rgb_pixel_t;
+
+typedef struct {
+    union {
+
+    } col;
+} rgb_t;
 
 typedef struct 
 {
@@ -58,6 +69,8 @@ typedef framebuff_handle_t * FB_h;
 
 
 esp_err_t framebuffer_init(FB_h fb, framebuff_init_t *init);
+
+esp_err_t framebuffer_clear_buffer(FB_h fb);
 
 esp_err_t framebuffer_draw_horizontal_xsteps(FB_h fb, coord_t *start, coord_t *end);
 
