@@ -170,6 +170,7 @@ esp_err_t framebuffer_init(FB_h fb, framebuff_init_t *init) {
 
 }
 
+
 void framebuff_draw_circle_xsteps(FB_h fb, coord_t *centre, uint8_t radius) {
     // circle equation (x-j)^2 + (y-k)^2 = r^2 where 
     // r= radius, j/k are circle centre points and x/y are coordinates
@@ -177,8 +178,6 @@ void framebuff_draw_circle_xsteps(FB_h fb, coord_t *centre, uint8_t radius) {
     // this means we get a plottable point for each column
     // this algorithm(?) only plots the top half of the circle mathematically
     // then plots the opposite point of the circle by flipping 2*y around the x-axis
-    ESP_LOGE(FB_TAG, "Error, invalid frame wooo");
-
     int16_t x=(centre->x-radius);
     coord_t p = {0};
     coord_t plast = {0};
@@ -219,16 +218,16 @@ void framebuff_draw_circle_xsteps(FB_h fb, coord_t *centre, uint8_t radius) {
 }
 
 
-
 esp_err_t framebuffer_draw_vertical_ysteps(FB_h fb, coord_t *start, coord_t *end) {
 
     esp_err_t err = ESP_OK;
     // draw a simple vertical line
     if(COORDS_OUTSIDE_FRAME_BOUNDS(fb, start->x, start->y) ||
        COORDS_OUTSIDE_FRAME_BOUNDS(fb, end->x, end->y)) {
+        ESP_LOGE(FB_TAG, "(%u %u) (%u %u) out of bounds", start->x, start->y, end->x, end->y);
         err = ESP_ERR_INVALID_ARG; 
     }
-    else if (start->y <= end->y) {
+    else if (end->y <= start->y) {
         /** line of len 0 or -ve line **/
         err = ESP_ERR_INVALID_SIZE;
     }
@@ -255,8 +254,9 @@ esp_err_t framebuffer_draw_horizontal_xsteps(FB_h fb, coord_t *start, coord_t *e
        COORDS_OUTSIDE_FRAME_BOUNDS(fb, end->x, end->y)) {
         err = ESP_ERR_INVALID_ARG; 
     }
-    else if (start->x <= end->x) {
+    else if (end->x <= start->x) {
         /** line of len 0 or -ve line **/
+        ESP_LOGE(FB_TAG, "(%u %u) invalid line length", start->x, end->x);
         err = ESP_ERR_INVALID_SIZE;
     }
     else if (start->y != end->y) {
@@ -278,6 +278,7 @@ esp_err_t framebuffer_draw_line_xsteps(FB_h fb, coord_t *start, coord_t *end) {
     
     esp_err_t err = ESP_OK;
     float slope = 0.0;
+    uint16_t diff = 0;
     bool vert = false;
     bool horz = false;
 
@@ -286,13 +287,12 @@ esp_err_t framebuffer_draw_line_xsteps(FB_h fb, coord_t *start, coord_t *end) {
         err = ESP_ERR_INVALID_ARG; 
     }
 
-    if(start->x > end->x) {
+    if(end->x <= start->x) {
         // lol user can sort by x...
         err = ESP_ERR_INVALID_STATE;
     }
 
     if(!err) {
-        
         if(start->x == end->x) {
             vert = true;
             framebuffer_draw_vertical_ysteps(fb, start, end);
@@ -302,11 +302,17 @@ esp_err_t framebuffer_draw_line_xsteps(FB_h fb, coord_t *start, coord_t *end) {
             framebuffer_draw_horizontal_xsteps(fb, start, end);
         }
         else {
-            float y; // y = mx + c
-            slope = ((float)(end->y - start->y)) / ((float)(end->x - start->x));
-            for(uint16_t i=0; i < (end->x - start->x)+1; i++) {
-                y = (slope * ((float)(start->x + i))) + (float)start->y;
-                PIXEL_SET_BIT_CARTESIAN(fb, (start->x + i), (uint16_t)round(y));
+            float y; // y = mx + c (c is the y-intercept, not offset)
+            float y_intr; // sub in start points + slope to find y intercept
+            int16_t y_rounded;
+            slope = ((float)(end->y) - (float)(start->y)) / ((float)(end->x) - (float)(start->x));
+            // convert to the slope intercept form to get y-intercept
+            y_intr = start->y - (slope * start->x);
+            
+            for(uint16_t i=0; i < (end->x - start->x); i++) {
+                y = (slope * ((float)(start->x + i))) + y_intr;
+                y_rounded = (uint16_t)round(y);
+                PIXEL_SET_BIT_CARTESIAN(fb, (start->x + i), y_rounded);
             }
         }
     }
