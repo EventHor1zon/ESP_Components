@@ -41,7 +41,7 @@ typedef struct {
 
 typedef struct {
     union {
-
+        
     } col;
 } rgb_t;
 
