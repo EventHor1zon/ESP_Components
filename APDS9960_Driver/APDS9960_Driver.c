@@ -211,42 +211,40 @@ IRAM_ATTR void apds_intr_handler(void *args)
 
 /****** Private Functions *************/
 
-/** TODO: These should be in GCD **/
-
 /** Sets the BITS in mask **/
-// static esp_err_t regSetMask(APDS_DEV dev, uint8_t regaddr, uint8_t mask)
-// {
-//     esp_err_t err = ESP_OK;
-//     uint8_t regval = 0;
+static esp_err_t regSetMask(APDS_DEV dev, uint8_t regaddr, uint8_t mask)
+{
+    esp_err_t err = ESP_OK;
+    uint8_t regval = 0;
 
-//     err = gcd_i2c_read_address(dev->bus, dev->addr, regaddr, 1, &regval);
+    err = gcd_i2c_read_address(dev->bus, dev->addr, regaddr, 1, &regval);
 
-//     if (!err) {
-//         // check if mask is already set
-//         if ((regval & mask) != mask) {
-//             regval |= mask;
-//             err = gcd_i2c_write_address(dev->bus, dev->addr, regaddr, 1, &regval);
-//         }
-//     }
+    if (!err) {
+        // check if mask is already set
+        if ((regval & mask) != mask) {
+            regval |= mask;
+            err = gcd_i2c_write_address(dev->bus, dev->addr, regaddr, 1, &regval);
+        }
+    }
 
-//     return err;
-// }
+    return err;
+}
 
-// /** unset the bits in the mask **/
-// static esp_err_t regUnsetMask(APDS_DEV dev, uint8_t regaddr, uint8_t mask)
-// {
-//     esp_err_t err = ESP_OK;
-//     uint8_t regval = 0;
+/** unset the bits in the mask **/
+static esp_err_t regUnsetMask(APDS_DEV dev, uint8_t regaddr, uint8_t mask)
+{
+    esp_err_t err = ESP_OK;
+    uint8_t regval = 0;
 
-//     err = gcd_i2c_read_address(dev->bus, dev->addr, regaddr, 1, &regval);
+    err = gcd_i2c_read_address(dev->bus, dev->addr, regaddr, 1, &regval);
 
-//     if (!err) {
-//         regval &= ~(mask);
-//         err = gcd_i2c_write_address(dev->bus, dev->addr, regaddr, 1, &regval);
-//     }
+    if (!err) {
+        regval &= ~(mask);
+        err = gcd_i2c_write_address(dev->bus, dev->addr, regaddr, 1, &regval);
+    }
 
-//     return err;
-// }
+    return err;
+}
 
 static esp_err_t readModWrite(APDS_DEV dev, uint8_t regaddr, uint8_t clear_mask, uint8_t set_mask)
 {
