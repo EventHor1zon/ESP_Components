@@ -320,15 +320,6 @@ static apds_direction_t apds_gst_max_at_index(APDS_DEV dev, uint8_t index)
         }
     }
 
-    printf(
-        "%u %u %u %u - max: %u max index %u\n",
-        data[0],
-        data[1],
-        data[2],
-        data[3],
-        max,
-        max_index);
-
     if (max_tie) {
         dir = APDS_DIRECTION_UNK;
     } else {
@@ -497,10 +488,11 @@ static esp_err_t apds_config_intr_pin(APDS_DEV dev)
 
     esp_err_t err = gpio_config(&conf);
     if (err) {
-        ESP_LOGE(APDS_TAG, "Error configuring GPIO pin!");
+        ESP_LOGE(APDS_TAG, "Error configuring GPIO pin! [%u]", err);
     } else {
         err = gpio_isr_handler_add(dev->intr_pin, (gpio_isr_t)apds_intr_handler, dev);
     }
+
     return err;
 }
 
@@ -590,55 +582,53 @@ static void apds_driver_task(void *args)
 
         if (events) {
             ESP_LOGI(APDS_TAG, "Received interrupt");
-        }
 
-        /** get the isr source **/
-        uint8_t interrupt_source = get_interrupt_source_and_clear(dev);
-        ESP_LOGI(APDS_TAG, "Got interrupt value 0x%02x", interrupt_source);
+            /** get the isr source **/
+            uint8_t interrupt_source = get_interrupt_source_and_clear(dev);
+            ESP_LOGI(APDS_TAG, "Got interrupt value 0x%02x", interrupt_source);
 
-        /** TODO: Take actions!
-         *  if data valid, set the bit in the struct so user can poll easily
-         *  if saturation occured, mark in struct too
-         *  **/
+            /** TODO: Take actions!
+             *  if data valid, set the bit in the struct so user can poll easily
+             *  if saturation occured, mark in struct too
+             *  **/
 
-        if (interrupt_source & APDS_REGBIT_CP_SAT) {
-            ESP_LOGI(APDS_TAG, "Clear LED Channel ADC was Saturated!");
-        }
-        if (interrupt_source & APDS_REGBIT_PRX_GST_SAT) {
-            ESP_LOGI(APDS_TAG, "Clear Gesture ADC was Saturated!");
-        }
-        if (interrupt_source & APDS_REGBIT_PRX_INT) {
-            ESP_LOGI(APDS_TAG, "Proximity Interrupt threshold interrupt!");
-        }
-        if (interrupt_source & APDS_REGBIT_ALS_INT) {
-            ESP_LOGI(APDS_TAG, "ALS Interrupt threshold interrupt!");
-        }
-        if (interrupt_source & APDS_REGBIT_GST_INT) {
-            ESP_LOGI(APDS_TAG, "Gesture Interrupt threshold interrupt!");
-        }
-        if (interrupt_source & APDS_REGBIT_PRX_VALID) {
-            ESP_LOGI(APDS_TAG, "Proximity is valid!");
-        }
-        if (interrupt_source & APDS_REGBIT_ALS_VALID) {
-            ESP_LOGI(APDS_TAG, "ALS is valid!");
-        }
-        if (dev->gst_settings.gmode > 0) {
-            apds_swipe_t swipe_dir;
-            apds_get_fifo_valid(dev, (bool *)&byte);
-            if (byte == 0) {
-                ESP_LOGI(APDS_TAG, "FIFO Data is not valid! Reading anyway...");
+            if (interrupt_source & APDS_REGBIT_CP_SAT) {
+                ESP_LOGI(APDS_TAG, "Clear LED Channel ADC was Saturated!");
             }
-
-            err = apds_read_fifo_full(dev);
-            if (!err) {
-                ESP_LOGI(APDS_TAG, "Fifo read complete");
-                swipe_dir = apds_detect_swipe_dir(dev);
-                dev->gst_settings.last_swipe = swipe_dir;
+            if (interrupt_source & APDS_REGBIT_PRX_GST_SAT) {
+                ESP_LOGI(APDS_TAG, "Clear Gesture ADC was Saturated!");
             }
-            apds_gst_clr_fifo(dev);
-        }
+            if (interrupt_source & APDS_REGBIT_PRX_INT) {
+                ESP_LOGI(APDS_TAG, "Proximity Interrupt threshold interrupt!");
+            }
+            if (interrupt_source & APDS_REGBIT_ALS_INT) {
+                ESP_LOGI(APDS_TAG, "ALS Interrupt threshold interrupt!");
+            }
+            if (interrupt_source & APDS_REGBIT_GST_INT) {
+                ESP_LOGI(APDS_TAG, "Gesture Interrupt threshold interrupt!");
+            }
+            if (interrupt_source & APDS_REGBIT_PRX_VALID) {
+                ESP_LOGI(APDS_TAG, "Proximity is valid!");
+            }
+            if (interrupt_source & APDS_REGBIT_ALS_VALID) {
+                ESP_LOGI(APDS_TAG, "ALS is valid!");
+            }
+            if (dev->gst_settings.gmode > 0) {
+                apds_swipe_t swipe_dir;
+                apds_get_fifo_valid(dev, (bool *)&byte);
+                if (byte == 0) {
+                    ESP_LOGI(APDS_TAG, "FIFO Data is not valid! Reading anyway...");
+                }
 
-        vTaskDelay(pdMS_TO_TICKS(10));
+                err = apds_read_fifo_full(dev);
+                if (!err) {
+                    ESP_LOGI(APDS_TAG, "Fifo read complete");
+                    swipe_dir = apds_detect_swipe_dir(dev);
+                    dev->gst_settings.last_swipe = swipe_dir;
+                }
+                apds_gst_clr_fifo(dev);
+            }
+        }
     }
     /** here be dragons **/
 }

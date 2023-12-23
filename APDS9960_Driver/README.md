@@ -22,7 +22,7 @@ I2C Interface
 
 ## Datasheet
 
-https://ww1.microchip.com/downloads/en/DeviceDoc/21419D.pdf
+https://docs.broadcom.com/doc/AV02-4191EN
 
 ## Credits
 
