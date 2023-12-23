@@ -214,34 +214,50 @@ IRAM_ATTR void apds_intr_handler(void *args)
 /** TODO: These should be in GCD **/
 
 /** Sets the BITS in mask **/
-static esp_err_t regSetMask(APDS_DEV dev, uint8_t regaddr, uint8_t mask)
+// static esp_err_t regSetMask(APDS_DEV dev, uint8_t regaddr, uint8_t mask)
+// {
+//     esp_err_t err = ESP_OK;
+//     uint8_t regval = 0;
+
+//     err = gcd_i2c_read_address(dev->bus, dev->addr, regaddr, 1, &regval);
+
+//     if (!err) {
+//         // check if mask is already set
+//         if ((regval & mask) != mask) {
+//             regval |= mask;
+//             err = gcd_i2c_write_address(dev->bus, dev->addr, regaddr, 1, &regval);
+//         }
+//     }
+
+//     return err;
+// }
+
+// /** unset the bits in the mask **/
+// static esp_err_t regUnsetMask(APDS_DEV dev, uint8_t regaddr, uint8_t mask)
+// {
+//     esp_err_t err = ESP_OK;
+//     uint8_t regval = 0;
+
+//     err = gcd_i2c_read_address(dev->bus, dev->addr, regaddr, 1, &regval);
+
+//     if (!err) {
+//         regval &= ~(mask);
+//         err = gcd_i2c_write_address(dev->bus, dev->addr, regaddr, 1, &regval);
+//     }
+
+//     return err;
+// }
+
+static esp_err_t readModWrite(APDS_DEV dev, uint8_t regaddr, uint8_t clear_mask, uint8_t set_mask)
 {
     esp_err_t err = ESP_OK;
-    uint8_t regval = 0;
+    uint8_t regval;
 
     err = gcd_i2c_read_address(dev->bus, dev->addr, regaddr, 1, &regval);
 
     if (!err) {
-        // check if mask is already set
-        if ((regval & mask) != mask) {
-            regval |= mask;
-            err = gcd_i2c_write_address(dev->bus, dev->addr, regaddr, 1, &regval);
-        }
-    }
+        replaceBits(&regval, clear_mask, set_mask);
 
-    return err;
-}
-
-/** unset the bits in the mask **/
-static esp_err_t regUnsetMask(APDS_DEV dev, uint8_t regaddr, uint8_t mask)
-{
-    esp_err_t err = ESP_OK;
-    uint8_t regval = 0;
-
-    err = gcd_i2c_read_address(dev->bus, dev->addr, regaddr, 1, &regval);
-
-    if (!err) {
-        regval &= ~(mask);
         err = gcd_i2c_write_address(dev->bus, dev->addr, regaddr, 1, &regval);
     }
 
@@ -894,15 +910,12 @@ esp_err_t apds_set_led_drive(APDS_DEV dev, apds_led_drive_t *drive)
 {
     uint8_t d = *drive;
     esp_err_t err = ESP_OK;
-    if (d > APDS_LEDDRIVE_MAX) {
+    if (d >= APDS_LEDDRIVE_MAX) {
         err = ESP_ERR_INVALID_ARG;
         ESP_LOGE(APDS_TAG, "Invalid args");
     } else {
         d = (d << 6);
-        err = regUnsetMask(dev, APDS_REGADDR_GAIN_CTRL, (3 << 6));
-        if (!err && d) {
-            err = regSetMask(dev, APDS_REGADDR_GAIN_CTRL, d);
-        }
+        err = readModWrite(dev, APDS_REGADDR_GAIN_CTRL, (3 << 6), d);
     }
     if (!err) {
         dev->gst_settings.gst_led_drive_str = d;
@@ -995,17 +1008,7 @@ esp_err_t apds_set_als_intr_persistence(APDS_DEV dev, uint8_t *cnt)
     if (val > 15) {
         err = ESP_ERR_INVALID_ARG;
     } else {
-        err = gcd_i2c_read_address(dev->bus, dev->addr, APDS_REGADDR_ISR_PERSIST_FLTR, 1, &regval);
-        if (!err) {
-            regval &= 0xf0;
-            regval |= val;
-            err = gcd_i2c_write_address(
-                dev->bus,
-                dev->addr,
-                APDS_REGADDR_ISR_PERSIST_FLTR,
-                1,
-                &regval);
-        }
+        err = readModWrite(dev, APDS_REGADDR_ISR_PERSIST_FLTR, APDS_ALS_INT_PERSIST_MASK, val);
     }
 
     if (!err) {
@@ -1029,15 +1032,13 @@ esp_err_t apds_set_als_gain(APDS_DEV dev, als_gain_t *g)
         err = ESP_ERR_INVALID_ARG;
         ESP_LOGE(APDS_TAG, "Invalid args");
     } else {
-        err = regUnsetMask(dev, APDS_REGADDR_GAIN_CTRL, 3);
-        if (!err && val) {
-            err = regSetMask(dev, APDS_REGADDR_GAIN_CTRL, val);
-        }
+        err = readModWrite(dev, APDS_REGADDR_GAIN_CTRL, 3, val);
     }
 
     if (!err) {
         dev->als_settings.als_gain = val;
     }
+
     return err;
 }
 
@@ -1088,11 +1089,9 @@ esp_err_t apds_set_prx_intr_persistence(APDS_DEV dev, uint8_t *cnt)
     if (val > 15) {
         err = ESP_ERR_INVALID_ARG;
     } else {
-        err = regUnsetMask(dev, APDS_REGADDR_ISR_PERSIST_FLTR, 0xf0);
-        if (!err && val) {
-            err = regSetMask(dev, APDS_REGADDR_ISR_PERSIST_FLTR, (val << 4));
-        }
+        err = readModWrite(dev, APDS_REGADDR_ISR_PERSIST_FLTR, 0xf0, (val << 4));
     }
+
     if (!err) {
         dev->prx_settings.prox_perist_cycles = val;
     }
@@ -1115,8 +1114,7 @@ esp_err_t apds_set_prx_ledpulse_t(APDS_DEV dev, prx_ledtime_t *t)
         ESP_LOGE(APDS_TAG, "Error: Invalid value [%u]", val);
         err = ESP_ERR_INVALID_ARG;
     } else {
-        err = regUnsetMask(dev, APDS_REGADDR_PRX_PULSE_LEN, 0xC0);
-        err = regSetMask(dev, APDS_REGADDR_PRX_PULSE_LEN, (val << 6));
+        err = readModWrite(dev, APDS_REGADDR_PRX_PULSE_LEN, 0xC0, (val << 6));
     }
 
     if (!err) {
@@ -1165,10 +1163,11 @@ esp_err_t apds_set_prx_gain(APDS_DEV dev, gst_gain_t *g)
         err = ESP_ERR_INVALID_ARG;
         ESP_LOGE(APDS_TAG, "Invalid args");
     } else {
-        err = regUnsetMask(dev, APDS_REGADDR_GAIN_CTRL, (3 << APDS_REG_OFFSET_PGAIN));
-        if (!err && val) {
-            err = regSetMask(dev, APDS_REGADDR_GAIN_CTRL, (val << APDS_REG_OFFSET_PGAIN));
-        }
+        err = readModWrite(
+            dev,
+            APDS_REGADDR_GAIN_CTRL,
+            (3 << APDS_REG_OFFSET_PGAIN),
+            (val << APDS_REG_OFFSET_PGAIN));
     }
 
     if (!err) {
@@ -1252,16 +1251,11 @@ esp_err_t apds_set_gst_pulse_len(APDS_DEV dev, uint8_t *cnt)
     if (val > 3) {
         err = ESP_ERR_INVALID_ARG;
     } else {
-        err = gcd_i2c_read_address(dev->bus, dev->addr, APDS_REGADDR_GST_PULSE_LEN, 1, &regval);
+        err = readModWrite(dev, APDS_REGADDR_GST_PULSE_LEN, 0b11000000, (val << 6));
     }
 
     if (!err) {
-        regval &= ~(0b11000000);
-        regval |= (val << 6);
-        err = gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_GST_PULSE_LEN, 1, &regval);
-        if (!err) {
-            dev->gst_settings.gst_pulse_len = val;
-        }
+        dev->gst_settings.gst_pulse_len = val;
     }
 
     return err;
@@ -1282,16 +1276,11 @@ esp_err_t apds_set_gst_pulse_cnt(APDS_DEV dev, uint8_t *cnt)
     if (val > 64) {
         err = ESP_ERR_INVALID_ARG;
     } else {
-        err = gcd_i2c_read_address(dev->bus, dev->addr, APDS_REGADDR_GST_PULSE_LEN, 1, &regval);
+        err = readModWrite(dev, APDS_REGADDR_GST_PULSE_LEN, 0b11111, val);
     }
 
     if (!err) {
-        regval &= ~(0b11111);
-        regval |= val;
-        err = gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_GST_PULSE_LEN, 1, &regval);
-        if (!err) {
-            dev->gst_settings.gst_pulse_cnt = val;
-        }
+        dev->gst_settings.gst_pulse_cnt = val;
     }
 
     return err;
@@ -1325,18 +1314,19 @@ esp_err_t apds_set_gst_gain(APDS_DEV dev, uint8_t *gain)
 {
     esp_err_t err = ESP_OK;
     uint8_t val = *gain;
-    uint8_t regval = 0;
+
     if (val >= APDS_GST_GAIN_MAX) {
         err = ESP_ERR_INVALID_ARG;
     } else {
-        err = gcd_i2c_read_address(dev->bus, dev->addr, APDS_REGADDR_GST_CONFIG_2, 1, &regval);
-        BYTE_UNSET_BITS(regval, 0b11100000);
-        BYTE_SET_BITS(regval, (val << APDS_REGOFFSET_GST_GAIN));
+        err = readModWrite(
+            dev,
+            APDS_REGADDR_GST_CONFIG_2,
+            0b11100000,
+            (val << APDS_REGOFFSET_GST_GAIN));
+    }
 
-        err = gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_GST_CONFIG_2, 1, &regval);
-        if (!err) {
-            dev->gst_settings.gst_gain_ctrl = val;
-        }
+    if (!err) {
+        dev->gst_settings.gst_gain_ctrl = val;
     }
 
     return err;
@@ -1352,18 +1342,15 @@ esp_err_t apds_set_gst_wait(APDS_DEV dev, uint8_t *wait)
 {
     esp_err_t err = ESP_OK;
     uint8_t val = *wait;
-    uint8_t regval = 0;
+
     if (val >= APDS_GST_WAIT_T_MAX) {
         err = ESP_ERR_INVALID_ARG;
     } else {
-        err = gcd_i2c_read_address(dev->bus, dev->addr, APDS_REGADDR_GST_CONFIG_2, 1, &regval);
-        BYTE_UNSET_BITS(regval, 0b111);
-        BYTE_SET_BITS(regval, val);
+        err = readModWrite(dev, APDS_REGADDR_GST_CONFIG_2, 0b111, val);
+    }
 
-        err = gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_GST_CONFIG_2, 1, &regval);
-        if (!err) {
-            dev->gst_settings.gst_wait_time = val;
-        }
+    if (!err) {
+        dev->gst_settings.gst_wait_time = val;
     }
 
     return err;
@@ -1379,16 +1366,13 @@ esp_err_t apds_set_gst_led_drive(APDS_DEV dev, apds_led_drive_t *drive)
 {
     uint8_t d = *drive;
     esp_err_t err = ESP_OK;
+
     if (d > APDS_LEDDRIVE_MAX) {
         err = ESP_ERR_INVALID_ARG;
-        ESP_LOGE(APDS_TAG, "Invalid args");
     } else {
-        d = (d << 6);
-        err = regUnsetMask(dev, APDS_REGADDR_GST_CONFIG_2, (3 << 6));
-        if (!err && d) {
-            err = regSetMask(dev, APDS_REGADDR_GAIN_CTRL, d);
-        }
+        err = readModWrite(dev, APDS_REGADDR_GST_CONFIG_2, (3 << 6), (d << 6));
     }
+
     if (!err) {
         dev->gst_settings.gst_led_drive_str = d;
     }
@@ -1532,11 +1516,8 @@ esp_err_t apds_read_fifo_full(APDS_DEV dev)
     esp_err_t err = ESP_OK;
     uint8_t data[APDS_FIFO_LEN_BYTES] = {0};
     uint8_t num_bytes = 0;
-    bool empty = false;
-    uint8_t rows_read = 0;
     uint8_t num_rows = 0;
     uint8_t j = 0;
-    uint8_t en = 1;
 
     err = apds_get_gst_fifo_lvl(dev, &num_rows);
 
@@ -1618,21 +1599,15 @@ esp_err_t apds_set_fifo_thresh(APDS_DEV dev, uint8_t *thr)
 {
     uint8_t thresh = *thr;
     esp_err_t err = ESP_OK;
-    uint8_t regval = 0;
 
     if (thresh >= APDS_FIFO_THRESH_MAX) {
-        return ESP_ERR_INVALID_ARG;
+        err = ESP_ERR_INVALID_ARG;
+    } else {
+        err = readModWrite(dev, APDS_REGADDR_GST_CONFIG_1, 0b11000000, (thresh << 6));
     }
 
-    err = gcd_i2c_read_address(dev->bus, dev->addr, APDS_REGADDR_GST_CONFIG_1, 1, &regval);
-
     if (!err) {
-        BYTE_UNSET_BITS(regval, 0b11000000);
-        BYTE_SET_BITS(regval, thresh << 6);
-        err = gcd_i2c_write_address(dev->bus, dev->addr, APDS_REGADDR_GST_CONFIG_1, 1, &regval);
-        if (!err) {
-            dev->gst_settings.gst_fifo_thresh = thresh;
-        }
+        dev->gst_settings.gst_fifo_thresh = thresh;
     }
 
     return err;
