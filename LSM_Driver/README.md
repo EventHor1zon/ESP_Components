@@ -12,7 +12,7 @@ LSM6DS3 is an accelerometer/gyroscope with lots of built-in functionality. There
 
 ## Interface Type
 
-I2C
+Only I2C currently supported
 
 ## How To Use
 
