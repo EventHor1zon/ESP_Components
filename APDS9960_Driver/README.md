@@ -21,12 +21,14 @@ I2C Interface
 
 This device can be used in a number of ways. Any or all of the three sesonrs can be active at any time. The device's interrupt pin enables automatic collection of fifo data and setting of saturated bits, etc. However, the user is free to implement a polling approach. 
 
+The driver maintains an internal state of the device, and this is returned with the specific register 'getter' functions. This does mean that the driver can become desyncronised from the device should an unexpected reset or state condition occur. If the user wants to update the state of a register, use the GCD comms interface to read the register manually.
+
 ## TODOs 
 
 - Add events
 - Add example sketches
 - Finish the task stuff
-- Multi device task
+-  xMulti device taskx 
 
 
 ## Datasheet

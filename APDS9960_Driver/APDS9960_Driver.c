@@ -202,8 +202,24 @@ static bool is_prx_valid(APDS_DEV dev);
 IRAM_ATTR void apds_intr_handler(void *args)
 {
     APDS_DEV dev = (adps_handle_t *)args;
+
     BaseType_t higherPrio = pdFALSE;
-    xTaskNotifyFromISR(dev->t_handle, 0, eIncrement, &higherPrio);
+    /* send the device handle as the notify value
+       we don't adjust this value if the notify is still pending,
+       so it is possible to miss interrupts from multiple devices
+       if the task has not yet serviced a notify from another device.
+       ISRs could be missed on a single device but they are
+       all checked when the task is run.
+    */
+    if (xTaskNotifyFromISR(
+            apds_driver_task_h,
+            (uint32_t)dev,
+            eSetValueWithoutOverwrite,
+            &higherPrio)
+        != pdPASS)
+    {
+        dev->missed_isr++;
+    }
     portYIELD_FROM_ISR();
 }
 
@@ -504,61 +520,6 @@ static esp_err_t apds_gst_clr_fifo(APDS_DEV dev)
 
 static esp_err_t testmode(APDS_DEV dev)
 {
-    /** try to work out the gesture sensor ... **/
-
-    uint8_t byte = 0;
-    uint16_t val = 0;
-
-    // byte = 2;
-    // apds_set_gst_ext_persist(dev, &byte);
-
-    /** set to gst ext tp zero to stay in gesture detect mode **/
-    byte = 20;
-    apds_set_gst_proximity_ext_thr(dev, &byte);
-
-    byte = 6;
-    apds_set_prx_intr_persistence(dev, &byte);
-
-    /** set the entr threshold to ~5/10ths **/
-    byte = 20;
-    apds_set_gst_proximity_ent_thr(dev, &byte);
-
-    /** set the fifo threshold to 16 **/
-    byte = 3;
-    apds_set_fifo_thresh(dev, &byte);
-
-    /** enable gesture interrupts - not sure if needed for fifo threshold but
-     * probably **/
-    byte = 1;
-    apds_set_gst_intr(dev, &byte);
-
-    apds_set_prox_intr(dev, &byte);
-
-    /** set the gesture direction sampling to all  **/
-    byte = 0;
-    apds_set_gst_direction_mode(dev, &byte);
-
-    /** set the led to be full current **/
-    apds_set_gst_led_drive(dev, &byte);
-
-    /**  set wait time between gestures to ~40ms **/
-    byte = APDS_GST_WAIT_T_39_2MS;
-    apds_set_gst_wait(dev, &byte);
-
-    /** reset/clear the fifo **/
-    apds_gst_clr_fifo(dev);
-
-    /** set Gst En, pwr on and GMODE **/
-    byte = 1;
-    apds_set_gst_gmode(dev, &byte);
-
-    /** try turning on proximity to get the entry threshold **/
-    apds_set_proximity_status(dev, &byte);
-
-    apds_set_gesture_status(dev, &byte);
-
-    apds_set_pwr_on_status(dev, &byte);
-
     return ESP_OK;
 }
 
@@ -571,16 +532,17 @@ static uint8_t get_gst_fifo_pkts(APDS_DEV dev)
 
 static void apds_driver_task(void *args)
 {
-    APDS_DEV dev = (adps_handle_t *)args;
-    uint32_t events = 0;
+    APDS_DEV dev;
+    uint32_t notify = 0;
     uint8_t pkts = 0;
     uint8_t byte = 0;
     esp_err_t err = ESP_OK;
 
     while (1) {
-        events = ulTaskNotifyTake(pdFALSE, pdMS_TO_TICKS(10000));
+        if (xTaskNotifyWait(0, UINT32_MAX, &notify, pdMT_TO_TICKS(1000)) == pdPASS) {
+            /* retrieve the driver handle from the notification value */
+            dev = (adps_handle_t *)notify;
 
-        if (events) {
             ESP_LOGI(APDS_TAG, "Received interrupt");
 
             /** get the isr source **/
@@ -687,9 +649,9 @@ APDS_DEV apds_init(APDS_DEV dev, apds_init_t *init)
                apds_driver_task,
                "apds_driver_task",
                CONFIG_APDS_TASK_STACK_SZ,
-               dev,
+               NULL,
                3,
-               &dev->t_handle)
+               &apds_driver_task_h)
                != pdTRUE)
     {
         ESP_LOGE(APDS_TAG, "Error creating driver task");

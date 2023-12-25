@@ -31,7 +31,7 @@ These modes can be adjusted using the colour, brightness and speed attributes of
 
 ### Colour Order and Pixel types
 
-Internally, all colours are treated as a 32-bit integer, with hex pairs representing `uint32_t colour 0xDDRRGGBB`, where `DD` is unused, and R, G, B values are as expected. Assumes 8-bit colour values. The actual order of the colours is recorded in the `ledtype_t` struct, which contains all the neccessary info for controlling an addressable led. Hopefully.
+Internally, all colours are treated as a 32-bit integer, with hex pairs representing `uint32_t colour 0xXXRRGGBB`, where `XX` is unused, and R, G, B values are as expected. Assumes 8-bit colour values. The actual order of the colours is recorded in the `ledtype_t` struct, which contains all the neccessary info for controlling an addressable led. Hopefully.
 
 ### Supported Led controller types
 

@@ -995,9 +995,7 @@ LSM_DriverHandle_t *LSM_init(LSMDEV device, LSM_initData_t *initData)
             } else if (initData->commMode == LSM_DEVICE_COMM_MODE_I2C) {
                 device->commMode = LSM_DEVICE_COMM_MODE_I2C;
                 device->commsChannel = initData->commsChannel;
-
                 device->devAddr = (initData->addrPinState == 1 ? LSM_I2C_ADDR + 1 : LSM_I2C_ADDR);
-
             } else {
                 initStatus = ESP_ERR_INVALID_ARG;
             }
