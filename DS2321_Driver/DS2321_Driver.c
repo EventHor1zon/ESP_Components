@@ -15,7 +15,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#include "genericCommsDriver.h"
+#include "GenericCommsDriver.h"
 #include "DS2321_Driver.h"
 
 

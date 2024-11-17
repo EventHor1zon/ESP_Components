@@ -34,7 +34,18 @@ void printBytesOrderExplicit(uint8_t val);
 
 uint8_t unset_bits(uint8_t byte, uint8_t unset);
 
-uint8_t unset_bits(uint8_t byte, uint8_t unset);
+uint8_t set_bits(uint8_t byte, uint8_t set);
+
+/**
+ * @brief replaceBits   - clears then sets the bits specified
+ *                        correct shift is required in clear and
+ *                        set mask
+ * @param data - ptr to data byte to modify
+ * @param clear_mask - clear these bits
+ * @param set_mask - set these bits.
+ */
+void replaceBits(uint8_t *data, uint8_t clear_mask, uint8_t set_mask);
+
 
 uint8_t largest_from_array(uint8_t *array, uint8_t len);
 

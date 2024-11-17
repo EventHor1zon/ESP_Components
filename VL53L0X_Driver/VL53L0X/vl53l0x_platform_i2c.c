@@ -3,7 +3,7 @@
 #include "vl53l0x_platform.h"
 
 #include "freertos/FreeRTOS.h"
-#include "genericCommsDriver.h"
+#include "GenericCommsDriver.h"
 
 #include "driver/gpio.h"
 #include "driver/i2c.h"

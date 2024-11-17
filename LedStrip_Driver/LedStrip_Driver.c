@@ -16,7 +16,7 @@
 #include "driver/spi_common.h"
 #include "driver/spi_master.h"
 
-#include "string.h"
+#include <string.h>
 
 #include "freertos/task.h"
 #include "freertos/queue.h"
@@ -24,9 +24,9 @@
 #include "freertos/semphr.h"
 #include "freertos/FreeRTOSConfig.h"
 
-#include "LedEffects.h"
-#include "LedStrip_Driver.h"
-#include "../Utils/Utilities.h"
+#include "inc/LedStrip_Driver.h"
+#include "inc/LedEffects.h"
+#include "Utilities.h"
 
 /****** Private Data ******************/
 
@@ -36,8 +36,6 @@ static bool is_initialised = false;
 static uint8_t num_strips = 0;
 
 const static char * LS_TAG = "LedStrip Driver";
-
-#define DEBUG_MODE 1
 
 
 /****** Function Prototypes ***********/
@@ -231,15 +229,15 @@ static esp_err_t ledstrip_spi_write(LEDSTRIP_h strip)
 
     showmem(strip->strand_mem_start, strip->write_length);
 
-    for(uint32_t i=0; i < (strip->write_length / 32); i++) {
+    for(uint32_t i=0; i < (strip->write_length / 4); i++) {
 
-        trx.tx_buffer = strip->strand_mem_start + (i * 32);
+        trx.tx_buffer = strip->strand_mem_start + (i * 4);
         
         txStatus = spi_device_polling_transmit(strip->interface_handle, &trx);
 
         if (txStatus != ESP_OK)
         {
-            ESP_LOGE("SPI_TX", "Error in sending %u bytes [%u]", strip->write_length, txStatus);
+            ESP_LOGE("SPI_TX", "Error in sending %lu bytes [%u]", strip->write_length, txStatus);
         }
     }
 
@@ -448,7 +446,7 @@ esp_err_t ledstrip_add_strip(LEDSTRIP_h strip, ledstrip_init_t *init) {
         type = &ledstrip_types[init->led_type];
 
 #ifdef DEBUG_MODE
-        printf("Type: %s %u %u %u\n\n", type->name, type->pixel_bytes, type->brt_bits, (uint32_t)type->init);
+//        printf("Type: %s %u %u %u\n\n", type->name, type->pixel_bytes, type->brt_bits, (uint32_t)type->init);
 #endif
     }
 
@@ -458,7 +456,7 @@ esp_err_t ledstrip_add_strip(LEDSTRIP_h strip, ledstrip_init_t *init) {
         strip_mem_len += (type->end_len);
     
 #ifdef DEBUG_MODE
-        ESP_LOGI(LS_TAG, "Assigning %u heap bytes for strip memory", strip_mem_len);
+        ESP_LOGI(LS_TAG, "Assigning %lu heap bytes for strip memory", strip_mem_len);
 #endif
         mem_flags = 0;
 
@@ -484,7 +482,7 @@ esp_err_t ledstrip_add_strip(LEDSTRIP_h strip, ledstrip_init_t *init) {
             memset(strip_ptr, 0, sizeof(uint8_t) * strip_mem_len);
 
             if(type->start_len > 0) {
-                memset(strip_ptr, type->start_byte, sizeof(uint8_t)*type->start_len);
+                memset(strip_ptr, type->start_byte, (sizeof(uint8_t) * type->start_len));
             }
         
             /** only write the end bytes if they're not zero **/

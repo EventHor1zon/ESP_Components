@@ -20,10 +20,12 @@
 *
 ****************************************/
 
+
+
 /********* Includes *******************/
 #include <string.h>
-#include "LedStrip_Driver.h"
-#include "LedEffects.h"
+#include "inc/LedStrip_Driver.h"
+#include "inc/LedEffects.h"
 #include "Utilities.h"
 
 #include "esp_log.h"
@@ -234,7 +236,6 @@ void lfx_soft_glow(LEDSTRIP_h strip) {
 
 /**
  *  update led funciton pointer
- *  TODO: make esp_err_t type
  */
 esp_err_t lfx_set_mode(LEDSTRIP_h strip, ledEffect_t effect) {
     
@@ -246,21 +247,21 @@ esp_err_t lfx_set_mode(LEDSTRIP_h strip, ledEffect_t effect) {
 
     if(effect == LED_EFFECT_OFF) {
         strip->fx.colour = 0x00000000;
-        strip->fx.func = &lfx_single_colour;
+        strip->fx.func = (effect_fn *)&lfx_single_colour;
     }
     else if (effect == LED_EFFECT_SINGLE_COLOUR) {
         ESP_LOGI("FX", "Got sc req");
-        strip->fx.func = &lfx_single_colour;
+        strip->fx.func = (effect_fn *)&lfx_single_colour;
         strip->fx.frame_time = 1000;
     }
     else if (effect == LED_EFFECT_NIGHTRIDER) {
         ESP_LOGI("FX", "Got nr req");
-        strip->fx.func = &lfx_nightrider;
+        strip->fx.func = (effect_fn *)&lfx_nightrider;
         strip->fx.frame_time = 500;
 
     } else if (effect == LED_EFFECT_SLOW_FADE) {
         ESP_LOGI("FX", "Got sf req");
-        strip->fx.func = &lfx_soft_glow;
+        strip->fx.func = (effect_fn *)&lfx_soft_glow;
         strip->fx.frame_time = 50;
     }
     else {

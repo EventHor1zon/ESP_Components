@@ -378,9 +378,9 @@ typedef bm_controlData_t * BM_DEV;
  *  \return pointer to device handle, or NULL
 */
 #ifdef CONFIG_DRIVERS_USE_HEAP
-BM_DEV bm280_init(bm_initData_t *initData)
+BM_DEV bm280_init(bm_initData_t *initData);
 #else
-BM_DEV bm280_init(BM_DEV bmCtrl, bm_initData_t *initData)
+BM_DEV bm280_init(BM_DEV bmCtrl, bm_initData_t *initData);
 #endif
 
 

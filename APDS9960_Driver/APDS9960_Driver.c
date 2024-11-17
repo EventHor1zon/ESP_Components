@@ -20,9 +20,11 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "genericCommsDriver.h"
+#include "GenericCommsDriver.h"
 
+#include <stdint.h>
 #include <string.h>
+#include <sys/types.h>
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
 const parameter_t apds_parameter_map[apds_param_len] = {
@@ -227,6 +229,8 @@ IRAM_ATTR void apds_intr_handler(void *args)
 
 /****** Private Functions *************/
 
+
+
 /** Sets the BITS in mask **/
 static esp_err_t regSetMask(APDS_DEV dev, uint8_t regaddr, uint8_t mask)
 {
@@ -381,7 +385,6 @@ esp_err_t apds_detect_swipe_dir(APDS_DEV dev)
         }
 
         ESP_LOGI(APDS_TAG, "Processing %u measurements to determine swipe direction", num_measures);
-        showmem(direction_bias, num_measures);
 
         for (uint8_t i = 0; i < 2; i++) {
             if (i == 0) {
@@ -534,12 +537,11 @@ static void apds_driver_task(void *args)
 {
     APDS_DEV dev;
     uint32_t notify = 0;
-    uint8_t pkts = 0;
     uint8_t byte = 0;
     esp_err_t err = ESP_OK;
 
     while (1) {
-        if (xTaskNotifyWait(0, UINT32_MAX, &notify, pdMT_TO_TICKS(1000)) == pdPASS) {
+        if (xTaskNotifyWait(0, UINT32_MAX, &notify, pdMS_TO_TICKS(1000)) == pdPASS) {
             /* retrieve the driver handle from the notification value */
             dev = (adps_handle_t *)notify;
 
@@ -685,7 +687,7 @@ esp_err_t apds_get_pwr_on_status(APDS_DEV dev, uint8_t *on)
 esp_err_t apds_set_pwr_on_status(APDS_DEV dev, uint8_t *on)
 {
     esp_err_t err = ESP_OK;
-    uint8_t val = *on, regval = 0;
+    uint8_t val = *on;
 
     if (val) {
         err = regSetMask(dev, APDS_REGADDR_ENABLE, APDS_REGBIT_PWR_ON);
@@ -723,7 +725,7 @@ esp_err_t apds_set_proximity_status(APDS_DEV dev, uint8_t *on)
 
 esp_err_t apds_get_als_status(APDS_DEV dev, uint8_t *on)
 {
-    *on = dev->als_settings.asl_en;
+    *on = dev->als_settings.als_en;
     return ESP_OK;
 }
 
@@ -738,7 +740,7 @@ esp_err_t apds_set_als_status(APDS_DEV dev, uint8_t *on)
     }
 
     if (!err) {
-        dev->als_settings.asl_en = (val) ? 1 : 0;
+        dev->als_settings.als_en = (val) ? 1 : 0;
     }
     return err;
 }
@@ -1362,7 +1364,7 @@ esp_err_t apds_set_sleep_after_intr(APDS_DEV dev, uint8_t *en)
 
 esp_err_t apds_get_als_intr(APDS_DEV dev, uint8_t *en)
 {
-    *en = dev->als_settings.asl_intr_en;
+    *en = dev->als_settings.als_intr_en;
     return ESP_OK;
 }
 
@@ -1378,7 +1380,7 @@ esp_err_t apds_set_als_intr(APDS_DEV dev, uint8_t *en)
     }
 
     if (!err) {
-        dev->als_settings.asl_intr_en = (val) ? 1 : 0;
+        dev->als_settings.als_intr_en = (val) ? 1 : 0;
     }
     return err;
 }

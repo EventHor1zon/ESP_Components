@@ -18,7 +18,7 @@
 #include "esp_log.h"
 #include "esp_heap_caps.h"
 #include "Utilities.h"
-#include "genericCommsDriver.h"
+#include "GenericCommsDriver.h"
 #include "FutabaVFD_Driver.h"
 #include "driver/spi_common.h"
 #include "driver/spi_master.h"

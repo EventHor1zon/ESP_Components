@@ -33,7 +33,7 @@
 #include "esp_types.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "genericCommsDriver.h"
+#include "GenericCommsDriver.h"
 
 #include <math.h>
 #include <string.h>

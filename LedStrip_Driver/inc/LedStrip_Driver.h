@@ -246,8 +246,8 @@ typedef struct
  *  @brief  array holding the configuration info for 
  *          supported led types
  */
-const ledtype_t ledstrip_types[2];
-const uint8_t led_type_n;
+const extern ledtype_t ledstrip_types[2];
+const extern uint8_t led_type_n;
 
 
 

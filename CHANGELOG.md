@@ -14,3 +14,7 @@
     - clean up multiple drivers
     - enable build flag for heap-based driver handles
     - docs & readmes
+
+- v0.1.1: Alpha 2
+    - give drivers own folders, CMakeLists.txt
+    - add sdk config options for drivers

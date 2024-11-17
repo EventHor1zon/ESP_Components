@@ -13,7 +13,7 @@
 #include "esp_err.h"
 #include "esp_log.h"
 #include "esp_heap_caps.h"
-#include "genericCommsDriver.h"
+#include "GenericCommsDriver.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"

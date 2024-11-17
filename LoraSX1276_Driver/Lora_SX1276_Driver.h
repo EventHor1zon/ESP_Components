@@ -877,7 +877,7 @@ esp_err_t sx_set_rx_payload_crc_en(SX1276_DEV dev, bool *en);
 
 esp_err_t sx_get_low_datarate_optimise(SX1276_DEV dev,  bool *en);
 
-esp_err_t sx_get_low_datarate_optimise(SX1276_DEV dev,  bool *en);
+esp_err_t sx_set_low_datarate_optimise(SX1276_DEV dev,  bool *en);
 
 /**
  *  \brief Gets the device AGC Auto Enabled

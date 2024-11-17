@@ -1,0 +1,15 @@
+menu "Lora SX2876"
+
+    config CONFIG_LORASX_ENABLE_FSK
+        bool "Enable FSK radio"
+        default FALSE
+        help
+            "Compile functions for FSK radio mode"
+
+    config CONFIG_LORASX_SPI_DEBUG
+        bool "Enable SPI debug output"
+        default FALSE
+        help
+            "Enable spi debug output messages"
+
+endmenu

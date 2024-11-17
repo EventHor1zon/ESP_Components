@@ -22,7 +22,7 @@
 #include "esp_log.h"
 #include "driver/gpio.h"
 
-#include "genericCommsDriver.h"
+#include "GenericCommsDriver.h"
 #include "HMC5883_Driver.h"
 #include "Utilities.h"
 

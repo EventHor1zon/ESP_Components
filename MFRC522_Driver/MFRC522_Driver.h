@@ -17,7 +17,7 @@
 #include "esp_err.h"
 #include "esp_log.h"
 #include "Utilities.h"
-#include "genericCommsDriver.h"
+#include "GenericCommsDriver.h"
 #include "driver/gpio.h"
 
 /********* Definitions *****************/

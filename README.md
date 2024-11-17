@@ -11,13 +11,9 @@ Each driver is written using ESP-IDF and FreeRTOS v9(?).
 Each driver follows a basic pattern
 
 - Each driver has a task. Task should wait on input from queue or notification. Let users implement polling approaches.
-- Each driver has an init function which should take a pointer to an init structure and return a handle to the driver structure or NULL
-- Each driver should have an option to store handle on the heap. Using stack always better but some of these handles are 
-    pretty chunky and the ESP32 has a lot of heap. Plus these handles are not really designed with re-use in mind
-- Each driver controls a single device (lookin at you, WS2812b driver!)
 - Each driver has a set of public Getter/Setter functions, which take as arguments
 a device handle and a pointer to a value (set) or value storage (get)
-- Each driver contains a map of parameters for use with my peripheral manager (see ESPHome for more deets)
+- Each driver contains a map of parameters for use with Peripheral Manager
 - Each driver should have a TaskHandle for notifications
 
 
@@ -61,9 +57,12 @@ Some of these drivers built with inspiration or borrowed sections from other's c
 
 - Driver handles are chunky and drivers are often disorganised and bloated. Slim them down!
 - Refactor drivers with simplicity in mind. Event/Interrupt based task actions. Let users implement polling if neccesary.
+    - As an extension of this, have direct drivers with no tasks, unless async tasks required? Could do a separate C implementation instead?
+
 - Replace all driver heap allocation with stack where possible. Also consider enabling heap with preprocessor config _DONE_
 - Any number of driver instances will use a single task so remember to keep tasks state-agnostic and rely on the handle
     - this may involve replacing task notifications with message queues in order to pass the driver handle to the task
+        - see, this is getting messier. KISS.
 - Also remember that the task only needs to be initialised ONCE. Check for running task?
 - TaskHandle_t task can be static to the driver file
 - Careful with task operations like sleep/standby etc!

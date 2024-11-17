@@ -54,7 +54,6 @@
 #include "Lora_SX1276_Driver.h"
 #include "Utilities.h"
 
-// #define SPI_DEBUG 1
 
 #ifdef CONFIG_USE_PERIPH_MANAGER
 
@@ -249,7 +248,7 @@ static esp_err_t sx_read_address_byte(SX1276_DEV dev, uint8_t addr, uint8_t *byt
         ESP_LOGE(LORA_TAG, "Error performing SPI transaction! [%u]", err);
     }
     else {
-#ifdef SPI_DEBUG
+#ifdef CONFIG_LORASX_SPI_DEBUG
         ESP_LOGI(LORA_TAG, "Read the following data: 0x%02x 0x%02x", trx.rx_data[0], trx.rx_data[1]);
 #endif
         *byte = trx.rx_data[1];
@@ -276,7 +275,7 @@ static esp_err_t sx_write_address_byte(SX1276_DEV dev, uint8_t addr, uint8_t byt
     if(err != ESP_OK) {
         ESP_LOGE(LORA_TAG, "Error performing SPI transaction! [%u]", err);
     }
-#ifdef SPI_DEBUG
+#ifdef CONFIG_LORASX_SPI_DEBUG
     else {
         ESP_LOGI(LORA_TAG, "Read the following data: 0x%02x 0x%02x", trx.rx_data[0], trx.rx_data[1]);
     }
@@ -332,7 +331,7 @@ static esp_err_t sx_spi_read_fifo_data(SX1276_DEV dev, uint8_t addr, uint8_t *bu
     if(err != ESP_OK) {
         ESP_LOGE(LORA_TAG, "Error performing SPI transaction! [%u]", err);
     }
-#ifdef SPI_DEBUG
+#ifdef CONFIG_LORASX_SPI_DEBUG
     else {
         printf("\n");
         showmem(buffer, len);
@@ -394,7 +393,7 @@ static esp_err_t sx_spi_read_tx_fifo_data(SX1276_DEV dev, uint8_t *buffer, uint8
     if(err != ESP_OK) {
         ESP_LOGE(LORA_TAG, "Error performing SPI transaction! [%u]", err);
     }
-#ifdef SPI_DEBUG
+#ifdef CONFIG_LORASX_SPI_DEBUG
     else {
         printf("\n");
         showmem(buffer, len);
@@ -423,16 +422,16 @@ static esp_err_t sx_spi_read_mod_write_mask(SX1276_DEV dev, uint8_t addr, uint8_
         if((reg & mask) != data) {
             reg &= ~(mask);
             reg |= data;
-#ifdef SPI_DEBUG
+#ifdef CONFIG_LORASX_SPI_DEBUG
             ESP_LOGI(LORA_TAG, "Writing value 0x%02x to register %02x", reg, addr);
-#endif /** SPI_DEBUG **/
+#endif /** CONFIG_LORASX_SPI_DEBUG **/
             err = sx_write_address_byte(dev, addr, reg);
         }
-#ifdef SPI_DEBUG
+#ifdef CONFIG_LORASX_SPI_DEBUG
         else {
             ESP_LOGI(LORA_TAG, "Not writing to register - curr: %02x, data: %02x", reg, data);
         }
-#endif /** SPI_DEBUG **/
+#endif /** CONFIG_LORASX_SPI_DEBUG **/
     }
 
     /** store the new register value **/
@@ -573,7 +572,6 @@ static void wait_tx_done(SX1276_DEV dev) {
     uint32_t ctr = 0;
     uint8_t reg = 0;
     while(1) {
-        printf("Waiting tx [%02x]\n", ctr);
         sx_read_address_byte(dev, SX1276_REGADDR_IRQ_FLAGS, &reg);
         if(reg & SX1276_PKT_SENT_BIT) {
             printf("Pkt sent!\n\n");
@@ -622,7 +620,7 @@ static void sx1276_driver_task(void *args) {
             ESP_LOGI(LORA_TAG, "Waiting for interrupt...");
             notify = ulTaskNotifyTake(pdFALSE, pdMS_TO_TICKS(1000));
             if(notify) {
-                ESP_LOGI(LORA_TAG, "Received Interrupt!!!!!!!!: %u", notify);
+                ESP_LOGI(LORA_TAG, "Received Interrupt!!!!!!!!: %lu", notify);
 
                 read_interrupts(dev, &reg);
                 ESP_LOGI(LORA_TAG, "ISR Register: ");
@@ -1407,10 +1405,10 @@ esp_err_t sx_lora_transmit_data(SX1276_DEV dev, uint8_t *data, uint8_t len) {
     }
 
     /** load the data into the fifo **/
-#ifdef SPI_DEBUG
+#ifdef CONFIG_LORASX_SPI_DEBUG
     ESP_LOGI(LORA_TAG, "Sending Following data to the fifo buffer: ");
     showmem(data, len);
-#endif /** SPI_DEBUG **/
+#endif /** CONFIG_LORASX_SPI_DEBUG **/
     
     err = sx_spi_write_fifo_data(dev, data, len);
 

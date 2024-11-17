@@ -78,6 +78,15 @@ uint8_t unset_bits(uint8_t byte, uint8_t unset) {
     return (byte & ~(unset));
 }
 
+
+void replaceBits(uint8_t *data, uint8_t clear_mask, uint8_t set_mask)
+{
+    uint8_t a = *data;
+    a &= ~(clear_mask);
+    a |= set_mask;
+    *data = a;
+}
+
 uint8_t largest_from_array(uint8_t *array, uint8_t len) {
 
     uint8_t max = array[0];

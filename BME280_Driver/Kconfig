@@ -1,0 +1,11 @@
+menu "BM280 Driver"
+
+    config BME_280
+        bool "Enable BME280 Functions"
+        default y
+        help
+            Build the driver with support for BME280 rather
+            than the BMP280. This adds functions to measure
+             humidity.
+
+endmenu

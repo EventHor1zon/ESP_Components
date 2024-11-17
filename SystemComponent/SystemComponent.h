@@ -15,8 +15,6 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/timers.h"
 
-#include "device_config.h"
-
 #include "driver/gpio.h"
 
 /********* Definitions *****************/

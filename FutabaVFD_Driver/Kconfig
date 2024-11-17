@@ -1,0 +1,16 @@
+menu "Futaba VFD Driver"
+    
+    config CONFIG_FVFDRIVER_DISPLAY_HEIGHT
+        int "Display height"
+        default 1
+        help
+            "Number of rows of segments. This 
+            driver only supports 1 row I think."
+
+    config CONFIG_FVFD_DISPLAY_WIDTH
+        int "Display Width"
+        default 8
+        help
+            "Currently only 8 and 16 segments are supported"
+
+endmenu

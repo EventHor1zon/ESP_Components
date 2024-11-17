@@ -11,7 +11,7 @@
 /********* Includes ********************/
 
 #include "esp_types.h"
-#include "genericCommsDriver.h"
+#include "GenericCommsDriver.h"
 #include "esp_log.h"
 #include "esp_err.h"
 #include "driver/gpio.h"

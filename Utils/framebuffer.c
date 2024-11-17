@@ -41,7 +41,7 @@
 #include "freertos/semphr.h"
 #include "freertos/timers.h"
 
-#include "framebuffer.h"
+#include "./inc/framebuffer.h"
 #include "Utilities.h"
 #include "math.h"
 
@@ -208,7 +208,7 @@ void framebuff_draw_circle_xsteps(FB_h fb, coord_t *centre, uint8_t radius) {
         } 
         else {
 #ifdef DEBUG_MODE
-            printf("Iter %u: p->x (%d) p->y (%d)  --  np->x (%d) np->y (%d)\n", i, p.x, p.y, np.x, np.y);
+            printf("Iter %lu: p->x (%d) p->y (%d)  --  np->x (%d) np->y (%d)\n", i, p.x, p.y, np.x, np.y);
 #endif /* DEBUG_MODE */
             memcpy(&plast, &p, sizeof(coord_t));
             PIXEL_SET_BIT_CARTESIAN(fb, p.x, p.y);

@@ -33,7 +33,7 @@
 #include "esp_heap_caps.h"
 
 #include "Max30102_Driver.h"
-#include "genericCommsDriver.h"
+#include "GenericCommsDriver.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 

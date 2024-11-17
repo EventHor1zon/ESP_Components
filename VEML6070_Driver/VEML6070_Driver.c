@@ -12,7 +12,7 @@
 #include "VEML6070_Driver.h"
 
 #include "esp_types.h"
-#include "genericCommsDriver.h"
+#include "GenericCommsDriver.h"
 #include "esp_log.h"
 #include "esp_err.h"
 

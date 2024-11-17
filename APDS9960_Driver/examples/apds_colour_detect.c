@@ -14,12 +14,11 @@
 #include "nvs_flash.h"
 #include "sdkconfig.h"
 
-#include "genericCommsDriver.h"
+#include "GenericCommsDriver.h"
 
 #include "main.h"
 #include "esp_log.h"
 #include "WifiDriver.h"
-#include "device_config.h"
 #include "PeripheralManager.h"
 #include "Utilities.h"
 #include "LSM_Driver.h"

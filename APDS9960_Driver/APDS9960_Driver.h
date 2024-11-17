@@ -334,9 +334,9 @@ typedef struct APDS9960_Data {
  */
 typedef struct APDS9960_ALS_Settings {
     /* data */
-    bool asl_en;            /**!< ALS enabled **/
+    bool als_en;            /**!< ALS enabled **/
     bool clr_diode_satr_en; /**!< enable clear diode saturation ?? **/
-    bool asl_intr_en;       /**!< enable ALS to generate interrupt **/
+    bool als_intr_en;       /**!< enable ALS to generate interrupt **/
     uint8_t als_gain;       /**!< ALS measurement gain **/
     uint8_t als_persist;    /**!< ALS exit persistence **/
     uint8_t adc_intg_time;  /**!< the ALS ADC intergration time **/

@@ -1,0 +1,9 @@
+menu "APDS9960 Driver Config"
+
+    config RANDOM_OPTION_HERE
+        bool "random option"
+        default FALSE
+        help
+            "Wonder if this works?"
+
+endmenu

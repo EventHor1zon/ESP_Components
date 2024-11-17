@@ -9,6 +9,8 @@
 ****************************************/
 
 /********* Includes *******************/
+#include <string.h>
+
 #include "esp_err.h"
 #include "esp_log.h"
 #include "esp32/rom/ets_sys.h"

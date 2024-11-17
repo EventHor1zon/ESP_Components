@@ -39,7 +39,7 @@
 #include "esp_err.h"
 #include "esp_log.h"
 #include "Utilities.h"
-#include "genericCommsDriver.h"
+#include "GenericCommsDriver.h"
 #include "esp_heap_caps.h"
 #include "driver/spi_common.h"
 #include "driver/spi_master.h"
